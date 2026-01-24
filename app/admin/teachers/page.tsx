@@ -7,7 +7,6 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { MultilangInput } from '@/components/ui/MultilangInput';
 
 export default function TeachersPage() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -15,11 +14,10 @@ export default function TeachersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
     const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
-        image_url: '',
-        profession: { uz: '', ru: '', en: '' },
-        bio: { uz: '', ru: '', en: '' },
+        name: '',
+        login: '',
+        phone_number: '',
+        password: '',
     });
 
     useEffect(() => {
@@ -40,11 +38,10 @@ export default function TeachersPage() {
     const handleCreate = () => {
         setEditingTeacher(null);
         setFormData({
-            first_name: '',
-            last_name: '',
-            image_url: '',
-            profession: { uz: '', ru: '', en: '' },
-            bio: { uz: '', ru: '', en: '' },
+            name: '',
+            login: '',
+            phone_number: '',
+            password: '',
         });
         setIsModalOpen(true);
     };
@@ -52,11 +49,10 @@ export default function TeachersPage() {
     const handleEdit = (teacher: Teacher) => {
         setEditingTeacher(teacher);
         setFormData({
-            first_name: teacher.first_name,
-            last_name: teacher.last_name,
-            image_url: teacher.image_url || '',
-            profession: teacher.profession || { uz: '', ru: '', en: '' },
-            bio: teacher.bio || { uz: '', ru: '', en: '' },
+            name: teacher.name,
+            login: teacher.login,
+            phone_number: teacher.phone_number,
+            password: '', // Password not editable directly or leave empty to keep same if backend supports
         });
         setIsModalOpen(true);
     };
@@ -77,6 +73,7 @@ export default function TeachersPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Sending teacher data:', formData);
 
         try {
             if (editingTeacher) {
@@ -86,9 +83,10 @@ export default function TeachersPage() {
             }
             setIsModalOpen(false);
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save teacher:', error);
-            alert('Failed to save teacher');
+            const message = error?.response?.data?.message || error?.message || 'Failed to save teacher';
+            alert(`Error: ${message}`);
         }
     };
 
@@ -97,12 +95,17 @@ export default function TeachersPage() {
         {
             key: 'name',
             header: 'Name',
-            render: (item: Teacher) => `${item.first_name} ${item.last_name}`
+            render: (item: Teacher) => item.name
         },
         {
-            key: 'profession',
-            header: 'Profession',
-            render: (item: Teacher) => item.profession?.en || item.profession?.uz || item.profession?.ru || '-'
+            key: 'login',
+            header: 'Login',
+            render: (item: Teacher) => item.login
+        },
+        {
+            key: 'phone_number',
+            header: 'Phone Number',
+            render: (item: Teacher) => item.phone_number
         },
         {
             key: 'actions',
@@ -140,32 +143,32 @@ export default function TeachersPage() {
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="First Name"
-                        value={formData.first_name}
-                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                        label="Name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
                     />
                     <Input
-                        label="Last Name"
-                        value={formData.last_name}
-                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                        label="Login"
+                        value={formData.login}
+                        onChange={(e) => setFormData({ ...formData, login: e.target.value })}
                         required
                     />
                     <Input
-                        label="Image URL"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                        label="Phone Number"
+                        value={formData.phone_number}
+                        onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                        required
                     />
-                    <MultilangInput
-                        label="Profession"
-                        value={formData.profession}
-                        onChange={(profession) => setFormData({ ...formData, profession })}
-                    />
-                    <MultilangInput
-                        label="Bio"
-                        value={formData.bio}
-                        onChange={(bio) => setFormData({ ...formData, bio })}
-                    />
+                    {!editingTeacher && (
+                        <Input
+                            label="Password"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            required
+                        />
+                    )}
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
                             Cancel

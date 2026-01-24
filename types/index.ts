@@ -25,21 +25,19 @@ type DateString = string; // ISO 8601
 
 // ─── AUTHENTICATION ─────────────────────
 export interface LoginReq {
-  phone: string;
-  password?: string; // Admin login likely needs password
+  login: string;
+  password: string;
 }
 
 export interface TokenRes {
   access_token: string;
   refresh_token: string;
+  id: string;
+  role: string;
 }
 
-export interface AuthResponse {
-  token: string; // Keeping for backward compat if needed, but preferable to use TokenRes structure if API returns object
-  // Based on "returns access_token and refresh_token", usually:
-  access_token: string;
-  refresh_token: string;
-  user?: User; // Sometimes login returns user info
+export interface AuthResponse extends TokenRes {
+  // Keeping interface consistent with TokenRes
 }
 
 export interface PasswordChangeReq {
@@ -65,11 +63,18 @@ export type AboutUpdateBody = Partial<AboutCreateBody>;
 export interface Contact {
   id: ID;
   name: string;
-  phone: string;
-  message: string;
+  phone_number: string;
+  link_url?: string;
   created_at: DateString;
-  is_read?: boolean; // Common field, may need check
+  updated_at: DateString;
 }
+
+export interface ContactCreateBody {
+  name: string;
+  phone_number: string;
+  link_url?: string;
+}
+export type ContactUpdateBody = Partial<ContactCreateBody>;
 
 // ─── FAQ ────────────────────────────────
 export interface FAQ {
@@ -89,7 +94,7 @@ export interface Banner {
   id: ID;
   title: MultilangText;
   description: MultilangText;
-  image_url: string; // Assuming string URL, not MultilangText for image unless specified
+  image_url: MultilangText; // Image URL is now multilingual
   link_url?: string;
   order_num: number;
   created_at: DateString;
@@ -115,25 +120,26 @@ export type SubjectUpdateBody = Partial<SubjectCreateBody>;
 // ─── TEACHER ─────────────────────────────
 export interface Teacher {
   id: ID;
-  first_name: string;
-  last_name: string;
-  image_url?: string;
-  bio?: MultilangText;
-  profession?: MultilangText; // "Doctor", "Professor" etc.
+  name: string;
+  login: string;
+  phone_number: string;
   created_at: DateString;
   updated_at: DateString;
 }
 
-export type TeacherCreateBody = Omit<Teacher, 'id' | 'created_at' | 'updated_at'>;
+export interface TeacherCreateBody extends Omit<Teacher, 'id' | 'created_at' | 'updated_at'> {
+  password: string;
+}
 export type TeacherUpdateBody = Partial<TeacherCreateBody>;
 
+// ─── SOURCE ──────────────────────────────
 // ─── SOURCE ──────────────────────────────
 export interface Source {
   id: ID;
   lesson_id: ID;
-  title: MultilangText;
-  link_url: string; // Video URL, PDF link etc.
-  type: string; // 'video', 'pdf', 'article'
+  name: MultilangText;
+  url: MultilangText; // Multilingual URL
+  type: 'video' | 'document' | 'test'; // Strict enums
   order_num: number;
   created_at: DateString;
   updated_at: DateString;
@@ -143,11 +149,16 @@ export type SourceCreateBody = Omit<Source, 'id' | 'created_at' | 'updated_at'>;
 export type SourceUpdateBody = Partial<SourceCreateBody>;
 
 // ─── COURSE ──────────────────────────────
+export interface CoursePriceOption {
+  duration: number;
+  price: number;
+}
+
 export interface Course {
   id: ID;
-  title: MultilangText;
+  name: MultilangText;
   description: MultilangText;
-  price: MultilangText;
+  price: CoursePriceOption[];
   old_price?: number;
   image_url: string;
   subject_id: ID; // Link to Subject
@@ -176,7 +187,7 @@ export interface CoursePermission {
 export interface Module {
   id: ID;
   course_id: ID;
-  title: MultilangText;
+  name: MultilangText;
   description?: MultilangText;
   order_num: number;
   created_at: DateString;
@@ -190,9 +201,8 @@ export type ModuleUpdateBody = Partial<ModuleCreateBody>;
 export interface Lesson {
   id: ID;
   module_id: ID;
-  title: MultilangText;
-  content?: string; // HTML content or description
-  video_url?: string;
+  name: MultilangText;
+  type: 'lesson' | 'test';
   duration?: number; // seconds
   order_num: number;
   is_free: boolean; // Preview allowed?
@@ -235,6 +245,7 @@ export interface UserActivity {
 // ─── NOTIFICATION ────────────────────────
 export interface Notification {
   id: ID;
+  course_id?: ID;
   title: MultilangText;
   message: MultilangText;
   type: string;

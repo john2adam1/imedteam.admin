@@ -26,10 +26,11 @@ export function MultilangInput({
   error,
 }: MultilangInputProps) {
   const [activeTab, setActiveTab] = useState<'uz' | 'ru' | 'en'>('uz');
+  const safeValue = value || { uz: '', ru: '', en: '' };
 
   const handleChange = (lang: 'uz' | 'ru' | 'en', text: string) => {
     onChange({
-      ...value,
+      ...safeValue,
       [lang]: text,
     });
   };
@@ -50,7 +51,7 @@ export function MultilangInput({
         <TabsContent value="uz">
           <input
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={value.uz}
+            value={safeValue.uz || ''}
             onChange={(e) => handleChange('uz', e.target.value)}
             placeholder={placeholder?.uz}
             required={required && activeTab === 'uz'}
@@ -59,7 +60,7 @@ export function MultilangInput({
         <TabsContent value="ru">
           <input
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={value.ru}
+            value={safeValue.ru || ''}
             onChange={(e) => handleChange('ru', e.target.value)}
             placeholder={placeholder?.ru}
             required={required && activeTab === 'ru'}
@@ -68,7 +69,7 @@ export function MultilangInput({
         <TabsContent value="en">
           <input
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            value={value.en}
+            value={safeValue.en || ''}
             onChange={(e) => handleChange('en', e.target.value)}
             placeholder={placeholder?.en}
             required={required && activeTab === 'en'}

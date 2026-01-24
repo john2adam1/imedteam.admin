@@ -31,7 +31,7 @@ export default function CourseDetailPage() {
   const [formData, setFormData] = useState({
     course_id: courseId,
     order_num: 1,
-    title: { uz: '', ru: '', en: '' },
+    name: { uz: '', ru: '', en: '' },
     description: { uz: '', ru: '', en: '' },
   });
 
@@ -69,7 +69,7 @@ export default function CourseDetailPage() {
     setFormData({
       course_id: courseId,
       order_num: modules.length + 1,
-      title: { uz: '', ru: '', en: '' },
+      name: { uz: '', ru: '', en: '' },
       description: { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
@@ -80,7 +80,7 @@ export default function CourseDetailPage() {
     setFormData({
       course_id: module.course_id,
       order_num: module.order_num,
-      title: module.title,
+      name: module.name,
       description: module.description || { uz: '', ru: '', en: '' }, // Handle optional description
     });
     setIsModalOpen(true);
@@ -131,8 +131,8 @@ export default function CourseDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject.name.en || subject.name.uz || subject.name.ru, href: `/admin/subjects/${subjectId}` },
-    { label: course.title.en || course.title.uz || course.title.ru },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course' },
   ];
 
   return (
@@ -142,14 +142,14 @@ export default function CourseDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {course.title.en || course.title.uz || course.title.ru}
+            {course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {course.description.en || course.description.uz || course.description.ru}
+            {course?.description?.en || course?.description?.uz || course?.description?.ru || ''}
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <Badge variant={course.is_active ? 'success' : 'secondary'}>
-              {course.is_active ? 'Active' : 'Inactive'}
+            <Badge variant={course?.is_active ? 'success' : 'secondary'}>
+              {course?.is_active ? 'Active' : 'Inactive'}
             </Badge>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function CourseDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {module.title.en || module.title.uz || module.title.ru}
+                              {module.name?.en || module.name?.uz || module.name?.ru || 'Untitled Module'}
                             </h3>
                           </Link>
                         </div>
@@ -226,9 +226,9 @@ export default function CourseDetailPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Title"
-            value={formData.title}
-            onChange={(title) => setFormData({ ...formData, title })}
+            label="Name"
+            value={formData.name}
+            onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <MultilangInput

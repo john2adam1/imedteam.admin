@@ -6,6 +6,7 @@ import { bannerService } from '@/services/banner.service';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 
 export default function BannersPage() {
@@ -14,12 +15,12 @@ export default function BannersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
 
-  // Using simple strings for UI, converting to MultilangText on save
+  // Using objects for multilingual support
   const [formData, setFormData] = useState({
-    image_url: '',
+    image_url: { uz: '', ru: '', en: '' },
     link_url: '',
-    title: '',
-    description: '',
+    title: { uz: '', ru: '', en: '' },
+    description: { uz: '', ru: '', en: '' },
   });
 
   useEffect(() => {
@@ -39,7 +40,12 @@ export default function BannersPage() {
 
   const handleCreate = () => {
     setEditingBanner(null);
-    setFormData({ image_url: '', link_url: '', title: '', description: '' });
+    setFormData({
+      image_url: { uz: '', ru: '', en: '' },
+      link_url: '',
+      title: { uz: '', ru: '', en: '' },
+      description: { uz: '', ru: '', en: '' }
+    });
     setIsModalOpen(true);
   };
 
@@ -48,8 +54,8 @@ export default function BannersPage() {
     setFormData({
       image_url: banner.image_url,
       link_url: banner.link_url || '',
-      title: banner.title.uz || banner.title.en || '', // Pick one for display/edit
-      description: banner.description.uz || banner.description.en || '',
+      title: banner.title,
+      description: banner.description,
     });
     setIsModalOpen(true);
   };
@@ -74,8 +80,8 @@ export default function BannersPage() {
     const bannerData = {
       image_url: formData.image_url,
       link_url: formData.link_url,
-      title: { uz: formData.title, en: formData.title, ru: formData.title }, // Replicating for all langs
-      description: { uz: formData.description, en: formData.description, ru: formData.description },
+      title: formData.title,
+      description: formData.description,
       order_num: 1, // Default
     };
 
@@ -99,13 +105,13 @@ export default function BannersPage() {
       key: 'image_url',
       header: 'Image',
       render: (item: Banner) => (
-        <img src={item.image_url} alt="Banner" className="w-20 h-12 object-cover" />
+        <img src={item.image_url.en || item.image_url.uz || item.image_url.ru} alt="Banner" className="w-20 h-12 object-cover" />
       ),
     },
     {
       key: 'title',
       header: 'Title',
-      render: (item: Banner) => item.title.uz || item.title.en
+      render: (item: Banner) => item.title.en || item.title.uz || item.title.ru
     },
     { key: 'link_url', header: 'Link' },
     {
@@ -139,22 +145,26 @@ export default function BannersPage() {
         title={editingBanner ? 'Edit Banner' : 'Create Banner'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
+  // Import MultilangInput at the top if not imported, or make sure to import it
+          // Assuming it is imported based on project structure
+
+          // ... (inside the form)
+          <MultilangInput
             label="Title"
             value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            onChange={(title) => setFormData({ ...formData, title })}
             required
           />
-          <Input
+          <MultilangInput
             label="Description"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(description) => setFormData({ ...formData, description })}
             required
           />
-          <Input
+          <MultilangInput
             label="Image URL"
             value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+            onChange={(image_url) => setFormData({ ...formData, image_url })}
             required
           />
           <Input

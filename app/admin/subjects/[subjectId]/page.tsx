@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Subject, Course, Teacher } from '@/types';
+import { Subject, Course, Teacher, CoursePriceOption } from '@/types';
 import { subjectService } from '@/services/subject.service';
 import { courseService } from '@/services/course.service';
 import { teacherService } from '@/services/teacher.service';
@@ -29,14 +29,23 @@ export default function SubjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    subject_id: string;
+    teacher_id: string;
+    image_url: string;
+    is_active: boolean;
+    order_num: number;
+    price: CoursePriceOption[];
+    name: { uz: string; ru: string; en: string };
+    description: { uz: string; ru: string; en: string };
+  }>({
     subject_id: subjectId,
     teacher_id: '',
     image_url: '',
     is_active: true,
     order_num: 1,
-    price: { uz: '', ru: '', en: '' },
-    title: { uz: '', ru: '', en: '' },
+    price: [],
+    name: { uz: '', ru: '', en: '' },
     description: { uz: '', ru: '', en: '' },
   });
 
@@ -77,8 +86,8 @@ export default function SubjectDetailPage() {
       image_url: '',
       is_active: true,
       order_num: courses.length + 1,
-      price: { uz: '', ru: '', en: '' },
-      title: { uz: '', ru: '', en: '' },
+      price: [],
+      name: { uz: '', ru: '', en: '' },
       description: { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
@@ -92,8 +101,8 @@ export default function SubjectDetailPage() {
       image_url: course.image_url,
       is_active: course.is_active,
       order_num: course.order_num,
-      price: typeof course.price === 'object' ? course.price : { uz: '', ru: '', en: '' },
-      title: course.title,
+      price: Array.isArray(course.price) ? course.price : [],
+      name: course.name,
       description: course.description,
     });
     setIsModalOpen(true);
@@ -149,7 +158,7 @@ export default function SubjectDetailPage() {
 
   const teacherOptions = teachers.map((t) => ({
     value: t.id,
-    label: `${t.first_name} ${t.last_name}`,
+    label: `${t.name} (${t.phone_number})`,
   }));
 
   return (
@@ -194,11 +203,11 @@ export default function SubjectDetailPage() {
                         <div className="flex-1">
                           <Link href={`/admin/subjects/${subjectId}/courses/${course.id}`}>
                             <CardTitle className="hover:text-primary transition-colors cursor-pointer line-clamp-2">
-                              {course.title.en || course.title.uz || course.title.ru}
+                              {course.name?.en || course.name?.uz || course.name?.ru || 'Untitled Course'}
                             </CardTitle>
                           </Link>
                           <CardDescription className="mt-2 line-clamp-2">
-                            {course.description.en || course.description.uz || course.description.ru}
+                            {course.description?.en || course.description?.uz || course.description?.ru || ''}
                           </CardDescription>
                         </div>
                       </div>
@@ -243,8 +252,8 @@ export default function SubjectDetailPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
             label="Name"
-            value={formData.title}
-            onChange={(title) => setFormData({ ...formData, title })}
+            value={formData.name}
+            onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <MultilangInput
@@ -253,13 +262,67 @@ export default function SubjectDetailPage() {
             onChange={(description) => setFormData({ ...formData, description })}
             required
           />
-          <MultilangInput
-            label="Price"
-            value={formData.price}
-            onChange={(price) => setFormData({ ...formData, price })}
-            placeholder={{ uz: 'Narx', ru: 'Цена', en: 'Price' }}
-            required
-          />
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-medium">Price Options</label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setFormData({
+                    ...formData,
+                    price: [...formData.price, { duration: 1, price: 0 }],
+                  });
+                }}
+              >
+                + Add Option
+              </Button>
+            </div>
+            {formData.price.map((option, index) => (
+              <div key={index} className="flex gap-2 items-end mb-2">
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground">Duration (months)</label>
+                  <Input
+                    type="number"
+                    value={option.duration}
+                    onChange={(e) => {
+                      const newPrice = [...formData.price];
+                      newPrice[index].duration = parseInt(e.target.value) || 0;
+                      setFormData({ ...formData, price: newPrice });
+                    }}
+                    placeholder="Months"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-muted-foreground">Price</label>
+                  <Input
+                    type="number"
+                    value={option.price}
+                    onChange={(e) => {
+                      const newPrice = [...formData.price];
+                      newPrice[index].price = parseInt(e.target.value) || 0;
+                      setFormData({ ...formData, price: newPrice });
+                    }}
+                    placeholder="Price"
+                    required
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => {
+                    const newPrice = formData.price.filter((_, i) => i !== index);
+                    setFormData({ ...formData, price: newPrice });
+                  }}
+                >
+                  X
+                </Button>
+              </div>
+            ))}
+          </div>
           <Select
             label="Teacher"
             options={teacherOptions}

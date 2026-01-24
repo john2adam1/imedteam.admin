@@ -30,13 +30,15 @@ export default function ModuleDetailPage() {
   const [module, setModule] = useState<Module | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lessonsLoading, setLessonsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [formData, setFormData] = useState({
     module_id: moduleId,
     duration: 0,
     order_num: 1,
-    title: { uz: '', ru: '', en: '' },
+    name: { uz: '', ru: '', en: '' },
+    type: 'lesson'
   });
 
   useEffect(() => {
@@ -47,11 +49,12 @@ export default function ModuleDetailPage() {
 
   const loadData = async () => {
     try {
-      const [subjectData, courseData, moduleData, lessonsResponse] = await Promise.all([
+      setLoading(true);
+      // Critical data first
+      const [subjectData, courseData, moduleData] = await Promise.all([
         subjectService.getById(subjectId),
         courseService.getById(courseId),
         moduleService.getById(moduleId),
-        lessonService.getAll(moduleId),
       ]);
 
       if (!subjectData || !courseData || !moduleData) {
@@ -62,11 +65,26 @@ export default function ModuleDetailPage() {
       setSubject(subjectData);
       setCourse(courseData);
       setModule(moduleData);
+      setLoading(false);
+
+      // Load lessons separately so page doesn't crash if this fails
+      loadLessons();
+    } catch (error) {
+      console.error('Failed to load critical data:', error);
+      setLoading(false);
+    }
+  };
+
+  const loadLessons = async () => {
+    try {
+      setLessonsLoading(true);
+      const lessonsResponse = await lessonService.getAll(moduleId);
       setLessons(lessonsResponse.data);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('Failed to load lessons:', error);
+      // Optional: show toast/alert here
     } finally {
-      setLoading(false);
+      setLessonsLoading(false);
     }
   };
 
@@ -76,7 +94,8 @@ export default function ModuleDetailPage() {
       module_id: moduleId,
       duration: 0,
       order_num: lessons.length + 1,
-      title: { uz: '', ru: '', en: '' },
+      name: { uz: '', ru: '', en: '' },
+      type: 'lesson'
     });
     setIsModalOpen(true);
   };
@@ -87,7 +106,8 @@ export default function ModuleDetailPage() {
       module_id: lesson.module_id,
       duration: lesson.duration || 0,
       order_num: lesson.order_num,
-      title: lesson.title,
+      name: lesson.name,
+      type: (lesson.type as any) || 'lesson'
     });
     setIsModalOpen(true);
   };
@@ -99,7 +119,7 @@ export default function ModuleDetailPage() {
 
     try {
       await lessonService.delete(lesson.id);
-      loadData();
+      loadLessons();
     } catch (error) {
       console.error('Failed to delete lesson:', error);
       alert('Failed to delete lesson');
@@ -110,16 +130,17 @@ export default function ModuleDetailPage() {
     e.preventDefault();
 
     try {
+      const payload = { ...formData, is_free: false, type: formData.type as 'lesson' | 'test' }; // Ensure is_free is sent
       if (editingLesson) {
-        await lessonService.update(editingLesson.id, formData);
+        await lessonService.update(editingLesson.id, payload);
       } else {
-        await lessonService.create({ ...formData, is_free: false });
+        await lessonService.create(payload);
       }
       setIsModalOpen(false);
-      loadData();
+      loadLessons();
     } catch (error) {
       console.error('Failed to save lesson:', error);
-      alert('Failed to save lesson');
+      alert('Failed to save lesson: ' + (error as any)?.response?.data?.message || 'Unknown error');
     }
   };
 
@@ -137,9 +158,14 @@ export default function ModuleDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject.name.en || subject.name.uz || subject.name.ru, href: `/admin/subjects/${subjectId}` },
-    { label: course.title.en || course.title.uz || course.title.ru, href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module.title.en || module.title.uz || module.title.ru },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module' },
+  ];
+
+  const lessonTypeOptions = [
+    { value: 'lesson', label: 'Lesson' },
+    { value: 'test', label: 'Test' }
   ];
 
   return (
@@ -149,7 +175,7 @@ export default function ModuleDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {module.title.en || module.title.uz || module.title.ru}
+            {module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module'}
           </h1>
           <p className="text-muted-foreground mt-1">Manage lessons in this module</p>
         </div>
@@ -162,13 +188,18 @@ export default function ModuleDetailPage() {
         <CardHeader>
           <CardTitle>Lessons</CardTitle>
           <CardDescription>
-            {lessons.length === 0
-              ? 'No lessons in this module yet'
-              : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} in this module`}
+            {lessonsLoading ? 'Loading lessons...' :
+              lessons.length === 0
+                ? 'No lessons in this module yet'
+                : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} in this module`}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {lessons.length === 0 ? (
+          {lessonsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <p className="text-muted-foreground">Loading lessons...</p>
+            </div>
+          ) : lessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground mb-4">No lessons available</p>
               <Button onClick={handleCreate}>Create your first lesson</Button>
@@ -187,10 +218,11 @@ export default function ModuleDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {lesson.title.en || lesson.title.uz || lesson.title.ru}
+                              {lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Untitled Lesson'}
                             </h3>
                           </Link>
                           <span className="text-sm text-muted-foreground">{lesson.duration || 0} min</span>
+                          <Badge variant="outline">{lesson.type || 'lesson'}</Badge>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -224,9 +256,16 @@ export default function ModuleDetailPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Title"
-            value={formData.title}
-            onChange={(title) => setFormData({ ...formData, title })}
+            label="Name"
+            value={formData.name}
+            onChange={(name) => setFormData({ ...formData, name })}
+            required
+          />
+          <Select
+            label="Type"
+            options={lessonTypeOptions}
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             required
           />
           <Input

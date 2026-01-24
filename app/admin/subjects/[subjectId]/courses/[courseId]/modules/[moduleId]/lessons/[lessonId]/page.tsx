@@ -38,9 +38,9 @@ export default function LessonDetailPage() {
   const [formData, setFormData] = useState({
     lesson_id: lessonId,
     order_num: 1,
-    type: 'video', // 'video' | 'pdf' | 'article'
-    title: { uz: '', ru: '', en: '' },
-    link_url: '',
+    type: 'video', // 'video' | 'document' | 'test'
+    name: { uz: '', ru: '', en: '' },
+    url: { uz: '', ru: '', en: '' },
   });
 
   useEffect(() => {
@@ -82,8 +82,8 @@ export default function LessonDetailPage() {
       lesson_id: lessonId,
       order_num: sources.length + 1,
       type: 'video',
-      title: { uz: '', ru: '', en: '' },
-      link_url: '',
+      name: { uz: '', ru: '', en: '' },
+      url: { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
   };
@@ -94,8 +94,8 @@ export default function LessonDetailPage() {
       lesson_id: source.lesson_id || lessonId, // Fallback if missing?
       order_num: source.order_num,
       type: source.type,
-      title: source.title,
-      link_url: source.link_url,
+      name: source.name,
+      url: source.url,
     });
     setIsModalOpen(true);
   };
@@ -119,9 +119,15 @@ export default function LessonDetailPage() {
 
     try {
       if (editingSource) {
-        await sourceService.update(editingSource.id, formData);
+        await sourceService.update(editingSource.id, {
+          ...formData,
+          type: formData.type as 'video' | 'document' | 'test'
+        });
       } else {
-        await sourceService.create(formData);
+        await sourceService.create({
+          ...formData,
+          type: formData.type as 'video' | 'document' | 'test'
+        });
       }
       setIsModalOpen(false);
       loadData();
@@ -145,16 +151,16 @@ export default function LessonDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject.name.en || subject.name.uz || subject.name.ru, href: `/admin/subjects/${subjectId}` },
-    { label: course.title.en || course.title.uz || course.title.ru, href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module.title.en || module.title.uz || module.title.ru, href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
-    { label: lesson.title.en || lesson.title.uz || lesson.title.ru },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module', href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
+    { label: lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Untitled Lesson' },
   ];
 
   const sourceTypeOptions = [
     { value: 'video', label: 'Video' },
-    { value: 'pdf', label: 'PDF' },
-    { value: 'article', label: 'Article' },
+    { value: 'document', label: 'Document' },
+    { value: 'test', label: 'Test' },
   ];
 
   return (
@@ -164,7 +170,7 @@ export default function LessonDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {lesson.title.en || lesson.title.uz || lesson.title.ru}
+            {lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Untitled Lesson'}
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-sm text-muted-foreground">{lesson.duration} minutes</span>
@@ -204,15 +210,15 @@ export default function LessonDetailPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold">
-                              {source.title.en || source.title.uz || source.title.ru}
+                              {source.name?.en || source.name?.uz || source.name?.ru || 'Untitled Source'}
                             </h3>
                             <a
-                              href={source.link_url}
+                              href={source.url?.en || source.url?.uz || source.url?.ru}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-500 hover:underline"
                             >
-                              {source.link_url}
+                              {source.url?.en || source.url?.uz || source.url?.ru}
                             </a>
                           </div>
                           <Badge variant="outline">{source.type}</Badge>
@@ -249,16 +255,15 @@ export default function LessonDetailPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Title"
-            value={formData.title}
-            onChange={(title) => setFormData({ ...formData, title })}
+            label="Name"
+            value={formData.name}
+            onChange={(name) => setFormData({ ...formData, name })}
             required
           />
-          <Input
-            label="Link URL"
-            value={formData.link_url}
-            onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
-            placeholder="https://..."
+          <MultilangInput
+            label="URL (Video/Document Link)"
+            value={formData.url}
+            onChange={(url) => setFormData({ ...formData, url })}
             required
           />
           <Select

@@ -1,35 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Notification } from '@/types';
+import { Notification, Course } from '@/types';
 import { notificationService } from '@/services/notification.service';
+import { courseService } from '@/services/course.service';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
+import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | null>(null);
 
   const [formData, setFormData] = useState({
+    course_id: '',
     title: { uz: '', ru: '', en: '' },
     message: { uz: '', ru: '', en: '' },
+    type: 'info',
+    targetType: 'all' // 'all' | 'course'
   });
 
   useEffect(() => {
-    loadNotifications();
+    loadData();
   }, []);
 
-  const loadNotifications = async () => {
+  const loadData = async () => {
     try {
-      const response = await notificationService.getAll();
-      setNotifications(response.data);
+      setLoading(true);
+      const [notifsResponse, coursesResponse] = await Promise.all([
+        notificationService.getAll(),
+        courseService.getAll()
+      ]);
+      setNotifications(notifsResponse.data);
+      setCourses(coursesResponse.data);
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -38,8 +49,11 @@ export default function NotificationsPage() {
   const handleCreate = () => {
     setEditingNotification(null);
     setFormData({
+      course_id: '',
       title: { uz: '', ru: '', en: '' },
-      message: { uz: '', ru: '', en: '' }
+      message: { uz: '', ru: '', en: '' },
+      type: 'info',
+      targetType: 'all'
     });
     setIsModalOpen(true);
   };
@@ -47,8 +61,11 @@ export default function NotificationsPage() {
   const handleEdit = (notification: Notification) => {
     setEditingNotification(notification);
     setFormData({
+      course_id: notification.course_id || '',
       title: notification.title,
       message: notification.message,
+      type: notification.type || 'info',
+      targetType: notification.course_id ? 'course' : 'all'
     });
     setIsModalOpen(true);
   };
@@ -60,7 +77,7 @@ export default function NotificationsPage() {
 
     try {
       await notificationService.delete(notification.id);
-      loadNotifications();
+      loadData();
     } catch (error) {
       console.error('Failed to delete notification:', error);
       alert('Failed to delete notification');
@@ -70,20 +87,59 @@ export default function NotificationsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const notifData = {
-      title: formData.title,
-      message: formData.message,
-      type: 'info',
-    };
+    // Validation
+    if (formData.targetType === 'course' && (!formData.course_id || formData.course_id.trim() === '')) {
+      alert('Please select a course when targeting specific course notifications');
+      return;
+    }
+
+    // Validate multilanguage fields - ensure no empty strings
+    const titleUz = formData.title.uz?.trim() || '';
+    const titleRu = formData.title.ru?.trim() || '';
+    const titleEn = formData.title.en?.trim() || '';
+    const messageUz = formData.message.uz?.trim() || '';
+    const messageRu = formData.message.ru?.trim() || '';
+    const messageEn = formData.message.en?.trim() || '';
+
+    if (!titleUz || !titleRu || !titleEn) {
+      alert('Please fill in the title in all languages (UZ, RU, EN)');
+      return;
+    }
+
+    if (!messageUz || !messageRu || !messageEn) {
+      alert('Please fill in the message in all languages (UZ, RU, EN)');
+      return;
+    }
+
+    // Clean the data
+    const cleanTitle = { uz: titleUz, ru: titleRu, en: titleEn };
+    const cleanMessage = { uz: messageUz, ru: messageRu, en: messageEn };
+
+    if (!formData.type.trim()) {
+      alert('Please enter a notification type');
+      return;
+    }
 
     try {
-      if (editingNotification) {
-        await notificationService.update(editingNotification.id, notifData);
-      } else {
-        await notificationService.create(notifData);
+      const payload: any = {
+        title: cleanTitle,
+        message: cleanMessage,
+        type: formData.type,
+      };
+
+      // Only add course_id if it's for a specific course
+      if (formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== '') {
+        payload.course_id = formData.course_id;
       }
+
+      if (editingNotification) {
+        await notificationService.update(editingNotification.id, payload);
+      } else {
+        await notificationService.create(payload);
+      }
+
       setIsModalOpen(false);
-      loadNotifications();
+      loadData();
     } catch (error) {
       console.error('Failed to save notification:', error);
       alert('Failed to save notification');
@@ -103,6 +159,11 @@ export default function NotificationsPage() {
       render: (item: Notification) => (
         <div className="max-w-md truncate">{item.message.uz || item.message.en}</div>
       ),
+    },
+    {
+      key: 'target',
+      header: 'Target',
+      render: (item: Notification) => item.course_id ? 'Specific Course' : 'All Users'
     },
     {
       key: 'created_at',
@@ -129,6 +190,10 @@ export default function NotificationsPage() {
     return <div className="text-center py-8">Loading...</div>;
   }
 
+  const courseOptions = [
+    ...courses.map(c => ({ value: c.id, label: c.name?.en || c.name?.uz || c.name?.ru || 'Untitled Course' }))
+  ];
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -147,6 +212,41 @@ export default function NotificationsPage() {
         title={editingNotification ? 'Edit Notification' : 'Create Notification'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Target Audience</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="all"
+                  checked={formData.targetType === 'all'}
+                  onChange={() => setFormData({ ...formData, targetType: 'all', course_id: '' })}
+                />
+                All Users
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="targetType"
+                  value="course"
+                  checked={formData.targetType === 'course'}
+                  onChange={() => setFormData({ ...formData, targetType: 'course' })}
+                />
+                Selected Course
+              </label>
+            </div>
+          </div>
+
+          {formData.targetType === 'course' && (
+            <Select
+              label="Course"
+              options={courseOptions}
+              value={formData.course_id}
+              onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
+              required
+            />
+          )}
           <MultilangInput
             label="Title"
             value={formData.title}
@@ -157,6 +257,19 @@ export default function NotificationsPage() {
             label="Message"
             value={formData.message}
             onChange={(message) => setFormData({ ...formData, message })}
+            required
+          />
+          <Select
+            label="Type"
+            options={[
+              { value: 'info', label: 'Info' },
+              { value: 'news', label: 'News' },
+              { value: 'alert', label: 'Alert' },
+              { value: 'warning', label: 'Warning' },
+              { value: 'success', label: 'Success' }
+            ]}
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             required
           />
           <div className="flex gap-2 justify-end pt-4">

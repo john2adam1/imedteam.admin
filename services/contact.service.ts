@@ -2,6 +2,8 @@
 import api from '@/lib/api/axios';
 import {
     Contact,
+    ContactCreateBody,
+    ContactUpdateBody,
     PaginatedResponse
 } from '@/types';
 
@@ -23,13 +25,13 @@ export const contactService = {
     },
 
     // Create (Usually public usage, but if admin creates?)
-    create: async (data: Omit<Contact, 'id' | 'created_at' | 'is_read'>): Promise<Contact> => {
+    create: async (data: ContactCreateBody): Promise<Contact> => {
         const response = await api.post<Contact>(RESOURCE_URL, data);
         return response.data;
     },
 
     // Update (Maybe mark as read?)
-    update: async (id: string, data: Partial<Contact>): Promise<Contact> => {
+    update: async (id: string, data: ContactUpdateBody): Promise<Contact> => {
         const response = await api.put<Contact>(`${RESOURCE_URL}/${id}/update`, data);
         return response.data;
     },

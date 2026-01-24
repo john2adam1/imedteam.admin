@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [phone, setPhone] = useState('');
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,13 +26,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      if (!phone.trim() || !password.trim()) {
-        setError('Phone number and password are required');
+      if (!login.trim() || !password.trim()) {
+        setError('Login and password are required');
         setLoading(false);
         return;
       }
 
-      await authService.login({ phone, password });
+      await authService.login({ login, password });
       router.push('/admin/dashboard');
     } catch (err) {
       console.error(err);
@@ -47,11 +47,11 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            type="tel"
-            label="Phone Number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+998901234567"
+            type="text"
+            label="Login"
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            placeholder="Enter login"
             error={error}
             required
           />
