@@ -9,6 +9,7 @@ import { courseService } from '@/services/course.service';
 import { moduleService } from '@/services/module.service';
 import { lessonService } from '@/services/lesson.service';
 import { sourceService } from '@/services/source.service';
+import { uploadService } from '@/services/upload.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,7 @@ export default function LessonDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     lesson_id: lessonId,
     order_num: 1,
@@ -76,16 +78,36 @@ export default function LessonDetailPage() {
     }
   };
 
-  const handleCreate = () => {
+  const handleCreate = (type: 'video' | 'document' | 'test' = 'video') => {
     setEditingSource(null);
     setFormData({
       lesson_id: lessonId,
       order_num: sources.length + 1,
-      type: 'video',
+      type,
       name: { uz: '', ru: '', en: '' },
       url: { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
+  };
+
+  const handleFileUpload = async (file: File, language: 'uz' | 'ru' | 'en') => {
+    try {
+      setUploading(true);
+      const uploadResult = await uploadService.upload(file);
+      setFormData({
+        ...formData,
+        url: {
+          ...formData.url,
+          [language]: uploadResult.url,
+        },
+      });
+      alert('File uploaded successfully!');
+    } catch (error) {
+      console.error('Failed to upload file:', error);
+      alert('Failed to upload file');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleEdit = (source: Source) => {
@@ -176,7 +198,11 @@ export default function LessonDetailPage() {
             <span className="text-sm text-muted-foreground">{lesson.duration} minutes</span>
           </div>
         </div>
-        <Button onClick={handleCreate}>Add Source</Button>
+        <div className="flex gap-2">
+          <Button onClick={() => handleCreate('video')}>Add Video</Button>
+          <Button onClick={() => handleCreate('document')} variant="outline">Add Document</Button>
+          <Button onClick={() => handleCreate('test')} variant="secondary">Add Test</Button>
+        </div>
       </div>
 
       <Separator />
@@ -194,7 +220,7 @@ export default function LessonDetailPage() {
           {sources.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground mb-4">No sources available</p>
-              <Button onClick={handleCreate}>Create your first source</Button>
+              <Button onClick={() => handleCreate('video')}>Create your first source</Button>
             </div>
           ) : (
             <div className="space-y-2">
@@ -260,12 +286,47 @@ export default function LessonDetailPage() {
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
-          <MultilangInput
-            label="URL (Video/Document Link)"
-            value={formData.url}
-            onChange={(url) => setFormData({ ...formData, url })}
-            required
-          />
+          <div className="space-y-4">
+            <label className="text-sm font-medium">URLs or Upload Files</label>
+            {(['uz', 'ru', 'en'] as const).map((lang) => (
+              <div key={lang} className="space-y-2">
+                <label className="text-xs font-medium uppercase">{lang}</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={formData.url[lang] || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      url: { ...formData.url, [lang]: e.target.value }
+                    })}
+                    placeholder={`Enter ${lang.toUpperCase()} URL or upload file`}
+                    className="flex-1"
+                  />
+                  <input
+                    type="file"
+                    id={`file-upload-${lang}`}
+                    accept={formData.type === 'video' ? 'video/*' : 'application/pdf'}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleFileUpload(file, lang);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => document.getElementById(`file-upload-${lang}`)?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Uploading...' : 'Upload'}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
           <Select
             label="Type"
             options={sourceTypeOptions}

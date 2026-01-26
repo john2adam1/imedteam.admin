@@ -21,6 +21,7 @@ export default function BannersPage() {
     link_url: '',
     title: { uz: '', ru: '', en: '' },
     description: { uz: '', ru: '', en: '' },
+    order_num: 1,
   });
 
   useEffect(() => {
@@ -44,7 +45,8 @@ export default function BannersPage() {
       image_url: { uz: '', ru: '', en: '' },
       link_url: '',
       title: { uz: '', ru: '', en: '' },
-      description: { uz: '', ru: '', en: '' }
+      description: { uz: '', ru: '', en: '' },
+      order_num: banners.length + 1,
     });
     setIsModalOpen(true);
   };
@@ -56,6 +58,7 @@ export default function BannersPage() {
       link_url: banner.link_url || '',
       title: banner.title,
       description: banner.description,
+      order_num: banner.order_num || 1,
     });
     setIsModalOpen(true);
   };
@@ -82,7 +85,7 @@ export default function BannersPage() {
       link_url: formData.link_url,
       title: formData.title,
       description: formData.description,
-      order_num: 1, // Default
+      order_num: formData.order_num,
     };
 
     try {
@@ -93,9 +96,10 @@ export default function BannersPage() {
       }
       setIsModalOpen(false);
       loadBanners();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save banner:', error);
-      alert('Failed to save banner');
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save banner';
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -114,6 +118,7 @@ export default function BannersPage() {
       render: (item: Banner) => item.title.en || item.title.uz || item.title.ru
     },
     { key: 'link_url', header: 'Link' },
+    { key: 'order_num', header: 'Order' },
     {
       key: 'created_at',
       header: 'Created At',
@@ -145,10 +150,6 @@ export default function BannersPage() {
         title={editingBanner ? 'Edit Banner' : 'Create Banner'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-  // Import MultilangInput at the top if not imported, or make sure to import it
-          // Assuming it is imported based on project structure
-
-          // ... (inside the form)
           <MultilangInput
             label="Title"
             value={formData.title}
@@ -171,6 +172,13 @@ export default function BannersPage() {
             label="Link URL"
             value={formData.link_url}
             onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
+          />
+          <Input
+            label="Order Number"
+            type="number"
+            value={formData.order_num}
+            onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
+            required
           />
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>

@@ -5,6 +5,7 @@ import { User, Course } from '@/types';
 import { userService } from '@/services/user.service';
 import { courseService } from '@/services/course.service';
 import { Table } from '@/components/ui/Table';
+import { Button } from '@/components/ui/Button';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -17,6 +18,7 @@ export default function UsersPage() {
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const [usersResponse, coursesResponse] = await Promise.all([
         userService.getAll(),
         courseService.getAll(),
@@ -30,12 +32,26 @@ export default function UsersPage() {
     }
   };
 
+  const handleDelete = async (user: User) => {
+    if (!confirm(`Are you sure you want to delete user ${user.first_name} ${user.last_name}?`)) {
+      return;
+    }
+
+    try {
+      await userService.delete(user.id);
+      loadData();
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Failed to delete user');
+    }
+  };
+
   const getCourseNames = (courseIds: string[]): string => {
     if (!courseIds || !Array.isArray(courseIds)) return 'None';
     return courseIds
       .map((id) => {
         const course = courses.find((c) => c.id === id);
-        return course ? (course.title.uz || course.title.en) : 'Unknown';
+        return course ? (course.name?.en || course.name?.uz || course.name?.ru || 'Unknown') : 'Unknown';
       })
       .join(', ') || 'None';
   };
@@ -64,6 +80,17 @@ export default function UsersPage() {
       key: 'created_at',
       header: 'Created At',
       render: (item: User) => new Date(item.created_at).toLocaleDateString(),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (item: User) => (
+        <div className="flex gap-2">
+          <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
+            Delete
+          </Button>
+        </div>
+      ),
     },
   ];
 

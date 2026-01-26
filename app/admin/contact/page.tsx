@@ -79,9 +79,10 @@ export default function ContactPage() {
             }
             setIsModalOpen(false);
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save contact:', error);
-            alert('Failed to save contact');
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save contact';
+            alert(`Error: ${errorMessage}`);
         }
     };
 

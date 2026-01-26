@@ -80,9 +80,10 @@ export default function FAQPage() {
             }
             setIsModalOpen(false);
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save FAQ:', error);
-            alert('Failed to save FAQ');
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save FAQ';
+            alert(`Error: ${errorMessage}`);
         }
     };
 

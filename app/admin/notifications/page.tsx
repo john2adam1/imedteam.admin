@@ -22,7 +22,6 @@ export default function NotificationsPage() {
     course_id: '',
     title: { uz: '', ru: '', en: '' },
     message: { uz: '', ru: '', en: '' },
-    type: 'info',
     targetType: 'all' // 'all' | 'course'
   });
 
@@ -52,7 +51,6 @@ export default function NotificationsPage() {
       course_id: '',
       title: { uz: '', ru: '', en: '' },
       message: { uz: '', ru: '', en: '' },
-      type: 'info',
       targetType: 'all'
     });
     setIsModalOpen(true);
@@ -64,7 +62,6 @@ export default function NotificationsPage() {
       course_id: notification.course_id || '',
       title: notification.title,
       message: notification.message,
-      type: notification.type || 'info',
       targetType: notification.course_id ? 'course' : 'all'
     });
     setIsModalOpen(true);
@@ -115,21 +112,18 @@ export default function NotificationsPage() {
     const cleanTitle = { uz: titleUz, ru: titleRu, en: titleEn };
     const cleanMessage = { uz: messageUz, ru: messageRu, en: messageEn };
 
-    if (!formData.type.trim()) {
-      alert('Please enter a notification type');
-      return;
-    }
-
     try {
       const payload: any = {
         title: cleanTitle,
         message: cleanMessage,
-        type: formData.type,
       };
 
-      // Only add course_id if it's for a specific course
+      // Only add course_id if it's for a specific course (don't send null/undefined)
       if (formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== '') {
-        payload.course_id = formData.course_id;
+        payload.course_id = formData.course_id.trim();
+      } else if (formData.targetType === 'all') {
+        // Explicitly don't include course_id for all users
+        // The API should handle this, but we ensure it's not sent
       }
 
       if (editingNotification) {
@@ -140,9 +134,10 @@ export default function NotificationsPage() {
 
       setIsModalOpen(false);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save notification:', error);
-      alert('Failed to save notification');
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save notification';
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -259,19 +254,7 @@ export default function NotificationsPage() {
             onChange={(message) => setFormData({ ...formData, message })}
             required
           />
-          <Select
-            label="Type"
-            options={[
-              { value: 'info', label: 'Info' },
-              { value: 'news', label: 'News' },
-              { value: 'alert', label: 'Alert' },
-              { value: 'warning', label: 'Warning' },
-              { value: 'success', label: 'Success' }
-            ]}
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            required
-          />
+
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               Cancel

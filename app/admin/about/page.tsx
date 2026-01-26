@@ -83,9 +83,10 @@ export default function AboutPage() {
             }
             setIsModalOpen(false);
             loadData();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to save item:', error);
-            alert('Failed to save item');
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save item';
+            alert(`Error: ${errorMessage}`);
         }
     };
 

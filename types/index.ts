@@ -248,7 +248,7 @@ export interface Notification {
   course_id?: ID;
   title: MultilangText;
   message: MultilangText;
-  type: string;
+  type?: string;
   is_sent: boolean;
   sent_at?: DateString;
   created_at: DateString;
