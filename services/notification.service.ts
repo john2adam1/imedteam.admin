@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/notification';
+const RESOURCE_URL = 'notification';
 
 export const notificationService = {
     // Admin Notifications

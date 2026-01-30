@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/faq';
+const RESOURCE_URL = 'faq';
 
 export const faqService = {
     getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<FAQ>> => {

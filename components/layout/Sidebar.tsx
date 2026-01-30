@@ -11,6 +11,8 @@ const menuItems = [
   { path: '/admin/notifications', label: 'Notifications', icon: '🔔' },
   { path: '/admin/users', label: 'Users', icon: '👥' },
   { path: '/admin/teachers', label: 'Teachers', icon: '👨‍🏫' },
+  { path: '/admin/tariffs', label: 'Tariffs', icon: '💰' },
+  { path: '/admin/app-routes', label: 'App Routes', icon: '🗺️' },
   { path: '/admin/about', label: 'About', icon: 'ℹ️' },
   { path: '/admin/contact', label: 'Contact', icon: '📞' },
   { path: '/admin/faq', label: 'FAQ', icon: '❓' },
@@ -34,8 +36,8 @@ export function Sidebar() {
                 <Link
                   href={item.path}
                   className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                     }`}
                 >
                   <span className="text-lg">{item.icon}</span>

@@ -8,7 +8,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/course';
+const RESOURCE_URL = 'course';
 
 export const courseService = {
     // Course CRUD

@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/about';
+const RESOURCE_URL = 'about';
 
 export const aboutService = {
     // Get all (paginated)

@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/banner';
+const RESOURCE_URL = 'banner';
 
 export const bannerService = {
     // Get all

@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/teacher';
+const RESOURCE_URL = 'teacher';
 
 export const teacherService = {
     getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Teacher>> => {

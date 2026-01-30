@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/contact';
+const RESOURCE_URL = 'contact';
 
 export const contactService = {
     // Get all

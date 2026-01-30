@@ -7,7 +7,7 @@ import {
     PaginatedResponse
 } from '@/types';
 
-const RESOURCE_URL = '/module';
+const RESOURCE_URL = 'module';
 
 export const moduleService = {
     getAll: async (courseId?: string, page = 1, limit = 10): Promise<PaginatedResponse<Module>> => {

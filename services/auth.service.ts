@@ -9,7 +9,7 @@ export const authService = {
     // Login
     login: async (data: LoginReq): Promise<AuthResponse> => {
         // Current backend overview says: POST /auth/admin/login
-        const response = await api.post<AuthResponse>('/auth/admin/login', data);
+        const response = await api.post<AuthResponse>('auth/admin/login', data);
         const { access_token } = response.data;
 
         if (access_token) {
@@ -22,7 +22,7 @@ export const authService = {
 
     // Change Password
     changePassword: async (data: PasswordChangeReq): Promise<void> => {
-        await api.put('/auth/password/change', data);
+        await api.put('auth/password/change', data);
     },
 
     // Refresh Password/Token (as per requirements "PUT /auth/password/refresh")
@@ -31,7 +31,7 @@ export const authService = {
     refreshToken: async (): Promise<TokenRes> => {
         // This might be different based on actual API implementation
         // Assuming standard refresh flow if it existed, but using the specific endpoint requested:
-        const response = await api.put<TokenRes>('/auth/password/refresh');
+        const response = await api.put<TokenRes>('auth/password/refresh');
         return response.data;
     },
 

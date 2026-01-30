@@ -172,13 +172,16 @@ export interface Course {
 export type CourseCreateBody = Omit<Course, 'id' | 'created_at' | 'updated_at'>;
 export type CourseUpdateBody = Partial<CourseCreateBody>;
 
+// User-Course Relationship (updated to match Swagger)
 export interface CoursePermission {
   id: ID;
   user_id: ID;
   course_id: ID;
-  status: 'active' | 'expired' | 'pending';
-  start_date: DateString;
-  end_date: DateString;
+  tariff_id: ID; // Links to Tariff
+  started_at: DateString;
+  ended_at: DateString;
+  is_active: boolean;
+  duration: number; // in days
   created_at: DateString;
   updated_at: DateString;
 }
@@ -265,3 +268,46 @@ export interface FileUploadRes {
   mime_type: string;
 }
 
+// ─── APP ROUTE ───────────────────────────
+export interface AppRoute {
+  id: ID;
+  key: string;
+  value: any; // JSON object for dynamic routing config
+  description?: string;
+  order_num: number;
+  created_at: DateString;
+  updated_at: DateString;
+}
+
+export interface AppRouteCreateBody {
+  key: string;
+  value: any;
+  description?: string;
+  order_num?: number;
+}
+
+export type AppRouteUpdateBody = Partial<AppRouteCreateBody>;
+
+// ─── TARIFF ──────────────────────────────
+export interface Tariff {
+  id: ID;
+  name: MultilangText;
+  description: MultilangText;
+  duration: number; // in days
+  price: number;
+  order_num: number;
+  is_active: boolean;
+  created_at: DateString;
+  updated_at: DateString;
+}
+
+export interface TariffCreateBody {
+  name: MultilangText;
+  description: MultilangText;
+  duration: number;
+  price: number;
+  order_num?: number;
+  is_active?: boolean;
+}
+
+export type TariffUpdateBody = Partial<TariffCreateBody>;
