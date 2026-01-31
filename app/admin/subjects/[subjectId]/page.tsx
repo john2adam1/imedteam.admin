@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Subject, Course, Teacher, CoursePriceOption } from '@/types';
+import { Subject, Course, Teacher, CoursePriceOption, Tariff } from '@/types';
 import { subjectService } from '@/services/subject.service';
 import { courseService } from '@/services/course.service';
 import { teacherService } from '@/services/teacher.service';
+import { tariffService } from '@/services/tariff.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ export default function SubjectDetailPage() {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -33,7 +35,7 @@ export default function SubjectDetailPage() {
     subject_id: string;
     teacher_id: string;
     image_url: string;
-    is_active: boolean;
+    is_public: boolean;
     order_num: number;
     price: CoursePriceOption[];
     name: { uz: string; ru: string; en: string };
@@ -42,7 +44,7 @@ export default function SubjectDetailPage() {
     subject_id: subjectId,
     teacher_id: '',
     image_url: '',
-    is_active: true,
+    is_public: true,
     order_num: 1,
     price: [],
     name: { uz: '', ru: '', en: '' },
@@ -57,10 +59,11 @@ export default function SubjectDetailPage() {
 
   const loadData = async () => {
     try {
-      const [subjectData, coursesResponse, teachersResponse] = await Promise.all([
+      const [subjectData, coursesResponse, teachersResponse, tariffsResponse] = await Promise.all([
         subjectService.getById(subjectId),
         courseService.getAll(subjectId), // Using filter
         teacherService.getAll(),
+        tariffService.getAll(),
       ]);
 
       if (!subjectData) {
@@ -71,6 +74,7 @@ export default function SubjectDetailPage() {
       setSubject(subjectData);
       setCourses(coursesResponse.data);
       setTeachers(teachersResponse.data);
+      setTariffs(tariffsResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -84,7 +88,7 @@ export default function SubjectDetailPage() {
       subject_id: subjectId,
       teacher_id: teachers[0]?.id || '',
       image_url: '',
-      is_active: true,
+      is_public: true,
       order_num: courses.length + 1,
       price: [],
       name: { uz: '', ru: '', en: '' },
@@ -99,7 +103,7 @@ export default function SubjectDetailPage() {
       subject_id: course.subject_id,
       teacher_id: course.teacher_id || '',
       image_url: course.image_url,
-      is_active: course.is_active,
+      is_public: course.is_public,
       order_num: course.order_num,
       price: Array.isArray(course.price) ? course.price : [],
       name: course.name,
@@ -214,8 +218,8 @@ export default function SubjectDetailPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center justify-between mb-4">
-                        <Badge variant={course.is_active ? 'success' : 'secondary'}>
-                          {course.is_active ? 'Active' : 'Inactive'}
+                        <Badge variant={course.is_public ? 'success' : 'secondary'}>
+                          {course.is_public ? 'Public' : 'Private'}
                         </Badge>
                       </div>
                       <div className="flex gap-2">
@@ -272,7 +276,7 @@ export default function SubjectDetailPage() {
                 onClick={() => {
                   setFormData({
                     ...formData,
-                    price: [...formData.price, { duration: 1, price: 0 }],
+                    price: [...formData.price, { duration: tariffs[0]?.duration || 1, price: 0 }],
                   });
                 }}
               >
@@ -282,18 +286,26 @@ export default function SubjectDetailPage() {
             {formData.price.map((option, index) => (
               <div key={index} className="flex gap-2 items-end mb-2">
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Duration (months)</label>
-                  <Input
-                    type="number"
+                  <label className="text-xs text-muted-foreground">Tariff</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md"
                     value={option.duration}
                     onChange={(e) => {
-                      const newPrice = [...formData.price];
-                      newPrice[index].duration = parseInt(e.target.value) || 0;
-                      setFormData({ ...formData, price: newPrice });
+                      const selectedTariff = tariffs.find(t => t.duration === parseInt(e.target.value));
+                      if (selectedTariff) {
+                        const newPrice = [...formData.price];
+                        newPrice[index].duration = selectedTariff.duration;
+                        setFormData({ ...formData, price: newPrice });
+                      }
                     }}
-                    placeholder="Months"
                     required
-                  />
+                  >
+                    {tariffs.map((tariff) => (
+                      <option key={tariff.id} value={tariff.duration}>
+                        {tariff.name} ({tariff.duration} days)
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex-1">
                   <label className="text-xs text-muted-foreground">Price</label>
@@ -344,10 +356,10 @@ export default function SubjectDetailPage() {
             required
           />
           <div className="flex items-center justify-between py-2">
-            <label className="text-sm font-medium">Active Status</label>
+            <label className="text-sm font-medium">Is Public</label>
             <Switch
-              checked={formData.is_active}
-              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              checked={formData.is_public}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
             />
           </div>
           <div className="flex gap-2 justify-end pt-4">

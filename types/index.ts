@@ -164,7 +164,7 @@ export interface Course {
   subject_id: ID; // Link to Subject
   teacher_id?: ID; // Link to Teacher
   order_num: number;
-  is_active: boolean;
+  is_public: boolean;
   created_at: DateString;
   updated_at: DateString;
 }
@@ -251,7 +251,7 @@ export interface Notification {
   course_id?: ID;
   title: MultilangText;
   message: MultilangText;
-  type?: string;
+  type: 'all' | 'selected';
   is_sent: boolean;
   sent_at?: DateString;
   created_at: DateString;
@@ -291,10 +291,9 @@ export type AppRouteUpdateBody = Partial<AppRouteCreateBody>;
 // ─── TARIFF ──────────────────────────────
 export interface Tariff {
   id: ID;
-  name: MultilangText;
-  description: MultilangText;
+  name: string; // Backend expects string, not MultilangText
+  description: string; // Backend expects string, not MultilangText
   duration: number; // in days
-  price: number;
   order_num: number;
   is_active: boolean;
   created_at: DateString;
@@ -302,10 +301,9 @@ export interface Tariff {
 }
 
 export interface TariffCreateBody {
-  name: MultilangText;
-  description: MultilangText;
+  name: string;
+  description: string;
   duration: number;
-  price: number;
   order_num?: number;
   is_active?: boolean;
 }

@@ -34,14 +34,25 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-        // Handle 401 Unauthorized
-        if (error.response?.status === 401) {
+        // Log error details for debugging
+        if (error.response) {
+            console.error('API Error:', {
+                status: error.response.status,
+                url: error.config?.url,
+                method: error.config?.method,
+                data: error.response.data,
+            });
+        }
+
+        // Handle 401 Unauthorized and 403 Forbidden
+        if (error.response?.status === 401 || error.response?.status === 403) {
             // Clear token
             Cookies.remove('admin_token');
 
             // Optional: Redirect to login page if we are in the browser
-            if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
-                window.location.href = '/auth/login';
+            if (typeof window !== 'undefined' && !window.location.pathname.includes('/admin/login')) {
+                console.warn('Authentication failed. Redirecting to login...');
+                window.location.href = '/admin/login';
             }
         }
 

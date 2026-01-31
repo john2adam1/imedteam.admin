@@ -34,9 +34,11 @@ export default function LoginPage() {
 
       await authService.login({ login, password });
       router.push('/admin/dashboard');
-    } catch (err) {
-      console.error(err);
-      setError('Login failed. Please check your credentials.');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      // Show the actual error message from the backend
+      const errorMessage = err?.response?.data?.message || err?.message || 'Login failed. Please check your credentials.';
+      setError(errorMessage);
       setLoading(false);
     }
   };

@@ -12,13 +12,13 @@ import { Button } from '@/components/ui/Button';
 export default function TariffsPage() {
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTariff, setEditingTariff] = useState<Tariff | null>(null);
     const [formData, setFormData] = useState({
-        name: { uz: '', ru: '', en: '' },
-        description: { uz: '', ru: '', en: '' },
+        name: '',
+        description: '',
         duration: 30,
-        price: 0,
         order_num: 1,
         is_active: true,
     });
@@ -29,10 +29,13 @@ export default function TariffsPage() {
 
     const loadTariffs = async () => {
         try {
+            setError(null);
             const response = await tariffService.getAll();
             setTariffs(response.data || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load tariffs:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load tariffs';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -41,10 +44,9 @@ export default function TariffsPage() {
     const handleCreate = () => {
         setEditingTariff(null);
         setFormData({
-            name: { uz: '', ru: '', en: '' },
-            description: { uz: '', ru: '', en: '' },
+            name: '',
+            description: '',
             duration: 30,
-            price: 0,
             order_num: tariffs.length + 1,
             is_active: true,
         });
@@ -57,7 +59,6 @@ export default function TariffsPage() {
             name: tariff.name,
             description: tariff.description,
             duration: tariff.duration,
-            price: tariff.price,
             order_num: tariff.order_num,
             is_active: tariff.is_active,
         });
@@ -81,11 +82,11 @@ export default function TariffsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Backend expects name and description as strings
         const tariffData = {
             name: formData.name,
             description: formData.description,
             duration: formData.duration,
-            price: formData.price,
             order_num: formData.order_num,
             is_active: formData.is_active,
         };
@@ -109,24 +110,19 @@ export default function TariffsPage() {
         {
             key: 'name',
             header: 'Name',
-            render: (item: Tariff) => item.name.en || item.name.uz || item.name.ru
+            render: (item: Tariff) => item?.name || 'N/A'
         },
         {
             key: 'duration',
             header: 'Duration',
-            render: (item: Tariff) => `${item.duration} days`
-        },
-        {
-            key: 'price',
-            header: 'Price',
-            render: (item: Tariff) => `$${item.price.toFixed(2)}`
+            render: (item: Tariff) => item?.duration ? `${item.duration} days` : 'N/A'
         },
         {
             key: 'is_active',
             header: 'Status',
             render: (item: Tariff) => (
-                <span className={`px-2 py-1 rounded text-xs ${item.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {item.is_active ? 'Active' : 'Inactive'}
+                <span className={`px-2 py-1 rounded text-xs ${item?.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {item?.is_active ? 'Active' : 'Inactive'}
                 </span>
             ),
         },
@@ -134,12 +130,29 @@ export default function TariffsPage() {
         {
             key: 'created_at',
             header: 'Created At',
-            render: (item: Tariff) => new Date(item.created_at).toLocaleDateString(),
+            render: (item: Tariff) => item?.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A',
         },
     ];
 
     if (loading) {
         return <div className="text-center py-8">Loading...</div>;
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-8">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    <p className="font-bold">Error loading tariffs</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+                <button
+                    onClick={loadTariffs}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Retry
+                </button>
+            </div>
+        );
     }
 
     return (
@@ -162,16 +175,16 @@ export default function TariffsPage() {
                 title={editingTariff ? 'Edit Tariff' : 'Create Tariff'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <MultilangInput
+                    <Input
                         label="Name"
                         value={formData.name}
-                        onChange={(name) => setFormData({ ...formData, name })}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
                     />
-                    <MultilangInput
+                    <Input
                         label="Description"
                         value={formData.description}
-                        onChange={(description) => setFormData({ ...formData, description })}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         required
                     />
                     <Input
@@ -179,14 +192,6 @@ export default function TariffsPage() {
                         type="number"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                        required
-                    />
-                    <Input
-                        label="Price"
-                        type="number"
-                        step="0.01"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
                         required
                     />
                     <Input

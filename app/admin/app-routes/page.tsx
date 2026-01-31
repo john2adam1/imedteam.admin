@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 export default function AppRoutesPage() {
     const [appRoutes, setAppRoutes] = useState<AppRoute[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRoute, setEditingRoute] = useState<AppRoute | null>(null);
     const [formData, setFormData] = useState({
@@ -26,10 +27,13 @@ export default function AppRoutesPage() {
 
     const loadAppRoutes = async () => {
         try {
+            setError(null);
             const response = await appRouteService.getAll();
             setAppRoutes(response.app_routes || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to load app routes:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load app routes';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -112,7 +116,7 @@ export default function AppRoutesPage() {
             header: 'Value',
             render: (item: AppRoute) => (
                 <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                    {typeof item.value === 'string' ? item.value : JSON.stringify(item.value).substring(0, 50) + '...'}
+                    {item?.value ? (typeof item.value === 'string' ? item.value : JSON.stringify(item.value).substring(0, 50) + '...') : 'N/A'}
                 </code>
             ),
         },
@@ -121,12 +125,29 @@ export default function AppRoutesPage() {
         {
             key: 'created_at',
             header: 'Created At',
-            render: (item: AppRoute) => new Date(item.created_at).toLocaleDateString(),
+            render: (item: AppRoute) => item?.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A',
         },
     ];
 
     if (loading) {
         return <div className="text-center py-8">Loading...</div>;
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-8">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    <p className="font-bold">Error loading app routes</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+                <button
+                    onClick={loadAppRoutes}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Retry
+                </button>
+            </div>
+        );
     }
 
     return (

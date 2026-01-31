@@ -116,6 +116,7 @@ export default function NotificationsPage() {
       const payload: any = {
         title: cleanTitle,
         message: cleanMessage,
+        type: formData.targetType === 'course' ? 'selected' : 'all', // Add required type field
       };
 
       // Only add course_id if it's for a specific course (don't send null/undefined)
