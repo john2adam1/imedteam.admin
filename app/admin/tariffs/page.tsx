@@ -20,7 +20,6 @@ export default function TariffsPage() {
         description: '',
         duration: 30,
         order_num: 1,
-        is_active: true,
     });
 
     useEffect(() => {
@@ -48,7 +47,6 @@ export default function TariffsPage() {
             description: '',
             duration: 30,
             order_num: tariffs.length + 1,
-            is_active: true,
         });
         setIsModalOpen(true);
     };
@@ -60,7 +58,6 @@ export default function TariffsPage() {
             description: tariff.description,
             duration: tariff.duration,
             order_num: tariff.order_num,
-            is_active: tariff.is_active,
         });
         setIsModalOpen(true);
     };
@@ -71,11 +68,17 @@ export default function TariffsPage() {
         }
 
         try {
+            console.log('Attempting to delete tariff with ID:', tariff.id);
             await tariffService.delete(tariff.id);
+            console.log('Delete successful');
             loadTariffs();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to delete tariff:', error);
-            alert('Failed to delete tariff');
+            console.error('Error response:', error?.response);
+            console.error('Error status:', error?.response?.status);
+            console.error('Error data:', error?.response?.data);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete tariff';
+            alert(`Failed to delete tariff: ${errorMessage}`);
         }
     };
 
@@ -88,19 +91,24 @@ export default function TariffsPage() {
             description: formData.description,
             duration: formData.duration,
             order_num: formData.order_num,
-            is_active: formData.is_active,
         };
+
+        console.log('Submitting tariff data:', tariffData);
+        console.log('Editing tariff:', editingTariff);
 
         try {
             if (editingTariff) {
+                console.log('Updating tariff with ID:', editingTariff.id);
                 await tariffService.update(editingTariff.id, tariffData);
             } else {
+                console.log('Creating new tariff');
                 await tariffService.create(tariffData);
             }
             setIsModalOpen(false);
             loadTariffs();
         } catch (error: any) {
             console.error('Failed to save tariff:', error);
+            console.error('Error response:', error?.response);
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save tariff';
             alert(`Error: ${errorMessage}`);
         }
@@ -115,18 +123,22 @@ export default function TariffsPage() {
         {
             key: 'duration',
             header: 'Duration',
-            render: (item: Tariff) => item?.duration ? `${item.duration} days` : 'N/A'
+            render: (item: Tariff) => {
+                if (!item?.duration) return 'N/A';
+                // If duration >= 30 days, display as months
+                if (item.duration >= 30) {
+                    const months = Math.floor(item.duration / 30);
+                    return months === 1 ? '1 month' : `${months} months`;
+                }
+                // Otherwise display as days
+                return `${item.duration} days`;
+            }
         },
         {
-            key: 'is_active',
-            header: 'Status',
-            render: (item: Tariff) => (
-                <span className={`px-2 py-1 rounded text-xs ${item?.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {item?.is_active ? 'Active' : 'Inactive'}
-                </span>
-            ),
+            key: 'order_num',
+            header: 'Order',
+            render: (item: Tariff) => item?.order_num ?? 'N/A'
         },
-        { key: 'order_num', header: 'Order' },
         {
             key: 'created_at',
             header: 'Created At',
@@ -201,18 +213,7 @@ export default function TariffsPage() {
                         onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
                         required
                     />
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            id="is_active"
-                            checked={formData.is_active}
-                            onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                            className="w-4 h-4"
-                        />
-                        <label htmlFor="is_active" className="text-sm font-medium">
-                            Active
-                        </label>
-                    </div>
+
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
                             Cancel

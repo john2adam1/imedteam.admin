@@ -214,6 +214,7 @@ export interface Lesson {
   duration?: number; // seconds
   order_num: number;
   is_free: boolean; // Preview allowed?
+  is_public: boolean; // Public visibility
   created_at: DateString;
   updated_at: DateString;
 }
@@ -227,8 +228,6 @@ export interface User {
   first_name: string;
   last_name: string;
   phone: string;
-  email?: string;
-  purchasedCourses?: string[];
   role: 'user' | 'admin' | 'moderator';
   is_blocked: boolean;
   created_at: DateString;
@@ -302,7 +301,6 @@ export interface Tariff {
   description: string; // Backend expects string, not MultilangText
   duration: number; // in days
   order_num: number;
-  is_active: boolean;
   created_at: DateString;
   updated_at: DateString;
 }
@@ -312,7 +310,6 @@ export interface TariffCreateBody {
   description: string;
   duration: number;
   order_num?: number;
-  is_active?: boolean;
 }
 
 export type TariffUpdateBody = Partial<TariffCreateBody>;

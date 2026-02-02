@@ -38,7 +38,8 @@ export default function ModuleDetailPage() {
     duration: 0,
     order_num: 1,
     name: { uz: '', ru: '', en: '' },
-    type: 'lesson'
+    type: 'lesson',
+    is_public: false
   });
 
   useEffect(() => {
@@ -95,7 +96,8 @@ export default function ModuleDetailPage() {
       duration: 0,
       order_num: lessons.length + 1,
       name: { uz: '', ru: '', en: '' },
-      type: 'lesson'
+      type: 'lesson',
+      is_public: false
     });
     setIsModalOpen(true);
   };
@@ -107,7 +109,8 @@ export default function ModuleDetailPage() {
       duration: lesson.duration || 0,
       order_num: lesson.order_num,
       name: lesson.name,
-      type: (lesson.type as any) || 'lesson'
+      type: (lesson.type as any) || 'lesson',
+      is_public: lesson.is_public || false
     });
     setIsModalOpen(true);
   };
@@ -130,7 +133,12 @@ export default function ModuleDetailPage() {
     e.preventDefault();
 
     try {
-      const payload = { ...formData, is_free: false, type: formData.type as 'lesson' | 'test' }; // Ensure is_free is sent
+      const payload = {
+        ...formData,
+        is_free: false,
+        is_public: formData.is_public,
+        type: formData.type as 'lesson' | 'test'
+      };
       if (editingLesson) {
         await lessonService.update(editingLesson.id, payload);
       } else {
@@ -223,6 +231,7 @@ export default function ModuleDetailPage() {
                           </Link>
                           <span className="text-sm text-muted-foreground">{lesson.duration || 0} min</span>
                           <Badge variant="outline">{lesson.type || 'lesson'}</Badge>
+                          {lesson.is_public && <Badge variant="secondary">Public</Badge>}
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -282,6 +291,18 @@ export default function ModuleDetailPage() {
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
             required
           />
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="is_public"
+              checked={formData.is_public}
+              onChange={(e) => setFormData({ ...formData, is_public: e.target.checked })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="is_public" className="text-sm font-medium">
+              Public (visible to all users)
+            </label>
+          </div>
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancel

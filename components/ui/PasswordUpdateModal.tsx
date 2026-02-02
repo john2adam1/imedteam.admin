@@ -74,14 +74,13 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
     if (!user) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title={`Update Password for ${user.first_name} ${user.last_name}`}>
+        <Modal isOpen={isOpen} onClose={handleClose} title={`Reset Password for ${user.first_name} ${user.last_name}`}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">User Information</label>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
                         <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
                         <p><strong>Phone:</strong> {user.phone}</p>
-                        {user.email && <p><strong>Email:</strong> {user.email}</p>}
                     </div>
                 </div>
 
@@ -131,7 +130,7 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
                         Cancel
                     </Button>
                     <Button type="submit" disabled={loading}>
-                        {loading ? 'Updating...' : 'Update Password'}
+                        {loading ? 'Resetting...' : 'Reset Password'}
                     </Button>
                 </div>
             </form>

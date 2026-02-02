@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Notification, Course } from '@/types';
+import { Notification, Course, NotificationCreateBody } from '@/types';
 import { notificationService } from '@/services/notification.service';
 import { courseService } from '@/services/course.service';
 import { Table } from '@/components/ui/Table';
@@ -113,19 +113,18 @@ export default function NotificationsPage() {
     const cleanMessage = { uz: messageUz, ru: messageRu, en: messageEn };
 
     try {
-      const payload: any = {
+      // Build the payload with explicit type field
+      const payload: NotificationCreateBody = {
         title: cleanTitle,
         message: cleanMessage,
+        type: formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== ''
+          ? 'course'
+          : 'all',
       };
 
-      // FIXED: Use 'course' type instead of 'selected'
-      // The database constraint expects 'all' or 'course', not 'selected'
-      if (formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== '') {
-        payload.type = 'course';  // Changed from 'selected' to 'course'
+      // Only include course_id when type is 'course'
+      if (payload.type === 'course' && formData.course_id && formData.course_id.trim() !== '') {
         payload.course_id = formData.course_id.trim();
-      } else {
-        payload.type = 'all';
-        // Do not include course_id for all users
       }
 
       if (editingNotification) {

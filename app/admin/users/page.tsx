@@ -93,15 +93,7 @@ export default function UsersPage() {
     }
   };
 
-  const getCourseNames = (courseIds: string[]): string => {
-    if (!courseIds || !Array.isArray(courseIds)) return 'None';
-    return courseIds
-      .map((id) => {
-        const course = courses.find((c) => c.id === id);
-        return course ? (course.name?.en || course.name?.uz || course.name?.ru || 'Unknown') : 'Unknown';
-      })
-      .join(', ') || 'None';
-  };
+
 
   const columns = [
     { key: 'id', header: 'ID' },
@@ -111,18 +103,6 @@ export default function UsersPage() {
       render: (item: User) => `${item.first_name} ${item.last_name}`.trim()
     },
     { key: 'phone', header: 'Phone' },
-    {
-      key: 'email',
-      header: 'Email',
-      render: (item: User) => item.email || 'N/A',
-    },
-    {
-      key: 'purchasedCourses',
-      header: 'Purchased Courses',
-      render: (item: User) => (
-        <div className="max-w-md">{getCourseNames(item.purchasedCourses || [])}</div>
-      ),
-    },
     {
       key: 'created_at',
       header: 'Created At',
@@ -137,7 +117,7 @@ export default function UsersPage() {
             Grant Course Access
           </Button>
           <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
-            Change Password
+            Reset Password
           </Button>
           <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
             Delete
