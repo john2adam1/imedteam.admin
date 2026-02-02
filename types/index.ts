@@ -133,7 +133,6 @@ export interface TeacherCreateBody extends Omit<Teacher, 'id' | 'created_at' | '
 export type TeacherUpdateBody = Partial<TeacherCreateBody>;
 
 // ─── SOURCE ──────────────────────────────
-// ─── SOURCE ──────────────────────────────
 export interface Source {
   id: ID;
   lesson_id: ID;
@@ -184,6 +183,12 @@ export interface CoursePermission {
   duration: number; // in days
   created_at: DateString;
   updated_at: DateString;
+}
+
+export interface CoursePermissionCreateBody {
+  user_id: ID;
+  course_id: ID;
+  tariff_id: ID;
 }
 
 // ─── MODULE ──────────────────────────────
@@ -246,18 +251,20 @@ export interface UserActivity {
 }
 
 // ─── NOTIFICATION ────────────────────────
+// FIXED: Changed type from 'all' | 'selected' to 'all' | 'course'
+// The database constraint expects 'course', not 'selected'
 export interface Notification {
   id: ID;
   course_id?: ID;
   title: MultilangText;
   message: MultilangText;
-  type: 'all' | 'selected';
+  type: 'all' | 'course';  // Changed from 'selected' to 'course'
   is_sent: boolean;
   sent_at?: DateString;
   created_at: DateString;
 }
 
-export type NotificationCreateBody = Omit<Notification, 'id' | 'created_at' | 'updated_at' | 'is_sent' | 'sent_at'>;
+export type NotificationCreateBody = Omit<Notification, 'id' | 'created_at' | 'is_sent' | 'sent_at'>;
 export type NotificationUpdateBody = Partial<NotificationCreateBody>;
 
 // ─── FILE UPDATE ─────────────────────────

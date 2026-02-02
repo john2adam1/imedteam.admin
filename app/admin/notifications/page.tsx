@@ -116,15 +116,16 @@ export default function NotificationsPage() {
       const payload: any = {
         title: cleanTitle,
         message: cleanMessage,
-        type: formData.targetType === 'course' ? 'selected' : 'all', // Add required type field
       };
 
-      // Only add course_id if it's for a specific course (don't send null/undefined)
+      // FIXED: Use 'course' type instead of 'selected'
+      // The database constraint expects 'all' or 'course', not 'selected'
       if (formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== '') {
+        payload.type = 'course';  // Changed from 'selected' to 'course'
         payload.course_id = formData.course_id.trim();
-      } else if (formData.targetType === 'all') {
-        // Explicitly don't include course_id for all users
-        // The API should handle this, but we ensure it's not sent
+      } else {
+        payload.type = 'all';
+        // Do not include course_id for all users
       }
 
       if (editingNotification) {
@@ -267,4 +268,3 @@ export default function NotificationsPage() {
     </div>
   );
 }
-

@@ -21,7 +21,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 border-r bg-card min-h-screen">
+    <aside className="w-64 border-r bg-background min-h-screen">
       <div className="p-6 border-b">
         <h1 className="text-xl font-semibold">Admin Panel</h1>
       </div>

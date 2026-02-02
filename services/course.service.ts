@@ -49,7 +49,7 @@ export const courseService = {
         return response.data;
     },
 
-    assignContext: async (data: { user_id: string; course_id: string }): Promise<CoursePermission> => {
+    grantPermission: async (data: { user_id: string; course_id: string; tariff_id: string }): Promise<CoursePermission> => {
         const response = await api.post<CoursePermission>(`${RESOURCE_URL}/permission`, data);
         return response.data;
     },

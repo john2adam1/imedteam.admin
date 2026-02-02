@@ -1,16 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { User, Course } from '@/types';
+import { User, Course, Tariff } from '@/types';
 import { userService } from '@/services/user.service';
 import { courseService } from '@/services/course.service';
+import { tariffService } from '@/services/tariff.service';
 import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
+import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
+import { CoursePermissionModal } from '@/components/ui/CoursePermissionModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+  const [selectedUserForPermission, setSelectedUserForPermission] = useState<User | null>(null);
 
   useEffect(() => {
     loadData();
@@ -19,16 +27,55 @@ export default function UsersPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [usersResponse, coursesResponse] = await Promise.all([
+      const [usersResponse, coursesResponse, tariffsResponse] = await Promise.all([
         userService.getAll(),
         courseService.getAll(),
+        tariffService.getAll(),
       ]);
       setUsers(usersResponse.data);
       setCourses(coursesResponse.data);
+      setTariffs(tariffsResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordClick = (user: User) => {
+    setSelectedUser(user);
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordUpdate = async (userId: string, newPassword: string) => {
+    try {
+      await userService.updatePassword(userId, newPassword);
+      alert('Password updated successfully');
+      setIsPasswordModalOpen(false);
+      setSelectedUser(null);
+    } catch (error: any) {
+      console.error('Failed to update password:', error);
+      // Error is handled in the modal component
+      throw error;
+    }
+  };
+
+  const handleGrantPermissionClick = (user: User) => {
+    setSelectedUserForPermission(user);
+    setIsPermissionModalOpen(true);
+  };
+
+  const handleGrantPermission = async (userId: string, courseId: string, tariffId: string) => {
+    try {
+      await courseService.grantPermission({ user_id: userId, course_id: courseId, tariff_id: tariffId });
+      alert('Course access granted successfully');
+      setIsPermissionModalOpen(false);
+      setSelectedUserForPermission(null);
+      loadData();
+    } catch (error: any) {
+      console.error('Failed to grant permission:', error);
+      // Error is handled in the modal component
+      throw error;
     }
   };
 
@@ -86,6 +133,12 @@ export default function UsersPage() {
       header: 'Actions',
       render: (item: User) => (
         <div className="flex gap-2">
+          <Button onClick={() => handleGrantPermissionClick(item)} variant="outline" size="sm">
+            Grant Course Access
+          </Button>
+          <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
+            Change Password
+          </Button>
           <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
             Delete
           </Button>
@@ -102,6 +155,28 @@ export default function UsersPage() {
     <div>
       <h1 className="text-3xl font-bold mb-6">Users</h1>
       <Table data={users} columns={columns} />
+
+      <PasswordUpdateModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onSubmit={handlePasswordUpdate}
+      />
+
+      <CoursePermissionModal
+        isOpen={isPermissionModalOpen}
+        onClose={() => {
+          setIsPermissionModalOpen(false);
+          setSelectedUserForPermission(null);
+        }}
+        user={selectedUserForPermission}
+        courses={courses}
+        tariffs={tariffs}
+        onSubmit={handleGrantPermission}
+      />
     </div>
   );
 }
