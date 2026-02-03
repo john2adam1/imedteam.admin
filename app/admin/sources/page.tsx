@@ -170,7 +170,6 @@ export default function SourcesPage() {
   };
 
   const columns = [
-    { key: 'id', header: 'ID' },
     {
       key: 'lesson',
       header: 'Lesson',
@@ -189,8 +188,8 @@ export default function SourcesPage() {
       header: 'Type',
       render: (item: Source) => (
         <span className={`px-2 py-1 rounded text-xs ${item.type === 'video' ? 'bg-blue-100 text-blue-800' :
-            item.type === 'document' ? 'bg-green-100 text-green-800' :
-              'bg-purple-100 text-purple-800'
+          item.type === 'document' ? 'bg-green-100 text-green-800' :
+            'bg-purple-100 text-purple-800'
           }`}>
           {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
         </span>
@@ -303,7 +302,9 @@ export default function SourcesPage() {
           />
 
           <div className="space-y-4">
-            <label className="text-sm font-medium">URLs or Upload Files</label>
+            <label className="text-sm font-medium">
+              {formData.type === 'video' ? 'YouTube URLs' : 'URLs or Upload Files'}
+            </label>
             {(['uz', 'ru', 'en'] as const).map((lang) => (
               <div key={lang} className="space-y-2">
                 <label className="text-xs font-medium uppercase">{lang}</label>
@@ -315,30 +316,38 @@ export default function SourcesPage() {
                       ...formData,
                       url: { ...formData.url, [lang]: e.target.value }
                     })}
-                    placeholder={`Enter ${lang.toUpperCase()} URL or upload file`}
+                    placeholder={
+                      formData.type === 'video'
+                        ? `Enter ${lang.toUpperCase()} YouTube URL`
+                        : `Enter ${lang.toUpperCase()} URL or upload file`
+                    }
                     className="flex-1"
                   />
-                  <input
-                    type="file"
-                    id={`file-upload-${lang}`}
-                    accept={formData.type === 'video' ? 'video/*' : 'application/pdf'}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleFileUpload(file, lang);
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => document.getElementById(`file-upload-${lang}`)?.click()}
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : 'Upload'}
-                  </Button>
+                  {formData.type !== 'video' && (
+                    <>
+                      <input
+                        type="file"
+                        id={`file-upload-${lang}`}
+                        accept="application/pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, lang);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById(`file-upload-${lang}`)?.click()}
+                        disabled={uploading}
+                      >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}

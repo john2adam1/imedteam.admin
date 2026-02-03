@@ -143,7 +143,6 @@ export default function NotificationsPage() {
   };
 
   const columns = [
-    { key: 'id', header: 'ID' },
     {
       key: 'title',
       header: 'Title',

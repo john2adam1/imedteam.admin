@@ -96,7 +96,6 @@ export default function UsersPage() {
 
 
   const columns = [
-    { key: 'id', header: 'ID' },
     {
       key: 'name',
       header: 'Name',

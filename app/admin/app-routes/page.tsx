@@ -122,11 +122,6 @@ export default function AppRoutesPage() {
         },
         { key: 'description', header: 'Description' },
         { key: 'order_num', header: 'Order' },
-        {
-            key: 'created_at',
-            header: 'Created At',
-            render: (item: AppRoute) => item?.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A',
-        },
     ];
 
     if (loading) {

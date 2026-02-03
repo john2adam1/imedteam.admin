@@ -87,7 +87,6 @@ export default function ContactPage() {
     };
 
     const columns = [
-        { key: 'id', header: 'ID' },
         { key: 'name', header: 'Name' },
         { key: 'phone_number', header: 'Phone' },
         { key: 'link_url', header: 'Link' },

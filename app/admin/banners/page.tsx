@@ -104,7 +104,6 @@ export default function BannersPage() {
   };
 
   const columns = [
-    { key: 'id', header: 'ID' },
     {
       key: 'image_url',
       header: 'Image',

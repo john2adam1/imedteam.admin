@@ -88,7 +88,6 @@ export default function FAQPage() {
     };
 
     const columns = [
-        { key: 'id', header: 'ID' },
         {
             key: 'question',
             header: 'Question',

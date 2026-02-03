@@ -6,7 +6,7 @@ import {
     AppRouteUpdateBody
 } from '@/types';
 
-const RESOURCE_URL = 'app-route';
+const RESOURCE_URL = 'app_route';
 
 export const appRouteService = {
     // Get all app routes with optional filtering

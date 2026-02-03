@@ -91,7 +91,6 @@ export default function TeachersPage() {
     };
 
     const columns = [
-        { key: 'id', header: 'ID' },
         {
             key: 'name',
             header: 'Name',

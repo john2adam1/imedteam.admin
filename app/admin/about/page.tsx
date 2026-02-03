@@ -91,7 +91,6 @@ export default function AboutPage() {
     };
 
     const columns = [
-        { key: 'id', header: 'ID' },
         {
             key: 'title',
             header: 'Title',
