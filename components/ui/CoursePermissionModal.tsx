@@ -113,9 +113,7 @@ export function CoursePermissionModal({
             label: `${tariff.name} (${tariff.duration} days)`
         }));
 
-    const userName = user.first_name || user.last_name
-        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        : 'User';
+    const userName = user.name || 'User';
 
     return (
         <Modal
@@ -128,7 +126,7 @@ export function CoursePermissionModal({
                     <label className="text-sm font-medium text-gray-700">User Information</label>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
                         <p><strong>Name:</strong> {userName}</p>
-                        <p><strong>Phone:</strong> {user.phone}</p>
+                        <p><strong>Phone:</strong> {user.phone_number}</p>
                         {user.role && <p><strong>Role:</strong> {user.role}</p>}
                     </div>
                 </div>

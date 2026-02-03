@@ -123,11 +123,12 @@ export interface Teacher {
   name: string;
   login: string;
   phone_number: string;
+  role: 'teacher';
   created_at: DateString;
   updated_at: DateString;
 }
 
-export interface TeacherCreateBody extends Omit<Teacher, 'id' | 'created_at' | 'updated_at'> {
+export interface TeacherCreateBody extends Omit<Teacher, 'id' | 'created_at' | 'updated_at' | 'role'> {
   password: string;
 }
 export type TeacherUpdateBody = Partial<TeacherCreateBody>;
@@ -227,9 +228,8 @@ export type LessonUpdateBody = Partial<LessonCreateBody>;
 // ─── USER (ADMIN VIEW) ───────────────────
 export interface User {
   id: ID;
-  first_name: string;
-  last_name: string;
-  phone: string;
+  name: string;
+  phone_number: string;
   role: 'user' | 'admin' | 'moderator';
   is_blocked: boolean;
   created_at: DateString;
@@ -252,14 +252,13 @@ export interface UserActivity {
 }
 
 // ─── NOTIFICATION ────────────────────────
-// FIXED: Changed type from 'all' | 'selected' to 'all' | 'course'
-// The database constraint expects 'course', not 'selected'
+// FIXED: Changed type to 'all' | 'selected' as per user requirement
 export interface Notification {
   id: ID;
   course_id?: ID;
   title: MultilangText;
   message: MultilangText;
-  type: 'all' | 'course';
+  type: 'all' | 'selected';
   is_sent: boolean;
   sent_at?: DateString;
   created_at: DateString;

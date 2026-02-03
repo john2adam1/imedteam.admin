@@ -28,7 +28,7 @@ export const userService = {
     // Update user password (admin function)
     // Reset user password (admin function)
     resetPassword: async (userId: string, role: string): Promise<{ password: string }> => {
-        const response = await api.post<{ password: string }>('user/reset-password', { user_id: userId, role });
+        const response = await api.put<{ password: string }>('auth/password/refresh', { user_id: userId, role: role || 'user' });
         return response.data;
     },
 

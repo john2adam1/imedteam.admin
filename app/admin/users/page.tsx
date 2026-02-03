@@ -87,7 +87,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (!confirm(`Are you sure you want to delete user ${user.first_name} ${user.last_name}?`)) {
+    if (!confirm(`Are you sure you want to delete user ${user.name}?`)) {
       return;
     }
 
@@ -106,9 +106,9 @@ export default function UsersPage() {
     {
       key: 'name',
       header: 'Name',
-      render: (item: User) => `${item.first_name} ${item.last_name}`.trim()
+      render: (item: User) => item.name
     },
-    { key: 'phone', header: 'Phone' },
+    { key: 'phone_number', header: 'Phone' },
     {
       key: 'created_at',
       header: 'Created At',
@@ -149,6 +149,7 @@ export default function UsersPage() {
           setSelectedUser(null);
         }}
         user={selectedUser}
+        defaultRole="user"
         onSubmit={handlePasswordUpdate}
       />
 

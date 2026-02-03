@@ -34,5 +34,10 @@ export const teacherService = {
 
     delete: async (id: string): Promise<void> => {
         await api.delete(`${RESOURCE_URL}/${id}/delete`);
+    },
+
+    resetPassword: async (userId: string): Promise<{ password: string }> => {
+        const response = await api.put<{ password: string }>('auth/password/refresh', { user_id: userId, role: 'teacher' });
+        return response.data;
     }
 };

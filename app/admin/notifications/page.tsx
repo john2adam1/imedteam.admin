@@ -22,7 +22,7 @@ export default function NotificationsPage() {
     course_id: '',
     title: { uz: '', ru: '', en: '' },
     message: { uz: '', ru: '', en: '' },
-    targetType: 'all' // 'all' | 'course'
+    targetType: 'all' // 'all' | 'selected'
   });
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function NotificationsPage() {
       course_id: notification.course_id || '',
       title: notification.title,
       message: notification.message,
-      targetType: notification.course_id ? 'course' : 'all'
+      targetType: notification.type // Use the type from the notification object directly
     });
     setIsModalOpen(true);
   };
@@ -125,11 +125,11 @@ export default function NotificationsPage() {
         const createPayload: NotificationCreateBody = {
           title: cleanTitle,
           message: cleanMessage,
-          type: formData.targetType === 'course' && formData.course_id ? 'course' : 'all',
+          type: formData.targetType as 'all' | 'selected',
         };
 
-        // Only include course_id when type is 'course'
-        if (createPayload.type === 'course' && formData.course_id) {
+        // Only include course_id when type is 'selected'
+        if (createPayload.type === 'selected' && formData.course_id) {
           createPayload.course_id = formData.course_id.trim();
         }
 
@@ -161,7 +161,7 @@ export default function NotificationsPage() {
     {
       key: 'target',
       header: 'Target',
-      render: (item: Notification) => item.type === 'course' ? 'Specific Course' : 'All Users'
+      render: (item: Notification) => item.type === 'selected' ? 'Specific Course' : 'All Users'
     },
     {
       key: 'created_at',
@@ -227,16 +227,16 @@ export default function NotificationsPage() {
                 <input
                   type="radio"
                   name="targetType"
-                  value="course"
-                  checked={formData.targetType === 'course'}
-                  onChange={() => setFormData({ ...formData, targetType: 'course' })}
+                  value="selected"
+                  checked={formData.targetType === 'selected'}
+                  onChange={() => setFormData({ ...formData, targetType: 'selected' })}
                 />
                 Selected Course
               </label>
             </div>
           </div>
 
-          {formData.targetType === 'course' && (
+          {formData.targetType === 'selected' && (
             <Select
               label="Course"
               options={courseOptions}

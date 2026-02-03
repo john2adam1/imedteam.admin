@@ -7,12 +7,15 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
 
 export default function TeachersPage() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+    const [selectedTeacherForPassword, setSelectedTeacherForPassword] = useState<Teacher | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         login: '',
@@ -55,6 +58,21 @@ export default function TeachersPage() {
             password: '', // Password not editable directly or leave empty to keep same if backend supports
         });
         setIsModalOpen(true);
+    };
+
+    const handlePasswordClick = (teacher: Teacher) => {
+        setSelectedTeacherForPassword(teacher);
+        setIsPasswordModalOpen(true);
+    };
+
+    const handlePasswordUpdate = async (teacherId: string) => {
+        try {
+            const response = await teacherService.resetPassword(teacherId);
+            return response.password;
+        } catch (error: any) {
+            console.error('Failed to reset teacher password:', error);
+            throw error;
+        }
     };
 
     const handleDelete = async (teacher: Teacher) => {
@@ -113,6 +131,9 @@ export default function TeachersPage() {
                 <div className="flex gap-2">
                     <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
                         Edit
+                    </Button>
+                    <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
+                        Reset Password
                     </Button>
                     <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
                         Delete
@@ -176,6 +197,17 @@ export default function TeachersPage() {
                     </div>
                 </form>
             </Modal>
+
+            <PasswordUpdateModal
+                isOpen={isPasswordModalOpen}
+                onClose={() => {
+                    setIsPasswordModalOpen(false);
+                    setSelectedTeacherForPassword(null);
+                }}
+                user={selectedTeacherForPassword}
+                defaultRole="teacher"
+                onSubmit={handlePasswordUpdate}
+            />
         </div>
     );
 }

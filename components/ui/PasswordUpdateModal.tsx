@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { User } from '@/types';
+import { User, Teacher } from '@/types';
 import { Modal } from './Modal';
 import { Input } from './Input';
 import { Button } from './Button';
@@ -9,11 +9,12 @@ import { Button } from './Button';
 interface PasswordUpdateModalProps {
     isOpen: boolean;
     onClose: () => void;
-    user: User | null;
+    user: User | Teacher | null;
+    defaultRole?: string;
     onSubmit: (userId: string, role: string) => Promise<string>;
 }
 
-export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: PasswordUpdateModalProps) {
+export function PasswordUpdateModal({ isOpen, onClose, user, defaultRole, onSubmit }: PasswordUpdateModalProps) {
     const [generatedPassword, setGeneratedPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -32,7 +33,8 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
         try {
             setLoading(true);
             setError('');
-            const password = await onSubmit(user.id, user.role);
+            const role = user.role || defaultRole || 'user';
+            const password = await onSubmit(user.id, role);
             setGeneratedPassword(password);
         } catch (err: any) {
             console.error('Failed to reset password:', err);
@@ -49,9 +51,9 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
 
     if (!user) return null;
 
-    const userName = user.first_name || user.last_name
-        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
-        : 'User';
+    const userName = user.name || 'User';
+    const userPhone = user.phone_number;
+    const userRole = user.role || defaultRole || 'user';
 
     return (
         <Modal isOpen={isOpen} onClose={handleClose} title={`Reset Password for ${userName}`}>
@@ -60,8 +62,8 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
                     <label className="text-sm font-medium text-gray-700">User Information</label>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
                         <p><strong>Name:</strong> {userName}</p>
-                        <p><strong>Phone:</strong> {user.phone}</p>
-                        <p><strong>Role:</strong> {user.role}</p>
+                        <p><strong>Phone:</strong> {userPhone}</p>
+                        <p><strong>Role:</strong> {userRole}</p>
                     </div>
                 </div>
 
