@@ -47,14 +47,15 @@ export default function UsersPage() {
     setIsPasswordModalOpen(true);
   };
 
-  const handlePasswordUpdate = async (userId: string, newPassword: string) => {
+  const handlePasswordUpdate = async (userId: string, role: string) => {
     try {
-      await userService.updatePassword(userId, newPassword);
-      alert('Password updated successfully');
-      setIsPasswordModalOpen(false);
-      setSelectedUser(null);
+      const response = await userService.resetPassword(userId, role);
+      // alert('Password reset successfully'); // No alert needed, modal shows the password
+      // setIsPasswordModalOpen(false); // Don't close immediately, let user see password in modal
+      // setSelectedUser(null);
+      return response.password;
     } catch (error: any) {
-      console.error('Failed to update password:', error);
+      console.error('Failed to reset password:', error);
       // Error is handled in the modal component
       throw error;
     }
@@ -65,9 +66,15 @@ export default function UsersPage() {
     setIsPermissionModalOpen(true);
   };
 
-  const handleGrantPermission = async (userId: string, courseId: string, tariffId: string) => {
+  const handleGrantPermission = async (data: { userId: string, courseId: string, tariffId: string, startedAt: string, endedAt: string }) => {
     try {
-      await courseService.grantPermission({ user_id: userId, course_id: courseId, tariff_id: tariffId });
+      await courseService.grantPermission({
+        user_id: data.userId,
+        course_id: data.courseId,
+        tariff_id: data.tariffId,
+        started_at: data.startedAt,
+        ended_at: data.endedAt
+      });
       alert('Course access granted successfully');
       setIsPermissionModalOpen(false);
       setSelectedUserForPermission(null);

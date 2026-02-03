@@ -189,6 +189,8 @@ export interface CoursePermissionCreateBody {
   user_id: ID;
   course_id: ID;
   tariff_id: ID;
+  started_at?: string;
+  ended_at?: string;
 }
 
 // ─── MODULE ──────────────────────────────
@@ -257,7 +259,7 @@ export interface Notification {
   course_id?: ID;
   title: MultilangText;
   message: MultilangText;
-  type: 'all' | 'course';  // Changed from 'selected' to 'course'
+  type: 'all' | 'course';
   is_sent: boolean;
   sent_at?: DateString;
   created_at: DateString;

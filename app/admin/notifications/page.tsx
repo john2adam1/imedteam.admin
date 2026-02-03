@@ -113,24 +113,27 @@ export default function NotificationsPage() {
     const cleanMessage = { uz: messageUz, ru: messageRu, en: messageEn };
 
     try {
-      // Build the payload with explicit type field
-      const payload: NotificationCreateBody = {
-        title: cleanTitle,
-        message: cleanMessage,
-        type: formData.targetType === 'course' && formData.course_id && formData.course_id.trim() !== ''
-          ? 'course'
-          : 'all',
-      };
-
-      // Only include course_id when type is 'course'
-      if (payload.type === 'course' && formData.course_id && formData.course_id.trim() !== '') {
-        payload.course_id = formData.course_id.trim();
-      }
-
       if (editingNotification) {
-        await notificationService.update(editingNotification.id, payload);
+        // According to Swagger model.MasterNotificationUpdateBody, only title and message are allowed
+        const updatePayload: any = {
+          title: cleanTitle,
+          message: cleanMessage,
+        };
+        await notificationService.update(editingNotification.id, updatePayload);
       } else {
-        await notificationService.create(payload);
+        // For creation, use model.NotificationCreateBody
+        const createPayload: NotificationCreateBody = {
+          title: cleanTitle,
+          message: cleanMessage,
+          type: formData.targetType === 'course' && formData.course_id ? 'course' : 'all',
+        };
+
+        // Only include course_id when type is 'course'
+        if (createPayload.type === 'course' && formData.course_id) {
+          createPayload.course_id = formData.course_id.trim();
+        }
+
+        await notificationService.create(createPayload);
       }
 
       setIsModalOpen(false);
@@ -158,7 +161,7 @@ export default function NotificationsPage() {
     {
       key: 'target',
       header: 'Target',
-      render: (item: Notification) => item.course_id ? 'Specific Course' : 'All Users'
+      render: (item: Notification) => item.type === 'course' ? 'Specific Course' : 'All Users'
     },
     {
       key: 'created_at',

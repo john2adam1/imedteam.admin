@@ -12,7 +12,7 @@ interface CoursePermissionModalProps {
     user: User | null;
     courses: Course[];
     tariffs: Tariff[];
-    onSubmit: (userId: string, courseId: string, tariffId: string) => Promise<void>;
+    onSubmit: (data: { userId: string, courseId: string, tariffId: string, startedAt: string, endedAt: string }) => Promise<void>;
 }
 
 export function CoursePermissionModal({
@@ -63,7 +63,21 @@ export function CoursePermissionModal({
         try {
             setLoading(true);
             setError('');
-            await onSubmit(user.id, selectedCourseId, selectedTariffId);
+
+            const selectedTariff = tariffs.find(t => t.id === selectedTariffId);
+            if (!selectedTariff) throw new Error('Selected tariff not found');
+
+            const today = new Date();
+            const expirationDate = new Date(today);
+            expirationDate.setDate(expirationDate.getDate() + selectedTariff.duration);
+
+            await onSubmit({
+                userId: user.id,
+                courseId: selectedCourseId,
+                tariffId: selectedTariffId,
+                startedAt: today.toISOString(),
+                endedAt: expirationDate.toISOString()
+            });
             handleClose();
         } catch (err: any) {
             console.error('Failed to grant permission:', err);
@@ -92,26 +106,30 @@ export function CoursePermissionModal({
         label: course.name?.en || course.name?.uz || course.name?.ru || 'Untitled Course'
     }));
 
+    // FIXED: Removed .filter(t => t.is_active) as is_active does not exist on Tariff
     const tariffOptions = tariffs
-        .filter(t => t.is_active)
         .map(tariff => ({
             value: tariff.id,
             label: `${tariff.name} (${tariff.duration} days)`
         }));
 
+    const userName = user.first_name || user.last_name
+        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        : 'User';
+
     return (
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={`Grant Course Access for ${user.first_name} ${user.last_name}`}
+            title={`Grant Course Access for ${userName}`}
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">User Information</label>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
-                        <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
+                        <p><strong>Name:</strong> {userName}</p>
                         <p><strong>Phone:</strong> {user.phone}</p>
-                        {user.email && <p><strong>Email:</strong> {user.email}</p>}
+                        {user.role && <p><strong>Role:</strong> {user.role}</p>}
                     </div>
                 </div>
 

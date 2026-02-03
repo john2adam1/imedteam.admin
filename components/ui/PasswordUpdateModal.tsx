@@ -10,43 +10,18 @@ interface PasswordUpdateModalProps {
     isOpen: boolean;
     onClose: () => void;
     user: User | null;
-    onSubmit: (userId: string, newPassword: string) => Promise<void>;
+    onSubmit: (userId: string, role: string) => Promise<string>;
 }
 
 export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: PasswordUpdateModalProps) {
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    const [generatedPassword, setGeneratedPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleClose = () => {
-        setNewPassword('');
-        setConfirmPassword('');
-        setShowPassword(false);
+        setGeneratedPassword('');
         setError('');
         onClose();
-    };
-
-    const validatePassword = (): boolean => {
-        setError('');
-
-        if (!newPassword || newPassword.trim() === '') {
-            setError('Password is required');
-            return false;
-        }
-
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters long');
-            return false;
-        }
-
-        if (newPassword !== confirmPassword) {
-            setError('Passwords do not match');
-            return false;
-        }
-
-        return true;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -54,85 +29,85 @@ export function PasswordUpdateModal({ isOpen, onClose, user, onSubmit }: Passwor
 
         if (!user) return;
 
-        if (!validatePassword()) {
-            return;
-        }
-
         try {
             setLoading(true);
             setError('');
-            await onSubmit(user.id, newPassword);
-            handleClose();
+            const password = await onSubmit(user.id, user.role);
+            setGeneratedPassword(password);
         } catch (err: any) {
-            console.error('Failed to update password:', err);
-            setError(err?.response?.data?.message || err?.message || 'Failed to update password');
+            console.error('Failed to reset password:', err);
+            setError(err?.response?.data?.message || err?.message || 'Failed to reset password');
         } finally {
             setLoading(false);
         }
     };
 
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(generatedPassword);
+        alert('Password copied to clipboard!');
+    };
+
     if (!user) return null;
 
+    const userName = user.first_name || user.last_name
+        ? `${user.first_name || ''} ${user.last_name || ''}`.trim()
+        : 'User';
+
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title={`Reset Password for ${user.first_name} ${user.last_name}`}>
+        <Modal isOpen={isOpen} onClose={handleClose} title={`Reset Password for ${userName}`}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">User Information</label>
                     <div className="bg-gray-50 p-3 rounded-md text-sm">
-                        <p><strong>Name:</strong> {user.first_name} {user.last_name}</p>
+                        <p><strong>Name:</strong> {userName}</p>
                         <p><strong>Phone:</strong> {user.phone}</p>
+                        <p><strong>Role:</strong> {user.role}</p>
                     </div>
                 </div>
 
-                <div className="relative">
-                    <Input
-                        label="New Password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        required
-                        placeholder="Enter new password"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-9 text-sm text-blue-600 hover:text-blue-800"
-                    >
-                        {showPassword ? 'Hide' : 'Show'}
-                    </button>
-                </div>
-
-                <Input
-                    label="Confirm Password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    placeholder="Confirm new password"
-                />
+                {!generatedPassword ? (
+                    <div className="space-y-4">
+                        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md text-sm text-yellow-800">
+                            <strong>Warning:</strong> This will generate a new random password for the user. The old password will stop working immediately.
+                        </div>
+                        <div className="flex gap-2 justify-end pt-4">
+                            <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Generating...' : 'Generate New Password'}
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="bg-green-50 border border-green-200 p-4 rounded-md text-center">
+                            <p className="text-green-800 font-medium mb-2">Password Generated Successfully!</p>
+                            <div className="flex items-center gap-2 justify-center">
+                                <code className="bg-white px-4 py-2 rounded border border-green-300 text-lg font-mono font-bold select-all">
+                                    {generatedPassword}
+                                </code>
+                                <Button type="button" size="sm" onClick={copyToClipboard}>
+                                    Copy
+                                </Button>
+                            </div>
+                            <p className="text-xs text-green-700 mt-2">
+                                Please copy this password and share it with the user correctly. You will not be able to see it again after closing this window.
+                            </p>
+                        </div>
+                        <div className="flex justify-end pt-4">
+                            <Button type="button" onClick={handleClose}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                )}
 
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                         {error}
                     </div>
                 )}
-
-                <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-md">
-                    <strong>Password Requirements:</strong>
-                    <ul className="list-disc list-inside mt-1">
-                        <li>Minimum 6 characters</li>
-                        <li>Both passwords must match</li>
-                    </ul>
-                </div>
-
-                <div className="flex gap-2 justify-end pt-4">
-                    <Button type="button" variant="secondary" onClick={handleClose} disabled={loading}>
-                        Cancel
-                    </Button>
-                    <Button type="submit" disabled={loading}>
-                        {loading ? 'Resetting...' : 'Reset Password'}
-                    </Button>
-                </div>
             </form>
         </Modal>
     );
