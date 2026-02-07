@@ -14,6 +14,8 @@ const menuItems = [
   { path: '/admin/app-routes', label: 'App Routes', icon: '🗺️' },
   { path: '/admin/about', label: 'About', icon: 'ℹ️' },
   { path: '/admin/contact', label: 'Contact', icon: '📞' },
+  { path: '/admin/promocodes', label: 'Promocodes', icon: '🏷️' },
+  { path: '/admin/orders', label: 'Orders', icon: '🛒' },
   { path: '/admin/faq', label: 'FAQ', icon: '❓' },
 ];
 

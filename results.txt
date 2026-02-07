@@ -1,6 +1,0 @@
-URL: /api/auth/user/login | Status: 403 | Body: {"error":"Permission denied"}
-URL: /auth/user/login | Status: 400 | Body: {"Message":"Phone number is not valid"}
-URL: /api/auth/admin/login | Status: 403 | Body: {"error":"Permission denied"}
-URL: /auth/admin/login | Status: 500 | Body: {"error":"invalid phone: sql: no rows in result set"}
-URL: /api/auth/admin/login | Status: 403 | Body: {"error":"Permission denied"}
-URL: /auth/admin/login | Status: 500 | Body: {"error":"invalid phone: sql: no rows in result set"}
