@@ -165,6 +165,7 @@ export interface Course {
   teacher_id?: ID; // Link to Teacher
   order_num: number;
   is_public: boolean;
+  is_active: boolean;
   created_at: DateString;
   updated_at: DateString;
 }

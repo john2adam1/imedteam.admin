@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Subject } from '@/types';
 import { subjectService } from '@/services/subject.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';

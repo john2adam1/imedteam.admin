@@ -11,7 +11,7 @@ import { lessonService } from '@/services/lesson.service';
 import { sourceService } from '@/services/source.service';
 import { uploadService } from '@/services/upload.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -42,6 +42,7 @@ export default function LessonDetailPage() {
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
   const [uploading, setUploading] = useState(false);
+  const [editingSource, setEditingSource] = useState<Source | null>(null);
 
   const [formData, setFormData] = useState({
     lesson_id: lessonId,

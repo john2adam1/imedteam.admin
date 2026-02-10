@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { promocodeService, PromoCode } from '@/services/promocode.service';
 import { PromocodeRedemption } from '@/types';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
 import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';

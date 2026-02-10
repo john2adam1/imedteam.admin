@@ -9,7 +9,7 @@ import { courseService } from '@/services/course.service';
 import { teacherService } from '@/services/teacher.service';
 import { tariffService } from '@/services/tariff.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -34,6 +34,7 @@ export default function SubjectDetailPage() {
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -42,6 +43,7 @@ export default function SubjectDetailPage() {
     teacher_id: string;
     image_url: string;
     is_public: boolean;
+    is_active: boolean;
     order_num: number;
     price: CoursePriceOption[];
     name: { uz: string; ru: string; en: string };
@@ -51,6 +53,7 @@ export default function SubjectDetailPage() {
     teacher_id: '',
     image_url: '',
     is_public: true,
+    is_active: true,
     order_num: 1,
     price: [],
     name: { uz: '', ru: '', en: '' },
@@ -99,6 +102,7 @@ export default function SubjectDetailPage() {
       teacher_id: teachers[0]?.id || '',
       image_url: '',
       is_public: true,
+      is_active: true,
       order_num: courses.length + 1,
       price: [],
       name: { uz: '', ru: '', en: '' },
@@ -114,6 +118,7 @@ export default function SubjectDetailPage() {
       teacher_id: course.teacher_id || '',
       image_url: course.image_url,
       is_public: course.is_public,
+      is_active: course.is_active,
       order_num: course.order_num,
       price: Array.isArray(course.price) ? course.price : [],
       name: course.name,

@@ -5,7 +5,7 @@ import { AppConfig } from '@/types';
 import { appRouteService } from '@/services/app-route.service';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { toast } from 'sonner';
 
 export default function AppConfigPage() {
