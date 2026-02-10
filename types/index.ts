@@ -10,7 +10,7 @@ export interface MultilangText {
 export interface PaginationMeta {
   current_page: number;
   per_page: number;
-  total_pages: number;
+  total_pages?: number;
   total_items: number;
 }
 
@@ -275,25 +275,27 @@ export interface FileUploadRes {
   mime_type: string;
 }
 
-// ─── APP ROUTE ───────────────────────────
-export interface AppRoute {
-  id: ID;
-  key: string;
-  value: any; // JSON object for dynamic routing config
-  description?: string;
-  order_num: number;
-  created_at: DateString;
-  updated_at: DateString;
+// ─── APP CONFIG (formerly App Route) ─────
+export interface AppVersion {
+  android: string;
+  ios: string;
 }
 
-export interface AppRouteCreateBody {
-  key: string;
-  value: any;
-  description?: string;
-  order_num?: number;
+export interface AppLinks {
+  google: string;
+  apple: string;
 }
 
-export type AppRouteUpdateBody = Partial<AppRouteCreateBody>;
+export interface AppConfig {
+  call_center: string;
+  support_url: string;
+  app_version: AppVersion;
+  app_links: AppLinks;
+  payment_min_version: string;
+}
+
+export type AppConfigUpdateBody = AppConfig;
+
 
 // ─── TARIFF ──────────────────────────────
 export interface Tariff {
@@ -334,4 +336,25 @@ export interface PromocodeRedemption {
 export interface PromocodeRedemptionListResponse {
   redemptions: PromocodeRedemption[];
   count: number;
+}
+
+// ─── DASHBOARD ───────────────────────────
+export interface DashboardRes {
+  tariffs: number;
+  subjects: number;
+  courses: number;
+  modules: number;
+  lessons: number;
+  tests: number;
+  documents: number;
+  videos: number;
+  users: number;
+  teachers: number;
+}
+
+export interface GetDashboardReq {
+  type: 'range' | 'day' | 'week' | 'month' | 'year';
+  day?: string; // YYYY-MM-DD
+  from?: string; // YYYY-MM-DD
+  to?: string; // YYYY-MM-DD
 }

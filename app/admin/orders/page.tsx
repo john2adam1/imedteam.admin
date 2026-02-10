@@ -7,17 +7,22 @@ import { Table } from '@/components/ui/Table';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function OrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
     const router = useRouter();
+
 
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await orderService.getAll(1, 10, activeFilters);
+            const res = await orderService.getAll(page, limit, activeFilters);
             console.log('=== Fetch Orders Response ===');
             console.log('Full response:', res);
             console.log('Response keys:', Object.keys(res));
@@ -41,6 +46,7 @@ export default function OrdersPage() {
             console.log('Setting orders:', ordersData);
             console.log('First order sample:', ordersData[0]);
             setOrders(ordersData);
+            setTotalItems(res.count || (res as any).meta?.total_items || ordersData.length);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
             toast.error('Failed to fetch orders');
@@ -51,7 +57,8 @@ export default function OrdersPage() {
 
     useEffect(() => {
         fetchOrders();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     const columns = [
         {
@@ -128,6 +135,14 @@ export default function OrdersPage() {
                 data={orders}
                 columns={columns}
             />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
         </div>
     );
 }

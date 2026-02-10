@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function PromocodesPage() {
     const [promocodes, setPromocodes] = useState<PromoCode[]>([]);
@@ -18,7 +19,11 @@ export default function PromocodesPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPromo, setEditingPromo] = useState<PromoCode | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
     const searchParams = useSearchParams();
+
     const editId = searchParams.get('edit');
 
     // Form states
@@ -38,7 +43,7 @@ export default function PromocodesPage() {
     const fetchPromocodes = async () => {
         try {
             setLoading(true);
-            const res = await promocodeService.getAll(1, 10, activeFilters);
+            const res = await promocodeService.getAll(page, limit, activeFilters);
             console.log('=== Fetch Promocodes Response ===');
             console.log('Full response:', res);
             console.log('All keys:', Object.keys(res));
@@ -66,6 +71,7 @@ export default function PromocodesPage() {
             console.log('Setting promocodes:', promocodesData);
             console.log('First promocode sample:', promocodesData[0]);
             setPromocodes(promocodesData);
+            setTotalItems(res.count || (res as any).meta?.total_items || promocodesData.length);
         } catch (error) {
             console.error('Failed to fetch promocodes:', error);
             toast.error('Failed to fetch promocodes');
@@ -76,7 +82,8 @@ export default function PromocodesPage() {
 
     useEffect(() => {
         fetchPromocodes();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     useEffect(() => {
         if (editId && promocodes.length > 0) {
@@ -266,6 +273,14 @@ export default function PromocodesPage() {
                 onEdit={handleOpenModal}
                 onDelete={handleDelete}
             />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
 
             <Modal
                 isOpen={isModalOpen}

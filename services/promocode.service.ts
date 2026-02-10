@@ -1,6 +1,6 @@
 
 import api from '@/lib/api/axios';
-import { PromocodeRedemptionListResponse } from '@/types';
+import { PromocodeRedemptionListResponse, PaginationMeta } from '@/types';
 
 export interface PromoCode {
     id: string;
@@ -46,6 +46,7 @@ export interface PromoCodeUpdateReq {
 export interface PromoCodeListResponse {
     promo_codes: PromoCode[];
     count: number;
+    meta?: PaginationMeta;
 }
 
 export const promocodeService = {

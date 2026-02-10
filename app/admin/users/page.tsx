@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
 import { CoursePermissionModal } from '@/components/ui/CoursePermissionModal';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -21,20 +22,27 @@ export default function UsersPage() {
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [selectedUserForPermission, setSelectedUserForPermission] = useState<User | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
+
 
   useEffect(() => {
     loadData();
-  }, [activeFilters]);
+  }, [activeFilters, page]);
+
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [usersResponse, coursesResponse, tariffsResponse] = await Promise.all([
-        userService.getAll(1, 10, activeFilters),
+        userService.getAll(page, limit, activeFilters),
         courseService.getAll(),
         tariffService.getAll(),
       ]);
       setUsers(usersResponse.data);
+      setTotalItems(usersResponse.meta?.total_items || usersResponse.data.length);
+
       setCourses(coursesResponse.data);
       setTariffs(tariffsResponse.data);
     } catch (error) {
@@ -162,6 +170,14 @@ export default function UsersPage() {
       <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
 
       <Table data={users} columns={columns} />
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <PasswordUpdateModal
         isOpen={isPasswordModalOpen}

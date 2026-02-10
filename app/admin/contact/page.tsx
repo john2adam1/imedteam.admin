@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function ContactPage() {
     const [items, setItems] = useState<Contact[]>([]);
@@ -15,6 +16,10 @@ export default function ContactPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
+
     const [formData, setFormData] = useState({
         name: '',
         phone_number: '',
@@ -23,12 +28,15 @@ export default function ContactPage() {
 
     useEffect(() => {
         loadData();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     const loadData = async () => {
         try {
-            const response = await contactService.getAll(1, 10, activeFilters);
+            setLoading(true);
+            const response = await contactService.getAll(page, limit, activeFilters);
             setItems(response.data);
+            setTotalItems(response.meta?.total_items || response.data.length);
         } catch (error) {
             console.error('Failed to load messages:', error);
         } finally {
@@ -133,6 +141,14 @@ export default function ContactPage() {
             />
 
             <Table data={items} columns={columns} />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
 
             <Modal
                 isOpen={isModalOpen}

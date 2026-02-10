@@ -18,6 +18,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function ModuleDetailPage() {
   const params = useParams();
@@ -33,9 +34,12 @@ export default function ModuleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [lessonsLoading, setLessonsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
   const [formData, setFormData] = useState({
+
     module_id: moduleId,
     duration: 0,
     order_num: 1,
@@ -48,7 +52,8 @@ export default function ModuleDetailPage() {
     if (subjectId && courseId && moduleId) {
       loadData();
     }
-  }, [subjectId, courseId, moduleId, activeFilters]);
+  }, [subjectId, courseId, moduleId, activeFilters, page]);
+
 
   const loadData = async () => {
     try {
@@ -81,8 +86,9 @@ export default function ModuleDetailPage() {
   const loadLessons = async () => {
     try {
       setLessonsLoading(true);
-      const lessonsResponse = await lessonService.getAll(moduleId, 1, 10, activeFilters);
+      const lessonsResponse = await lessonService.getAll(moduleId, page, limit, activeFilters);
       setLessons(lessonsResponse.data);
+      setTotalItems(lessonsResponse.meta?.total_items || lessonsResponse.data.length);
     } catch (error) {
       console.error('Failed to load lessons:', error);
       // Optional: show toast/alert here
@@ -272,6 +278,14 @@ export default function ModuleDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

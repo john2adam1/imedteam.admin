@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function TariffsPage() {
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
@@ -17,7 +18,11 @@ export default function TariffsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTariff, setEditingTariff] = useState<Tariff | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
     const [formData, setFormData] = useState({
+
         name: '',
         description: '',
         duration: 30,
@@ -26,13 +31,17 @@ export default function TariffsPage() {
 
     useEffect(() => {
         loadTariffs();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     const loadTariffs = async () => {
         try {
+            setLoading(true);
             setError(null);
-            const response = await tariffService.getAll(1, 10, activeFilters);
+            const response = await tariffService.getAll(page, limit, activeFilters);
             setTariffs(response.data || []);
+            setTotalItems(response.meta?.total_items || (response.data || []).length);
+
         } catch (error: any) {
             console.error('Failed to load tariffs:', error);
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load tariffs';
@@ -187,6 +196,14 @@ export default function TariffsPage() {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
             />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
 
             <Modal
                 isOpen={isModalOpen}

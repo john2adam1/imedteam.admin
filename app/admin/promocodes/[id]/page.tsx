@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { toast } from 'sonner';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function PromocodeDetailPage() {
     const params = useParams();
@@ -23,6 +24,10 @@ export default function PromocodeDetailPage() {
     const [loading, setLoading] = useState(true);
     const [redemptionsLoading, setRedemptionsLoading] = useState(true);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
+
 
     useEffect(() => {
         if (id) {
@@ -34,7 +39,8 @@ export default function PromocodeDetailPage() {
         if (id) {
             fetchRedemptions();
         }
-    }, [id, activeFilters]);
+    }, [id, activeFilters, page]);
+
 
     const loadData = async () => {
         try {
@@ -56,8 +62,9 @@ export default function PromocodeDetailPage() {
     const fetchRedemptions = async () => {
         try {
             setRedemptionsLoading(true);
-            const res = await promocodeService.getRedemptions(id, 1, 50, activeFilters);
+            const res = await promocodeService.getRedemptions(id, page, limit, activeFilters);
             setRedemptions(res.redemptions || []);
+            setTotalItems(res.count || (res as any).meta?.total_items || (res.redemptions || []).length);
         } catch (error) {
             console.error('Failed to load redemptions:', error);
             // Don't toast here to avoid cluttering if it's just a 404/empty
@@ -200,8 +207,17 @@ export default function PromocodeDetailPage() {
                     ) : redemptions.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground">No redemptions found.</div>
                     ) : (
-                        <Table data={redemptions} columns={columns} />
+                        <div className="space-y-4">
+                            <Table data={redemptions} columns={columns} />
+                            <Pagination
+                                currentPage={page}
+                                totalItems={totalItems}
+                                perPage={limit}
+                                onPageChange={setPage}
+                            />
+                        </div>
                     )}
+
                 </CardContent>
             </Card>
         </div>

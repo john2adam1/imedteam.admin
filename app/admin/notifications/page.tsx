@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -19,6 +20,10 @@ export default function NotificationsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
+
 
   const [formData, setFormData] = useState({
     course_id: '',
@@ -29,16 +34,18 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     loadData();
-  }, [activeFilters]);
+  }, [activeFilters, page]);
+
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [notifsResponse, coursesResponse] = await Promise.all([
-        notificationService.getAll(1, 10, activeFilters),
+        notificationService.getAll(page, limit, activeFilters),
         courseService.getAll()
       ]);
       setNotifications(notifsResponse.data);
+      setTotalItems(notifsResponse.meta?.total_items || notifsResponse.data.length);
       setCourses(coursesResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -222,6 +229,14 @@ export default function NotificationsPage() {
         columns={columns}
       />
 
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
+
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -284,6 +299,6 @@ export default function NotificationsPage() {
           </div>
         </form>
       </Modal>
-    </div >
+    </div>
   );
 }

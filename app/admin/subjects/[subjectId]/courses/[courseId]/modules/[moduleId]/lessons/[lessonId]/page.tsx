@@ -20,6 +20,7 @@ import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function LessonDetailPage() {
   const params = useParams();
@@ -36,9 +37,12 @@ export default function LessonDetailPage() {
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
   const [uploading, setUploading] = useState(false);
+
   const [formData, setFormData] = useState({
     lesson_id: lessonId,
     order_num: 1,
@@ -51,7 +55,8 @@ export default function LessonDetailPage() {
     if (subjectId && courseId && moduleId && lessonId) {
       loadData();
     }
-  }, [subjectId, courseId, moduleId, lessonId, activeFilters]);
+  }, [subjectId, courseId, moduleId, lessonId, activeFilters, page]);
+
 
   const loadData = async () => {
     try {
@@ -60,8 +65,9 @@ export default function LessonDetailPage() {
         courseService.getById(courseId),
         moduleService.getById(moduleId),
         lessonService.getById(lessonId),
-        sourceService.getAll(lessonId, 1, 10, activeFilters),
+        sourceService.getAll(lessonId, page, limit, activeFilters),
       ]);
+
 
       if (!subjectData || !courseData || !moduleData || !lessonData) {
         router.push('/admin/subjects');
@@ -73,6 +79,7 @@ export default function LessonDetailPage() {
       setModule(moduleData);
       setLesson(lessonData);
       setSources(sourcesResponse.data);
+      setTotalItems(sourcesResponse.meta?.total_items || sourcesResponse.data.length);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -288,6 +295,14 @@ export default function LessonDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

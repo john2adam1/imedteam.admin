@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function TeachersPage() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -18,7 +19,11 @@ export default function TeachersPage() {
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
     const [selectedTeacherForPassword, setSelectedTeacherForPassword] = useState<Teacher | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
     const [formData, setFormData] = useState({
+
         name: '',
         login: '',
         phone_number: '',
@@ -27,12 +32,15 @@ export default function TeachersPage() {
 
     useEffect(() => {
         loadData();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     const loadData = async () => {
         try {
-            const response = await teacherService.getAll(1, 10, activeFilters);
+            setLoading(true);
+            const response = await teacherService.getAll(page, limit, activeFilters);
             setTeachers(response.data);
+            setTotalItems(response.meta?.total_items || response.data.length);
         } catch (error) {
             console.error('Failed to load teachers:', error);
         } finally {
@@ -164,6 +172,14 @@ export default function TeachersPage() {
             <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
 
             <Table data={teachers} columns={columns} />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
 
             <Modal
                 isOpen={isModalOpen}

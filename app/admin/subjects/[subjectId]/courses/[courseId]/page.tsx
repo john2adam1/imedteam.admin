@@ -16,6 +16,7 @@ import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -26,9 +27,12 @@ export default function CourseDetailPage() {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [formData, setFormData] = useState({
     course_id: courseId,
@@ -41,15 +45,17 @@ export default function CourseDetailPage() {
     if (subjectId && courseId) {
       loadData();
     }
-  }, [subjectId, courseId, activeFilters]);
+  }, [subjectId, courseId, activeFilters, page]);
+
 
   const loadData = async () => {
     try {
       const [subjectData, courseData, modulesResponse] = await Promise.all([
         subjectService.getById(subjectId),
         courseService.getById(courseId),
-        moduleService.getAll(courseId, 1, 10, activeFilters),
+        moduleService.getAll(courseId, page, limit, activeFilters),
       ]);
+
 
       if (!subjectData || !courseData) {
         router.push('/admin/subjects');
@@ -59,6 +65,8 @@ export default function CourseDetailPage() {
       setSubject(subjectData);
       setCourse(courseData);
       setModules(modulesResponse.data);
+      setTotalItems(modulesResponse.meta?.total_items || modulesResponse.data.length);
+
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -230,6 +238,14 @@ export default function CourseDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

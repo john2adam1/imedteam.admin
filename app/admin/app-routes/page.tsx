@@ -1,211 +1,182 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AppRoute } from '@/types';
+import { AppConfig } from '@/types';
 import { appRouteService } from '@/services/app-route.service';
-import { Table } from '@/components/ui/Table';
-import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 
-export default function AppRoutesPage() {
-    const [appRoutes, setAppRoutes] = useState<AppRoute[]>([]);
+export default function AppConfigPage() {
+    const [config, setConfig] = useState<AppConfig | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingRoute, setEditingRoute] = useState<AppRoute | null>(null);
-    const [formData, setFormData] = useState({
-        key: '',
-        value: '',
-        description: '',
-        order_num: 1,
-    });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        loadAppRoutes();
+        loadConfig();
     }, []);
 
-    const loadAppRoutes = async () => {
+    const defaultConfig: AppConfig = {
+        call_center: '',
+        support_url: '',
+        app_version: { android: '', ios: '' },
+        app_links: { google: '', apple: '' },
+        payment_min_version: ''
+    };
+
+    const loadConfig = async () => {
         try {
-            setError(null);
-            const response = await appRouteService.getAll();
-            setAppRoutes(response.app_routes || []);
+            setLoading(true);
+            const data = await appRouteService.get();
+            // Deep merge or at least ensure top level objects exist
+            const mergedConfig = {
+                ...defaultConfig,
+                ...data,
+                app_version: { ...defaultConfig.app_version, ...data?.app_version },
+                app_links: { ...defaultConfig.app_links, ...data?.app_links },
+            };
+            setConfig(mergedConfig);
         } catch (error: any) {
-            console.error('Failed to load app routes:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load app routes';
-            setError(errorMessage);
+            console.error('Failed to load app config:', error);
+            toast.error('Failed to load app configuration');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCreate = () => {
-        setEditingRoute(null);
-        setFormData({
-            key: '',
-            value: '',
-            description: '',
-            order_num: appRoutes.length + 1,
-        });
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (route: AppRoute) => {
-        setEditingRoute(route);
-        setFormData({
-            key: route.key,
-            value: typeof route.value === 'string' ? route.value : JSON.stringify(route.value, null, 2),
-            description: route.description || '',
-            order_num: route.order_num,
-        });
-        setIsModalOpen(true);
-    };
-
-    const handleDelete = async (route: AppRoute) => {
-        if (!confirm('Are you sure you want to delete this app route?')) {
-            return;
-        }
-
-        try {
-            await appRouteService.delete(route.id);
-            loadAppRoutes();
-        } catch (error) {
-            console.error('Failed to delete app route:', error);
-            alert('Failed to delete app route');
-        }
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Parse JSON value
-        let parsedValue;
-        try {
-            parsedValue = JSON.parse(formData.value);
-        } catch (error) {
-            alert('Invalid JSON in value field');
-            return;
-        }
-
-        const routeData = {
-            key: formData.key,
-            value: parsedValue,
-            description: formData.description || undefined,
-            order_num: formData.order_num,
-        };
+        if (!config) return;
 
         try {
-            if (editingRoute) {
-                await appRouteService.update(editingRoute.id, routeData);
-            } else {
-                await appRouteService.create(routeData);
-            }
-            setIsModalOpen(false);
-            loadAppRoutes();
+            setSaving(true);
+            await appRouteService.update(config);
+            toast.success('Configuration saved successfully');
+            loadConfig();
         } catch (error: any) {
-            console.error('Failed to save app route:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save app route';
-            alert(`Error: ${errorMessage}`);
+            console.error('Failed to save app config:', error);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save configuration';
+            toast.error(`Error: ${errorMessage}`);
+        } finally {
+            setSaving(false);
         }
     };
 
-    const columns = [
-        { key: 'key', header: 'Key' },
-        {
-            key: 'value',
-            header: 'Value',
-            render: (item: AppRoute) => (
-                <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                    {item?.value ? (typeof item.value === 'string' ? item.value : JSON.stringify(item.value).substring(0, 50) + '...') : 'N/A'}
-                </code>
-            ),
-        },
-        { key: 'description', header: 'Description' },
-        { key: 'order_num', header: 'Order' },
-    ];
+    const handleChange = (path: string, value: string) => {
+        if (!config) return;
+        const newConfig = { ...config };
+
+        // Handle nested paths like 'app_version.android'
+        const keys = path.split('.');
+        let current: any = newConfig;
+        for (let i = 0; i < keys.length - 1; i++) {
+            if (!current[keys[i]]) {
+                current[keys[i]] = {}; // Initialize if missing
+            }
+            current = current[keys[i]];
+        }
+        current[keys[keys.length - 1]] = value;
+
+        setConfig(newConfig);
+    };
 
     if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8 text-muted-foreground">Loading configuration...</div>;
     }
 
-    if (error) {
-        return (
-            <div className="text-center py-8">
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                    <p className="font-bold">Error loading app routes</p>
-                    <p className="text-sm">{error}</p>
-                </div>
-                <button
-                    onClick={loadAppRoutes}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                    Retry
-                </button>
-            </div>
-        );
+    if (!config) {
+        return <div className="text-center py-8 text-destructive">Failed to load configuration.</div>;
     }
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">App Routes</h1>
-                <Button onClick={handleCreate}>Create App Route</Button>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-bold tracking-tight">App Configuration</h1>
+                <Button onClick={handleSubmit} disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Changes'}
+                </Button>
             </div>
 
-            <Table
-                data={appRoutes}
-                columns={columns}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-            />
-
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                title={editingRoute ? 'Edit App Route' : 'Create App Route'}
-            >
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <Input
-                        label="Key"
-                        value={formData.key}
-                        onChange={(e) => setFormData({ ...formData, key: e.target.value })}
-                        placeholder="e.g., home_banner"
-                        required
-                    />
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Value (JSON) <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            className="w-full border rounded-md p-2 font-mono text-sm"
-                            rows={6}
-                            value={formData.value}
-                            onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                            placeholder='{"example": "value"}'
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Contact & Support</CardTitle>
+                        <CardDescription>Official contact information and support channels.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Input
+                            label="Call Center"
+                            value={config.call_center ?? ''}
+                            onChange={(e) => handleChange('call_center', e.target.value)}
+                            placeholder="+998901234567"
                             required
                         />
-                    </div>
-                    <Input
-                        label="Description"
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Optional description"
-                    />
-                    <Input
-                        label="Order Number"
-                        type="number"
-                        value={formData.order_num}
-                        onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
-                        required
-                    />
-                    <div className="flex gap-2 justify-end pt-4">
-                        <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="submit">Save</Button>
-                    </div>
-                </form>
-            </Modal>
+                        <Input
+                            label="Support URL (Telegram)"
+                            value={config.support_url ?? ''}
+                            onChange={(e) => handleChange('support_url', e.target.value)}
+                            placeholder="https://t.me/support"
+                            required
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>App Versions & Payments</CardTitle>
+                        <CardDescription>Control minimum versions and payment enforcement.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Android Version"
+                                value={config.app_version?.android ?? ''}
+                                onChange={(e) => handleChange('app_version.android', e.target.value)}
+                                placeholder="1.0.0"
+                                required
+                            />
+                            <Input
+                                label="iOS Version"
+                                value={config.app_version?.ios ?? ''}
+                                onChange={(e) => handleChange('app_version.ios', e.target.value)}
+                                placeholder="1.0.0"
+                                required
+                            />
+                        </div>
+                        <Input
+                            label="Payment Min Version"
+                            value={config.payment_min_version ?? ''}
+                            onChange={(e) => handleChange('payment_min_version', e.target.value)}
+                            placeholder="1.0.0"
+                            required
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Download Links</CardTitle>
+                        <CardDescription>Links to app stores for user downloads.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                            label="Google Play Store Link"
+                            value={config.app_links?.google ?? ''}
+                            onChange={(e) => handleChange('app_links.google', e.target.value)}
+                            placeholder="https://play.google.com/..."
+                            required
+                        />
+                        <Input
+                            label="Apple App Store Link"
+                            value={config.app_links?.apple ?? ''}
+                            onChange={(e) => handleChange('app_links.apple', e.target.value)}
+                            placeholder="https://apps.apple.com/..."
+                            required
+                        />
+                    </CardContent>
+                </Card>
+            </form>
         </div>
     );
 }

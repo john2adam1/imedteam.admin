@@ -1,63 +1,99 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { subjectService } from '@/services/subject.service';
-import { courseService } from '@/services/course.service';
-import { userService } from '@/services/user.service';
+import { useEffect, useState, useCallback } from 'react';
+import { dashboardService } from '@/services/dashboard.service';
+import { DashboardRes, GetDashboardReq } from '@/types';
+import { StatCard, DashboardSkeleton } from '@/components/dashboard/StatCard';
+import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
+import { Button } from '@/components/ui/Button';
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({
-    categories: 0,
-    courses: 0,
-    users: 0,
-  });
+  const [stats, setStats] = useState<DashboardRes | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<GetDashboardReq>({ type: 'month' });
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const [subjectsRes, coursesRes, usersRes] = await Promise.all([
-          subjectService.getAll(1, 1),
-          courseService.getAll(undefined, 1, 1),
-          userService.getAll(1, 1),
-        ]);
-
-        setStats({
-          categories: subjectsRes.meta.total_items,
-          courses: coursesRes.meta.total_items,
-          users: usersRes.meta.total_items,
-        });
-      } catch (error) {
-        console.error('Failed to fetch stats:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+  const loadStats = useCallback(async (params: GetDashboardReq) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await dashboardService.getStats(params);
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats:', err);
+      setError('Failed to load dashboard statistics. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
-  }
+  const handleFilterChange = (params: GetDashboardReq) => {
+    setFilters(params);
+    loadStats(params);
+  };
+
+  const getHelperText = () => {
+    if (filters.type === 'day') return `Date: ${filters.day}`;
+    if (filters.type === 'range') return `Range: ${filters.from} to ${filters.to}`;
+    return `Selected period: ${filters.type}`;
+  };
+
+  const isEmpty = stats && Object.values(stats).every(val => val === 0);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Categories</h2>
-          <p className="text-3xl font-bold text-blue-600">{stats.categories}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Courses</h2>
-          <p className="text-3xl font-bold text-green-600">{stats.courses}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-2">Users</h2>
-          <p className="text-3xl font-bold text-purple-600">{stats.users}</p>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Admin Dashboard</h1>
+        <div className="flex gap-2">
+          {/* Demo Toggle for Testing Empty State */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleFilterChange({ type: 'range', from: '2000-01-01', to: '2000-01-01' })}
+          >
+            Test Empty State
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => loadStats(filters)}>
+            Refresh
+          </Button>
         </div>
       </div>
+
+      <DashboardFilters onFilter={handleFilterChange} initialValues={filters} />
+
+      {error && (
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex justify-between items-center">
+          <p className="text-sm text-destructive font-medium">{error}</p>
+          <Button size="sm" onClick={() => loadStats(filters)} variant="outline" className="border-destructive/20 text-destructive hover:bg-destructive/10">
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {loading ? (
+        <DashboardSkeleton />
+      ) : stats ? (
+        <>
+          {isEmpty && (
+            <div className="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
+              <p className="text-muted-foreground italic">No data available for the selected period.</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <StatCard label="Tariffs" value={stats.tariffs} helperText={getHelperText()} icon="💰" />
+            <StatCard label="Subjects" value={stats.subjects} helperText={getHelperText()} icon="📁" />
+            <StatCard label="Courses" value={stats.courses} helperText={getHelperText()} icon="🎓" />
+            <StatCard label="Modules" value={stats.modules} helperText={getHelperText()} icon="📦" />
+            <StatCard label="Lessons" value={stats.lessons} helperText={getHelperText()} icon="📖" />
+            <StatCard label="Tests" value={stats.tests} helperText={getHelperText()} icon="📝" />
+            <StatCard label="Documents" value={stats.documents} helperText={getHelperText()} icon="📄" />
+            <StatCard label="Videos" value={stats.videos} helperText={getHelperText()} icon="🎬" />
+            <StatCard label="Users" value={stats.users} helperText={getHelperText()} icon="👥" />
+            <StatCard label="Teachers" value={stats.teachers} helperText={getHelperText()} icon="👨‍🏫" />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -20,7 +21,11 @@ export default function SubjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
   const [formData, setFormData] = useState({
+
     image_url: '',
     order_num: 1,
     name: { uz: '', ru: '', en: '' },
@@ -28,12 +33,15 @@ export default function SubjectsPage() {
 
   useEffect(() => {
     loadSubjects();
-  }, [activeFilters]);
+  }, [activeFilters, page]);
+
 
   const loadSubjects = async () => {
     try {
-      const response = await subjectService.getAll(1, 10, activeFilters);
+      setLoading(true);
+      const response = await subjectService.getAll(page, limit, activeFilters);
       setSubjects(response.data);
+      setTotalItems(response.meta?.total_items || response.data.length);
     } catch (error) {
       console.error('Failed to load subjects:', error);
     } finally {
@@ -172,6 +180,14 @@ export default function SubjectsPage() {
             ))}
         </div>
       )}
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

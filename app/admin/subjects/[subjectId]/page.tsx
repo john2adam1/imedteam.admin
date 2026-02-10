@@ -19,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function SubjectDetailPage() {
   const params = useParams();
@@ -29,9 +30,12 @@ export default function SubjectDetailPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState<{
     subject_id: string;
@@ -57,16 +61,18 @@ export default function SubjectDetailPage() {
     if (subjectId) {
       loadData();
     }
-  }, [subjectId, activeFilters]);
+  }, [subjectId, activeFilters, page]);
+
 
   const loadData = async () => {
     try {
       const [subjectData, coursesResponse, teachersResponse, tariffsResponse] = await Promise.all([
         subjectService.getById(subjectId),
-        courseService.getAll(subjectId, 1, 10, activeFilters), // Using filter
+        courseService.getAll(subjectId, page, limit, activeFilters), // Using filter
         teacherService.getAll(),
         tariffService.getAll(),
       ]);
+
 
       if (!subjectData) {
         router.push('/admin/subjects');
@@ -75,8 +81,10 @@ export default function SubjectDetailPage() {
 
       setSubject(subjectData);
       setCourses(coursesResponse.data);
+      setTotalItems(coursesResponse.meta?.total_items || coursesResponse.data.length);
       setTeachers(teachersResponse.data);
       setTariffs(tariffsResponse.data);
+
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -262,6 +270,14 @@ export default function SubjectDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { PaginationMeta } from '@/types';
 
 export interface Order {
     id: string;
@@ -22,8 +23,9 @@ export interface Order {
 }
 
 export interface OrderListResponse {
-    orders: Order[]; // Adjust if actual response key is different, usually it matches model name plural
+    orders: Order[];
     count: number;
+    meta?: PaginationMeta;
 }
 
 export const orderService = {

@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function FAQPage() {
     const [items, setItems] = useState<FAQ[]>([]);
@@ -16,6 +17,10 @@ export default function FAQPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<FAQ | null>(null);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
+
     const [formData, setFormData] = useState({
         question: { uz: '', ru: '', en: '' },
         answer: { uz: '', ru: '', en: '' },
@@ -24,12 +29,15 @@ export default function FAQPage() {
 
     useEffect(() => {
         loadData();
-    }, [activeFilters]);
+    }, [activeFilters, page]);
+
 
     const loadData = async () => {
         try {
-            const response = await faqService.getAll(1, 10, activeFilters);
+            setLoading(true);
+            const response = await faqService.getAll(page, limit, activeFilters);
             setItems(response.data);
+            setTotalItems(response.meta?.total_items || response.data.length);
         } catch (error) {
             console.error('Failed to load FAQs:', error);
         } finally {
@@ -132,6 +140,14 @@ export default function FAQPage() {
             />
 
             <Table data={items} columns={columns} />
+
+            <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                perPage={limit}
+                onPageChange={setPage}
+            />
+
 
             <Modal
                 isOpen={isModalOpen}

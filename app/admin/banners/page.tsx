@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -16,6 +17,10 @@ export default function BannersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
+
 
   // Using objects for multilingual support
   const [formData, setFormData] = useState({
@@ -28,12 +33,15 @@ export default function BannersPage() {
 
   useEffect(() => {
     loadBanners();
-  }, [activeFilters]);
+  }, [activeFilters, page]);
+
 
   const loadBanners = async () => {
     try {
-      const response = await bannerService.getAll(1, 10, activeFilters);
+      setLoading(true);
+      const response = await bannerService.getAll(page, limit, activeFilters);
       setBanners(response.data);
+      setTotalItems(response.meta?.total_items || response.data.length);
     } catch (error) {
       console.error('Failed to load banners:', error);
     } finally {
@@ -149,6 +157,14 @@ export default function BannersPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        perPage={limit}
+        onPageChange={setPage}
+      />
+
 
       <Modal
         isOpen={isModalOpen}

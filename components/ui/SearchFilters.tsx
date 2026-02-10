@@ -49,14 +49,14 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                             placeholder={config.placeholder}
                             value={filters[config.key] || ''}
                             onChange={(e) => handleChange(config.key, e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
+                            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
                         />
                     )}
                     {config.type === 'select' && (
                         <select
                             value={filters[config.key] || ''}
                             onChange={(e) => handleChange(config.key, e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+                            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
                         >
                             <option value="">All</option>
                             {config.options?.map((opt) => (
@@ -73,7 +73,7 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                                 const val = e.target.value === '' ? undefined : e.target.value === 'true';
                                 handleChange(config.key, val);
                             }}
-                            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px]"
+                            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px]"
                         >
                             <option value="">All</option>
                             <option value="true">Yes</option>
