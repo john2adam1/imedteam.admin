@@ -10,12 +10,9 @@ const RESOURCE_URL = 'app-route';
 
 export const appRouteService = {
     // Get all app routes with optional filtering
-    getAll: async (key?: string): Promise<{ app_routes: AppRoute[]; count: number }> => {
-        const params: any = {};
-        if (key) params.key = key;
-
+    getAll: async (page = 1, limit = 10, filters?: { key?: string }): Promise<{ app_routes: AppRoute[]; count: number }> => {
         const response = await api.get<{ app_routes: AppRoute[]; count: number }>(RESOURCE_URL, {
-            params
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function FAQPage() {
     const [items, setItems] = useState<FAQ[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<FAQ | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         question: { uz: '', ru: '', en: '' },
         answer: { uz: '', ru: '', en: '' },
@@ -22,11 +24,11 @@ export default function FAQPage() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [activeFilters]);
 
     const loadData = async () => {
         try {
-            const response = await faqService.getAll();
+            const response = await faqService.getAll(1, 10, activeFilters);
             setItems(response.data);
         } catch (error) {
             console.error('Failed to load FAQs:', error);
@@ -123,6 +125,11 @@ export default function FAQPage() {
                 <h1 className="text-3xl font-bold">Frequently Asked Questions</h1>
                 <Button onClick={handleCreate}>Add FAQ</Button>
             </div>
+
+            <SearchFilters
+                configs={[{ key: 'question', label: 'Question', type: 'text', placeholder: 'Search by question...' }]}
+                onFilter={setActiveFilters}
+            />
 
             <Table data={items} columns={columns} />
 

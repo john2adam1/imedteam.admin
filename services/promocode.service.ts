@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { PromocodeRedemptionListResponse } from '@/types';
 
 export interface PromoCode {
     id: string;
@@ -48,8 +49,10 @@ export interface PromoCodeListResponse {
 }
 
 export const promocodeService = {
-    getAll: async (page = 1, limit = 10): Promise<PromoCodeListResponse> => { // Backend might not support pagination for this list based on swagger inspection, but adding params just in case or ignored if not supported
-        const response = await api.get<PromoCodeListResponse>('promocode');
+    getAll: async (page = 1, limit = 10, filters?: { code?: string; is_active?: boolean }): Promise<PromoCodeListResponse> => {
+        const response = await api.get<PromoCodeListResponse>('promocode', {
+            params: { page, limit, ...filters }
+        });
         return response.data;
     },
 
@@ -70,5 +73,12 @@ export const promocodeService = {
 
     delete: async (id: string): Promise<void> => {
         await api.delete(`promocode/${id}`);
+    },
+
+    getRedemptions: async (id: string, page = 1, limit = 10, filters?: any): Promise<PromocodeRedemptionListResponse> => {
+        const response = await api.get<PromocodeRedemptionListResponse>(`promocode/${id}/redemptions`, {
+            params: { page, limit, ...filters }
+        });
+        return response.data;
     }
 };

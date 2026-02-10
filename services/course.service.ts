@@ -12,8 +12,8 @@ const RESOURCE_URL = 'course';
 
 export const courseService = {
     // Course CRUD
-    getAll: async (subjectId?: string, page = 1, limit = 10): Promise<PaginatedResponse<Course>> => {
-        const params: any = { page, limit };
+    getAll: async (subjectId?: string, page = 1, limit = 10, filters?: { name?: string; teacher_id?: string; is_public?: boolean }): Promise<PaginatedResponse<Course>> => {
+        const params: any = { page, limit, ...filters };
         if (subjectId) params.subject_id = subjectId;
 
         const response = await api.get<PaginatedResponse<Course>>(RESOURCE_URL, {
@@ -42,9 +42,9 @@ export const courseService = {
     },
 
     // Permissions (User-Course)
-    getPermissions: async (page = 1, limit = 10): Promise<PaginatedResponse<CoursePermission>> => {
+    getPermissions: async (page = 1, limit = 10, filters?: { user_id?: string; course_id?: string; tariff_id?: string }): Promise<PaginatedResponse<CoursePermission>> => {
         const response = await api.get<PaginatedResponse<CoursePermission>>(`${RESOURCE_URL}/permission`, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

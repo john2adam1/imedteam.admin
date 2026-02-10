@@ -10,9 +10,9 @@ import {
 const RESOURCE_URL = 'teacher';
 
 export const teacherService = {
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Teacher>> => {
+    getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string }): Promise<PaginatedResponse<Teacher>> => {
         const response = await api.get<PaginatedResponse<Teacher>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

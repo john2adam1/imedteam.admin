@@ -11,9 +11,9 @@ const RESOURCE_URL = 'about';
 
 export const aboutService = {
     // Get all (paginated)
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<About>> => {
+    getAll: async (page = 1, limit = 10, filters?: { title?: string }): Promise<PaginatedResponse<About>> => {
         const response = await api.get<PaginatedResponse<About>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

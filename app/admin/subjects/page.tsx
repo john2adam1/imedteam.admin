@@ -12,12 +12,14 @@ import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [formData, setFormData] = useState({
     image_url: '',
     order_num: 1,
@@ -26,11 +28,11 @@ export default function SubjectsPage() {
 
   useEffect(() => {
     loadSubjects();
-  }, []);
+  }, [activeFilters]);
 
   const loadSubjects = async () => {
     try {
-      const response = await subjectService.getAll();
+      const response = await subjectService.getAll(1, 10, activeFilters);
       setSubjects(response.data);
     } catch (error) {
       console.error('Failed to load subjects:', error);
@@ -111,6 +113,11 @@ export default function SubjectsPage() {
         </div>
         <Button onClick={handleCreate}>Create Subject</Button>
       </div>
+
+      <SearchFilters
+        configs={[{ key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' }]}
+        onFilter={setActiveFilters}
+      />
 
       <Separator />
 

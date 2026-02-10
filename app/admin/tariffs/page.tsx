@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function TariffsPage() {
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
@@ -15,6 +16,7 @@ export default function TariffsPage() {
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTariff, setEditingTariff] = useState<Tariff | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -24,12 +26,12 @@ export default function TariffsPage() {
 
     useEffect(() => {
         loadTariffs();
-    }, []);
+    }, [activeFilters]);
 
     const loadTariffs = async () => {
         try {
             setError(null);
-            const response = await tariffService.getAll();
+            const response = await tariffService.getAll(1, 10, activeFilters);
             setTariffs(response.data || []);
         } catch (error: any) {
             console.error('Failed to load tariffs:', error);
@@ -173,6 +175,11 @@ export default function TariffsPage() {
                 <h1 className="text-3xl font-bold">Tariffs</h1>
                 <Button onClick={handleCreate}>Create Tariff</Button>
             </div>
+
+            <SearchFilters
+                configs={[{ key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' }]}
+                onFilter={setActiveFilters}
+            />
 
             <Table
                 data={tariffs}

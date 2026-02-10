@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -17,6 +18,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotification, setEditingNotification] = useState<Notification | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   const [formData, setFormData] = useState({
     course_id: '',
@@ -27,13 +29,13 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeFilters]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [notifsResponse, coursesResponse] = await Promise.all([
-        notificationService.getAll(),
+        notificationService.getAll(1, 10, activeFilters),
         courseService.getAll()
       ]);
       setNotifications(notifsResponse.data);
@@ -199,6 +201,22 @@ export default function NotificationsPage() {
         <Button onClick={handleCreate}>Create Notification</Button>
       </div>
 
+      <SearchFilters
+        configs={[
+          { key: 'title', label: 'Title', type: 'text', placeholder: 'Search by title...' },
+          {
+            key: 'type',
+            label: 'Type',
+            type: 'select',
+            options: [
+              { value: 'all', label: 'All Users' },
+              { value: 'selected', label: 'Specific Course' }
+            ]
+          }
+        ]}
+        onFilter={setActiveFilters}
+      />
+
       <Table
         data={notifications}
         columns={columns}
@@ -266,6 +284,6 @@ export default function NotificationsPage() {
           </div>
         </form>
       </Modal>
-    </div>
+    </div >
   );
 }

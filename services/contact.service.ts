@@ -11,9 +11,9 @@ const RESOURCE_URL = 'contact';
 
 export const contactService = {
     // Get all
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Contact>> => {
+    getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string }): Promise<PaginatedResponse<Contact>> => {
         const response = await api.get<PaginatedResponse<Contact>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

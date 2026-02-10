@@ -314,3 +314,24 @@ export interface TariffCreateBody {
 }
 
 export type TariffUpdateBody = Partial<TariffCreateBody>;
+
+// ─── PROMOCODE ───────────────────────────
+export interface PromocodeRedemption {
+  id: string;
+  promocode_id: string;
+  user_id: string;
+  user_name: string;
+  user_phone: string;
+  course_id?: string;
+  course_name?: string;
+  amount: number;
+  discount_amount: number;
+  used_at: string;
+  status?: string;
+  created_at: string;
+}
+
+export interface PromocodeRedemptionListResponse {
+  redemptions: PromocodeRedemption[];
+  count: number;
+}

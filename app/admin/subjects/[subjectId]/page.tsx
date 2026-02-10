@@ -18,6 +18,7 @@ import { Select } from '@/components/ui/Select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function SubjectDetailPage() {
   const params = useParams();
@@ -29,6 +30,7 @@ export default function SubjectDetailPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState<{
@@ -55,13 +57,13 @@ export default function SubjectDetailPage() {
     if (subjectId) {
       loadData();
     }
-  }, [subjectId]);
+  }, [subjectId, activeFilters]);
 
   const loadData = async () => {
     try {
       const [subjectData, coursesResponse, teachersResponse, tariffsResponse] = await Promise.all([
         subjectService.getById(subjectId),
-        courseService.getAll(subjectId), // Using filter
+        courseService.getAll(subjectId, 1, 10, activeFilters), // Using filter
         teacherService.getAll(),
         tariffService.getAll(),
       ]);
@@ -183,12 +185,25 @@ export default function SubjectDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Courses</CardTitle>
-          <CardDescription>
-            {courses.length === 0
-              ? 'No courses in this subject yet'
-              : `${courses.length} course${courses.length !== 1 ? 's' : ''} in this subject`}
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Courses</CardTitle>
+              <CardDescription>
+                {courses.length === 0
+                  ? 'No courses in this subject yet'
+                  : `${courses.length} course${courses.length !== 1 ? 's' : ''} in this subject`}
+              </CardDescription>
+            </div>
+          </div>
+          <div className="mt-4">
+            <SearchFilters
+              configs={[
+                { key: 'name', label: 'Course Name', type: 'text', placeholder: 'Search by course name...' },
+                { key: 'is_public', label: 'Public', type: 'boolean' }
+              ]}
+              onFilter={setActiveFilters}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {courses.length === 0 ? (

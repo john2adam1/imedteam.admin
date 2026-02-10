@@ -8,12 +8,18 @@ import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
 import { toast } from 'sonner';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 export default function PromocodesPage() {
     const [promocodes, setPromocodes] = useState<PromoCode[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPromo, setEditingPromo] = useState<PromoCode | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const searchParams = useSearchParams();
+    const editId = searchParams.get('edit');
 
     // Form states
     const [formData, setFormData] = useState({
@@ -32,7 +38,7 @@ export default function PromocodesPage() {
     const fetchPromocodes = async () => {
         try {
             setLoading(true);
-            const res = await promocodeService.getAll();
+            const res = await promocodeService.getAll(1, 10, activeFilters);
             console.log('=== Fetch Promocodes Response ===');
             console.log('Full response:', res);
             console.log('All keys:', Object.keys(res));
@@ -70,7 +76,16 @@ export default function PromocodesPage() {
 
     useEffect(() => {
         fetchPromocodes();
-    }, []);
+    }, [activeFilters]);
+
+    useEffect(() => {
+        if (editId && promocodes.length > 0) {
+            const promo = promocodes.find(p => p.id === editId);
+            if (promo) {
+                handleOpenModal(promo);
+            }
+        }
+    }, [editId, promocodes]);
 
     const handleOpenModal = (promo?: PromoCode) => {
         if (promo) {
@@ -172,7 +187,15 @@ export default function PromocodesPage() {
     };
 
     const columns = [
-        { key: 'code', header: 'Code' },
+        {
+            key: 'code',
+            header: 'Code',
+            render: (item: PromoCode) => (
+                <Link href={`/admin/promocodes/${item.id}`} className="text-blue-600 hover:underline font-medium">
+                    {item.code}
+                </Link>
+            )
+        },
         {
             key: 'discount',
             header: 'Discount',
@@ -219,7 +242,12 @@ export default function PromocodesPage() {
         },
     ];
 
-    if (loading) return <div className="p-8">Loading...</div>;
+    const filterConfigs: FilterConfig[] = [
+        { key: 'code', label: 'Code', type: 'text', placeholder: 'Search by code...' },
+        { key: 'is_active', label: 'Active', type: 'boolean' },
+    ];
+
+    if (loading && promocodes.length === 0) return <div className="p-8">Loading...</div>;
 
     return (
         <div className="space-y-6">
@@ -229,6 +257,8 @@ export default function PromocodesPage() {
                     <span className="mr-2">➕</span> Create Promocode
                 </Button>
             </div>
+
+            <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
 
             <Table
                 data={promocodes}

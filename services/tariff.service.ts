@@ -11,9 +11,9 @@ const RESOURCE_URL = 'tariff';
 
 export const tariffService = {
     // Get all tariffs with pagination
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Tariff>> => {
+    getAll: async (page = 1, limit = 10, filters?: { name?: string }): Promise<PaginatedResponse<Tariff>> => {
         const response = await api.get<PaginatedResponse<Tariff>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

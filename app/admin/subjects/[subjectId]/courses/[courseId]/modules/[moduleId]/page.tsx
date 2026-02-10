@@ -17,6 +17,7 @@ import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function ModuleDetailPage() {
   const params = useParams();
@@ -33,6 +34,7 @@ export default function ModuleDetailPage() {
   const [lessonsLoading, setLessonsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [formData, setFormData] = useState({
     module_id: moduleId,
     duration: 0,
@@ -46,7 +48,7 @@ export default function ModuleDetailPage() {
     if (subjectId && courseId && moduleId) {
       loadData();
     }
-  }, [subjectId, courseId, moduleId]);
+  }, [subjectId, courseId, moduleId, activeFilters]);
 
   const loadData = async () => {
     try {
@@ -79,7 +81,7 @@ export default function ModuleDetailPage() {
   const loadLessons = async () => {
     try {
       setLessonsLoading(true);
-      const lessonsResponse = await lessonService.getAll(moduleId);
+      const lessonsResponse = await lessonService.getAll(moduleId, 1, 10, activeFilters);
       setLessons(lessonsResponse.data);
     } catch (error) {
       console.error('Failed to load lessons:', error);
@@ -194,13 +196,26 @@ export default function ModuleDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lessons</CardTitle>
-          <CardDescription>
-            {lessonsLoading ? 'Loading lessons...' :
-              lessons.length === 0
-                ? 'No lessons in this module yet'
-                : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} in this module`}
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Lessons</CardTitle>
+              <CardDescription>
+                {lessonsLoading ? 'Loading lessons...' :
+                  lessons.length === 0
+                    ? 'No lessons in this module yet'
+                    : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} in this module`}
+              </CardDescription>
+            </div>
+          </div>
+          <div className="mt-4">
+            <SearchFilters
+              configs={[
+                { key: 'name', label: 'Lesson Name', type: 'text', placeholder: 'Search by lesson name...' },
+                { key: 'type', label: 'Type', type: 'select', options: [{ value: 'lesson', label: 'Lesson' }, { value: 'test', label: 'Test' }] }
+              ]}
+              onFilter={setActiveFilters}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {lessonsLoading ? (

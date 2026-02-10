@@ -10,8 +10,8 @@ import {
 const RESOURCE_URL = 'source';
 
 export const sourceService = {
-    getAll: async (lessonId?: string, page = 1, limit = 10): Promise<PaginatedResponse<Source>> => {
-        const params: any = { page, limit };
+    getAll: async (lessonId?: string, page = 1, limit = 10, filters?: { name?: string; type?: string }): Promise<PaginatedResponse<Source>> => {
+        const params: any = { page, limit, ...filters };
         if (lessonId) params.lesson_id = lessonId;
 
         const response = await api.get<PaginatedResponse<Source>>(RESOURCE_URL, { params });

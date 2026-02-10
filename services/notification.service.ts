@@ -11,9 +11,9 @@ const RESOURCE_URL = 'notification';
 
 export const notificationService = {
     // Admin Notifications
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Notification>> => {
+    getAll: async (page = 1, limit = 10, filters?: { title?: string; type?: string }): Promise<PaginatedResponse<Notification>> => {
         const response = await api.get<PaginatedResponse<Notification>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },
@@ -38,9 +38,9 @@ export const notificationService = {
     },
 
     // User Notifications (if admin needs to see them or manage them separately, otherwise covered above)
-    getUserNotifications: async (page = 1, limit = 10): Promise<PaginatedResponse<Notification>> => {
+    getUserNotifications: async (page = 1, limit = 10, filters?: { type?: string }): Promise<PaginatedResponse<Notification>> => {
         const response = await api.get<PaginatedResponse<Notification>>(`${RESOURCE_URL}/user`, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

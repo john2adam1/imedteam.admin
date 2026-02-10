@@ -10,9 +10,9 @@ import {
 const RESOURCE_URL = 'faq';
 
 export const faqService = {
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<FAQ>> => {
+    getAll: async (page = 1, limit = 10, filters?: { question?: string }): Promise<PaginatedResponse<FAQ>> => {
         const response = await api.get<PaginatedResponse<FAQ>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

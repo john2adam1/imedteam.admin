@@ -9,6 +9,7 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
 import { CoursePermissionModal } from '@/components/ui/CoursePermissionModal';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -19,16 +20,17 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
   const [selectedUserForPermission, setSelectedUserForPermission] = useState<User | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [activeFilters]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [usersResponse, coursesResponse, tariffsResponse] = await Promise.all([
-        userService.getAll(),
+        userService.getAll(1, 10, activeFilters),
         courseService.getAll(),
         tariffService.getAll(),
       ]);
@@ -133,13 +135,32 @@ export default function UsersPage() {
     },
   ];
 
-  if (loading) {
+  const filterConfigs: FilterConfig[] = [
+    { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
+    { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' },
+    {
+      key: 'role',
+      label: 'Role',
+      type: 'select',
+      options: [
+        { value: 'user', label: 'User' },
+        { value: 'admin', label: 'Admin' },
+        { value: 'moderator', label: 'Moderator' },
+      ],
+    },
+    { key: 'is_blocked', label: 'Blocked', type: 'boolean' },
+  ];
+
+  if (loading && users.length === 0) {
     return <div className="text-center py-8">Loading...</div>;
   }
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Users</h1>
+
+      <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
+
       <Table data={users} columns={columns} />
 
       <PasswordUpdateModal

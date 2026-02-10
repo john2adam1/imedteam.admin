@@ -10,8 +10,8 @@ import {
 const RESOURCE_URL = 'module';
 
 export const moduleService = {
-    getAll: async (courseId?: string, page = 1, limit = 10): Promise<PaginatedResponse<Module>> => {
-        const params: any = { page, limit };
+    getAll: async (courseId?: string, page = 1, limit = 10, filters?: { name?: string }): Promise<PaginatedResponse<Module>> => {
+        const params: any = { page, limit, ...filters };
         if (courseId) params.course_id = courseId; // Filter by course if needed
 
         const response = await api.get<PaginatedResponse<Module>>(RESOURCE_URL, { params });

@@ -7,12 +7,14 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function ContactPage() {
     const [items, setItems] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingContact, setEditingContact] = useState<Contact | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         name: '',
         phone_number: '',
@@ -21,11 +23,11 @@ export default function ContactPage() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [activeFilters]);
 
     const loadData = async () => {
         try {
-            const response = await contactService.getAll();
+            const response = await contactService.getAll(1, 10, activeFilters);
             setItems(response.data);
         } catch (error) {
             console.error('Failed to load messages:', error);
@@ -121,6 +123,14 @@ export default function ContactPage() {
                 <h1 className="text-3xl font-bold">Contacts</h1>
                 <Button onClick={handleCreate}>Add Contact</Button>
             </div>
+
+            <SearchFilters
+                configs={[
+                    { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
+                    { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' }
+                ]}
+                onFilter={setActiveFilters}
+            />
 
             <Table data={items} columns={columns} />
 

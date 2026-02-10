@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function TeachersPage() {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -16,6 +17,7 @@ export default function TeachersPage() {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
     const [selectedTeacherForPassword, setSelectedTeacherForPassword] = useState<Teacher | null>(null);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         name: '',
         login: '',
@@ -25,11 +27,11 @@ export default function TeachersPage() {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [activeFilters]);
 
     const loadData = async () => {
         try {
-            const response = await teacherService.getAll();
+            const response = await teacherService.getAll(1, 10, activeFilters);
             setTeachers(response.data);
         } catch (error) {
             console.error('Failed to load teachers:', error);
@@ -143,7 +145,12 @@ export default function TeachersPage() {
         },
     ];
 
-    if (loading) {
+    const filterConfigs: FilterConfig[] = [
+        { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
+        { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' },
+    ];
+
+    if (loading && teachers.length === 0) {
         return <div className="text-center py-8">Loading...</div>;
     }
 
@@ -153,6 +160,8 @@ export default function TeachersPage() {
                 <h1 className="text-3xl font-bold">Teachers</h1>
                 <Button onClick={handleCreate}>Add Teacher</Button>
             </div>
+
+            <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
 
             <Table data={teachers} columns={columns} />
 

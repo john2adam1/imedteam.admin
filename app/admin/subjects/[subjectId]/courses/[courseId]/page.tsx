@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function CourseDetailPage() {
   const params = useParams();
@@ -26,6 +27,7 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
   const [formData, setFormData] = useState({
@@ -39,14 +41,14 @@ export default function CourseDetailPage() {
     if (subjectId && courseId) {
       loadData();
     }
-  }, [subjectId, courseId]);
+  }, [subjectId, courseId, activeFilters]);
 
   const loadData = async () => {
     try {
       const [subjectData, courseData, modulesResponse] = await Promise.all([
         subjectService.getById(subjectId),
         courseService.getById(courseId),
-        moduleService.getAll(courseId),
+        moduleService.getAll(courseId, 1, 10, activeFilters),
       ]);
 
       if (!subjectData || !courseData) {
@@ -160,12 +162,22 @@ export default function CourseDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Modules</CardTitle>
-          <CardDescription>
-            {modules.length === 0
-              ? 'No modules in this course yet'
-              : `${modules.length} module${modules.length !== 1 ? 's' : ''} in this course`}
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Modules</CardTitle>
+              <CardDescription>
+                {modules.length === 0
+                  ? 'No modules in this course yet'
+                  : `${modules.length} module${modules.length !== 1 ? 's' : ''} in this course`}
+              </CardDescription>
+            </div>
+          </div>
+          <div className="mt-4">
+            <SearchFilters
+              configs={[{ key: 'name', label: 'Module Name', type: 'text', placeholder: 'Search by module name...' }]}
+              onFilter={setActiveFilters}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {modules.length === 0 ? (

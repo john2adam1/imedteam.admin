@@ -11,11 +11,11 @@ const RESOURCE_URL = 'banner';
 
 export const bannerService = {
     // Get all
-    getAll: async (page = 1, limit = 10): Promise<PaginatedResponse<Banner>> => {
+    getAll: async (page = 1, limit = 10, filters?: { title?: string }): Promise<PaginatedResponse<Banner>> => {
         // Note: If backend doesn't support pagination for banners, adjust accordingly.
         // Assuming standard structure based on prompt "list with pagination & filtering" (implied for all list resources)
         const response = await api.get<PaginatedResponse<Banner>>(RESOURCE_URL, {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

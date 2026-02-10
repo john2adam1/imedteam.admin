@@ -8,12 +8,14 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function BannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   // Using objects for multilingual support
   const [formData, setFormData] = useState({
@@ -26,11 +28,11 @@ export default function BannersPage() {
 
   useEffect(() => {
     loadBanners();
-  }, []);
+  }, [activeFilters]);
 
   const loadBanners = async () => {
     try {
-      const response = await bannerService.getAll();
+      const response = await bannerService.getAll(1, 10, activeFilters);
       setBanners(response.data);
     } catch (error) {
       console.error('Failed to load banners:', error);
@@ -135,6 +137,11 @@ export default function BannersPage() {
         <h1 className="text-3xl font-bold">Banners</h1>
         <Button onClick={handleCreate}>Create Banner</Button>
       </div>
+
+      <SearchFilters
+        configs={[{ key: 'title', label: 'Title', type: 'text', placeholder: 'Search by title...' }]}
+        onFilter={setActiveFilters}
+      />
 
       <Table
         data={banners}

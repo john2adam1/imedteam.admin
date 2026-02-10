@@ -10,8 +10,8 @@ import {
 const RESOURCE_URL = 'lesson';
 
 export const lessonService = {
-    getAll: async (moduleId?: string, page = 1, limit = 10): Promise<PaginatedResponse<Lesson>> => {
-        const params: any = { page, limit };
+    getAll: async (moduleId?: string, page = 1, limit = 10, filters?: { name?: string; type?: string; is_free?: boolean; is_public?: boolean }): Promise<PaginatedResponse<Lesson>> => {
+        const params: any = { page, limit, ...filters };
         if (moduleId) params.module_id = moduleId;
 
         const response = await api.get<PaginatedResponse<Lesson>>(RESOURCE_URL, { params });

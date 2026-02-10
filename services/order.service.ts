@@ -27,11 +27,10 @@ export interface OrderListResponse {
 }
 
 export const orderService = {
-    getAll: async (page = 1, limit = 10): Promise<OrderListResponse> => {
-        // Assuming /web/order supports pagination? If not, we'll fetch all.
-        // Based on inspection, it was GET /web/order
+    getAll: async (page = 1, limit = 10, filters?: { status?: string; user_id?: string; course_id?: string; promocode?: string }): Promise<OrderListResponse> => {
+        // Assuming /web/order supports pagination/filtering
         const response = await api.get<OrderListResponse>('order', {
-            params: { page, limit }
+            params: { page, limit, ...filters }
         });
         return response.data;
     },

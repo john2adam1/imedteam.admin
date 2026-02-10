@@ -19,6 +19,7 @@ import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
+import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 
 export default function LessonDetailPage() {
   const params = useParams();
@@ -36,6 +37,7 @@ export default function LessonDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     lesson_id: lessonId,
@@ -49,7 +51,7 @@ export default function LessonDetailPage() {
     if (subjectId && courseId && moduleId && lessonId) {
       loadData();
     }
-  }, [subjectId, courseId, moduleId, lessonId]);
+  }, [subjectId, courseId, moduleId, lessonId, activeFilters]);
 
   const loadData = async () => {
     try {
@@ -58,7 +60,7 @@ export default function LessonDetailPage() {
         courseService.getById(courseId),
         moduleService.getById(moduleId),
         lessonService.getById(lessonId),
-        sourceService.getAll(lessonId),
+        sourceService.getAll(lessonId, 1, 10, activeFilters),
       ]);
 
       if (!subjectData || !courseData || !moduleData || !lessonData) {
@@ -209,12 +211,25 @@ export default function LessonDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Sources</CardTitle>
-          <CardDescription>
-            {sources.length === 0
-              ? 'No sources in this lesson yet'
-              : `${sources.length} source${sources.length !== 1 ? 's' : ''} in this lesson`}
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Sources</CardTitle>
+              <CardDescription>
+                {sources.length === 0
+                  ? 'No sources in this lesson yet'
+                  : `${sources.length} source${sources.length !== 1 ? 's' : ''} in this lesson`}
+              </CardDescription>
+            </div>
+          </div>
+          <div className="mt-4">
+            <SearchFilters
+              configs={[
+                { key: 'name', label: 'Source Name', type: 'text', placeholder: 'Search by source name...' },
+                { key: 'type', label: 'Type', type: 'select', options: [{ value: 'video', label: 'Video' }, { value: 'document', label: 'Document' }, { value: 'test', label: 'Test' }] }
+              ]}
+              onFilter={setActiveFilters}
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {sources.length === 0 ? (
