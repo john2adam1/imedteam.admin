@@ -69,7 +69,7 @@ export default function AboutPage() {
     };
 
     const handleDelete = async (item: About) => {
-        if (!confirm('Are you sure you want to delete this item?')) {
+        if (!confirm('Ushbu ma\'lumotni o\'chirishni xohlaysizmi?')) {
             return;
         }
 
@@ -78,7 +78,7 @@ export default function AboutPage() {
             loadData();
         } catch (error) {
             console.error('Failed to delete item:', error);
-            alert('Failed to delete item');
+            alert('Ma\'lumotni o\'chirishda xatolik');
         }
     };
 
@@ -95,31 +95,31 @@ export default function AboutPage() {
             loadData();
         } catch (error: any) {
             console.error('Failed to save item:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save item';
-            alert(`Error: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Ma\'lumotni saqlashda xatolik';
+            alert(`Xatolik: ${errorMessage}`);
         }
     };
 
     const columns = [
         {
             key: 'title',
-            header: 'Title',
+            header: 'Sarlavha',
             render: (item: About) => item.title.en || item.title.uz || item.title.ru
         },
         {
             key: 'order_num',
-            header: 'Order',
+            header: 'Tartib',
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Amallar',
             render: (item: About) => (
                 <div className="flex gap-2">
                     <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-                        Edit
+                        Tahrirlash
                     </Button>
                     <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-                        Delete
+                        O'chirish
                     </Button>
                 </div>
             ),
@@ -127,18 +127,18 @@ export default function AboutPage() {
     ];
 
     if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8">Yuklanmoqda...</div>;
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">About Section</h1>
-                <Button onClick={handleCreate}>Add Item</Button>
+                <h1 className="text-3xl font-bold">Biz haqimizda</h1>
+                <Button onClick={handleCreate}>Ma'lumot qo'shish</Button>
             </div>
 
             <SearchFilters
-                configs={[{ key: 'title', label: 'Title', type: 'text', placeholder: 'Search by title...' }]}
+                configs={[{ key: 'title', label: 'Sarlavha', type: 'text', placeholder: 'Sarlavha bo\'yicha qidirish...' }]}
                 onFilter={setActiveFilters}
             />
 
@@ -155,28 +155,28 @@ export default function AboutPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingItem ? 'Edit Item' : 'Add Item'}
+                title={editingItem ? 'Ma\'lumotni tahrirlash' : 'Ma\'lumot qo\'shish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <MultilangInput
-                        label="Title"
+                        label="Sarlavha"
                         value={formData.title}
                         onChange={(title) => setFormData({ ...formData, title })}
                         required
                     />
                     <MultilangInput
-                        label="Description"
+                        label="Tavsif"
                         value={formData.description}
                         onChange={(description) => setFormData({ ...formData, description })}
                         required
                     />
                     <Input
-                        label="Link URL"
+                        label="Havola URL"
                         value={formData.link_url}
                         onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                     />
                     <Input
-                        label="Order Number"
+                        label="Tartib raqami"
                         type="number"
                         value={formData.order_num}
                         onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -184,9 +184,9 @@ export default function AboutPage() {
                     />
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>

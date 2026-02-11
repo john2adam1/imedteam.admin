@@ -4,19 +4,19 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
-  { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/admin/subjects', label: 'Subjects', icon: '📁' },
-  { path: '/admin/banners', label: 'Banners', icon: '🖼️' },
-  { path: '/admin/notifications', label: 'Notifications', icon: '🔔' },
-  { path: '/admin/users', label: 'Users', icon: '👥' },
-  { path: '/admin/teachers', label: 'Teachers', icon: '👨‍🏫' },
-  { path: '/admin/tariffs', label: 'Tariffs', icon: '💰' },
-  { path: '/admin/app-routes', label: 'App Routes', icon: '🗺️' },
-  { path: '/admin/about', label: 'About', icon: 'ℹ️' },
-  { path: '/admin/contact', label: 'Contact', icon: '📞' },
-  { path: '/admin/promocodes', label: 'Promocodes', icon: '🏷️' },
-  { path: '/admin/orders', label: 'Orders', icon: '🛒' },
-  { path: '/admin/faq', label: 'FAQ', icon: '❓' },
+  { path: '/admin/dashboard', label: 'Asosiy', icon: '📊' },
+  { path: '/admin/subjects', label: 'Fanlar', icon: '📁' },
+  { path: '/admin/banners', label: 'Bannerlar', icon: '🖼️' },
+  { path: '/admin/notifications', label: 'Xabarnomalar', icon: '🔔' },
+  { path: '/admin/users', label: 'Foydalanuvchilar', icon: '👥' },
+  { path: '/admin/teachers', label: 'O\'qituvchilar', icon: '👨‍🏫' },
+  { path: '/admin/tariffs', label: 'Tariflar', icon: '💰' },
+  { path: '/admin/app-routes', label: 'Ilova Yo\'nalishlari', icon: '🗺️' },
+  { path: '/admin/about', label: 'Biz haqimizda', icon: 'ℹ️' },
+  { path: '/admin/contact', label: 'Aloqa', icon: '📞' },
+  { path: '/admin/promocodes', label: 'Promokodlar', icon: '🏷️' },
+  { path: '/admin/orders', label: 'Buyurtmalar', icon: '🛒' },
+  { path: '/admin/faq', label: 'Savol-Javoblar', icon: '❓' },
 ];
 
 export function Sidebar() {

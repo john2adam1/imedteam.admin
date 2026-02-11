@@ -53,7 +53,7 @@ export default function PromocodeDetailPage() {
             setPromocode(data);
         } catch (error) {
             console.error('Failed to load promocode:', error);
-            toast.error('Failed to load promocode');
+            toast.error('Promokodni yuklashda xatolik');
         } finally {
             setLoading(false);
         }
@@ -76,7 +76,7 @@ export default function PromocodeDetailPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <p className="text-muted-foreground">Loading...</p>
+                <p className="text-muted-foreground">Yuklanmoqda...</p>
             </div>
         );
     }
@@ -86,31 +86,31 @@ export default function PromocodeDetailPage() {
     }
 
     const breadcrumbItems = [
-        { label: 'Promocodes', href: '/admin/promocodes' },
+        { label: 'Promokodlar', href: '/admin/promocodes' },
         { label: promocode.code },
     ];
 
     const columns = [
-        { key: 'user_name', header: 'User' },
-        { key: 'user_phone', header: 'Contact' },
+        { key: 'user_name', header: 'Foydalanuvchi' },
+        { key: 'user_phone', header: 'Aloqa' },
         {
             key: 'course_name',
-            header: 'Course',
+            header: 'Kurs',
             render: (item: PromocodeRedemption) => item.course_name || 'N/A'
         },
         {
             key: 'used_at',
-            header: 'Used At',
+            header: 'Ishlatilgan vaqti',
             render: (item: PromocodeRedemption) => new Date(item.used_at).toLocaleString()
         },
         {
             key: 'discount_amount',
-            header: 'Saved',
+            header: 'Tejaldi',
             render: (item: PromocodeRedemption) => `${item.discount_amount.toLocaleString()} UZS`
         },
         {
             key: 'status',
-            header: 'Status',
+            header: 'Holat',
             render: (item: PromocodeRedemption) => (
                 <Badge variant={item.status === 'paid' ? 'success' : 'secondary'}>
                     {item.status || 'N/A'}
@@ -120,8 +120,8 @@ export default function PromocodeDetailPage() {
     ];
 
     const filterConfigs: FilterConfig[] = [
-        { key: 'user_name', label: 'User Name', type: 'text', placeholder: 'Search by user...' },
-        { key: 'course_name', label: 'Course Name', type: 'text', placeholder: 'Search by course...' },
+        { key: 'user_name', label: 'Foydalanuvchi ismi', type: 'text', placeholder: 'Foydalanuvchi bo\'yicha qidirish...' },
+        { key: 'course_name', label: 'Kurs nomi', type: 'text', placeholder: 'Kurs bo\'yicha qidirish...' },
     ];
 
     return (
@@ -130,56 +130,56 @@ export default function PromocodeDetailPage() {
 
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Promocode: {promocode.code}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Promokod: {promocode.code}</h1>
                     <div className="flex items-center gap-3 mt-2">
                         <Badge variant={promocode.is_active ? 'success' : 'secondary'}>
-                            {promocode.is_active ? 'Active' : 'Inactive'}
+                            {promocode.is_active ? 'Faol' : 'Faol emas'}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                            {promocode.discount_value} {promocode.discount_type === 'percent' ? '%' : 'UZS'} discount
+                            {promocode.discount_value} {promocode.discount_type === 'percent' ? '%' : 'UZS'} chegirma
                         </span>
                     </div>
                 </div>
                 <Button onClick={() => router.push(`/admin/promocodes?edit=${id}`)}>
-                    Edit Promocode
+                    Promokodni tahrirlash
                 </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
+                        <CardTitle className="text-sm font-medium">Jami ishlatilishi</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{redemptions.length} / {promocode.max_uses_total || '∞'}</div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            Max {promocode.max_uses_per_user} per user
+                            Maksimal {promocode.max_uses_per_user} har bir foydalanuvchi
                         </p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Validity Period</CardTitle>
+                        <CardTitle className="text-sm font-medium">Amal qilish muddati</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm">
-                            <span className="font-semibold">From:</span> {new Date(promocode.starts_at).toLocaleDateString()}
+                            <span className="font-semibold">Boshlanish:</span> {new Date(promocode.starts_at).toLocaleDateString()}
                         </div>
                         <div className="text-sm">
-                            <span className="font-semibold">Until:</span> {new Date(promocode.ends_at).toLocaleDateString()}
+                            <span className="font-semibold">Tugash:</span> {new Date(promocode.ends_at).toLocaleDateString()}
                         </div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">Order Limits</CardTitle>
+                        <CardTitle className="text-sm font-medium">Buyurtma limitlari</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm">
-                            <span className="font-semibold">Min order:</span> {promocode.min_order_amount.toLocaleString()} UZS
+                            <span className="font-semibold">Minimal buyurtma:</span> {promocode.min_order_amount.toLocaleString()} UZS
                         </div>
                         <div className="text-sm">
-                            <span className="font-semibold">Max discount:</span> {promocode.max_discount.toLocaleString()} UZS
+                            <span className="font-semibold">Maksimal chegirma:</span> {promocode.max_discount.toLocaleString()} UZS
                         </div>
                     </CardContent>
                 </Card>
@@ -191,9 +191,9 @@ export default function PromocodeDetailPage() {
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle>Redemptions</CardTitle>
+                            <CardTitle>Ishlatilishlar</CardTitle>
                             <CardDescription>
-                                Users who have used this promocode
+                                Ushbu promokodni ishlatgan foydalanuvchilar
                             </CardDescription>
                         </div>
                     </div>
@@ -203,9 +203,9 @@ export default function PromocodeDetailPage() {
                 </CardHeader>
                 <CardContent>
                     {redemptionsLoading && redemptions.length === 0 ? (
-                        <div className="flex justify-center py-8 text-muted-foreground">Loading redemptions...</div>
+                        <div className="flex justify-center py-8 text-muted-foreground">Ishlatilishlar yuklanmoqda...</div>
                     ) : redemptions.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">No redemptions found.</div>
+                        <div className="text-center py-8 text-muted-foreground">Ishlatilishlar topilmadi.</div>
                     ) : (
                         <div className="space-y-4">
                             <Table data={redemptions} columns={columns} />

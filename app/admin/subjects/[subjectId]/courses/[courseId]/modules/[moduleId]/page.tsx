@@ -125,7 +125,7 @@ export default function ModuleDetailPage() {
   };
 
   const handleDelete = async (lesson: Lesson) => {
-    if (!confirm(`Are you sure you want to delete this lesson?`)) {
+    if (!confirm(`Ushbu darsni o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -134,7 +134,7 @@ export default function ModuleDetailPage() {
       loadLessons();
     } catch (error) {
       console.error('Failed to delete lesson:', error);
-      alert('Failed to delete lesson');
+      alert('Darsni o\'chirishda xatolik');
     }
   };
 
@@ -157,14 +157,14 @@ export default function ModuleDetailPage() {
       loadLessons();
     } catch (error) {
       console.error('Failed to save lesson:', error);
-      alert('Failed to save lesson: ' + (error as any)?.response?.data?.message || 'Unknown error');
+      alert('Darsni saqlashda xatolik: ' + (error as any)?.response?.data?.message || 'Noma\'lum xatolik');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
   }
@@ -174,14 +174,14 @@ export default function ModuleDetailPage() {
   }
 
   const breadcrumbItems = [
-    { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module' },
+    { label: 'Fanlar', href: '/admin/subjects' },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul' },
   ];
 
   const lessonTypeOptions = [
-    { value: 'lesson', label: 'Lesson' },
+    { value: 'lesson', label: 'Dars' },
     { value: 'test', label: 'Test' }
   ];
 
@@ -192,11 +192,11 @@ export default function ModuleDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module'}
+            {module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul'}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage lessons in this module</p>
+          <p className="text-muted-foreground mt-1">Ushbu moduldagi darslarni boshqarish</p>
         </div>
-        <Button onClick={handleCreate}>Add Lesson</Button>
+        <Button onClick={handleCreate}>Dars qo'shish</Button>
       </div>
 
       <Separator />
@@ -205,20 +205,20 @@ export default function ModuleDetailPage() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Lessons</CardTitle>
+              <CardTitle>Darslar</CardTitle>
               <CardDescription>
-                {lessonsLoading ? 'Loading lessons...' :
+                {lessonsLoading ? 'Darslar yuklanmoqda...' :
                   lessons.length === 0
-                    ? 'No lessons in this module yet'
-                    : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''} in this module`}
+                    ? 'Ushbu modulda darslar mavjud emas'
+                    : `${lessons.length} ta dars ushbu modulda`}
               </CardDescription>
             </div>
           </div>
           <div className="mt-4">
             <SearchFilters
               configs={[
-                { key: 'name', label: 'Lesson Name', type: 'text', placeholder: 'Search by lesson name...' },
-                { key: 'type', label: 'Type', type: 'select', options: [{ value: 'lesson', label: 'Lesson' }, { value: 'test', label: 'Test' }] }
+                { key: 'name', label: 'Dars nomi', type: 'text', placeholder: 'Dars nomi bo\'yicha qidirish...' },
+                { key: 'type', label: 'Tur', type: 'select', options: [{ value: 'lesson', label: 'Dars' }, { value: 'test', label: 'Test' }] }
               ]}
               onFilter={setActiveFilters}
             />
@@ -227,12 +227,12 @@ export default function ModuleDetailPage() {
         <CardContent>
           {lessonsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-muted-foreground">Loading lessons...</p>
+              <p className="text-muted-foreground">Darslar yuklanmoqda...</p>
             </div>
           ) : lessons.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">No lessons available</p>
-              <Button onClick={handleCreate}>Create your first lesson</Button>
+              <p className="text-muted-foreground mb-4">Darslar topilmadi</p>
+              <Button onClick={handleCreate}>Birinchi darsni yaratish</Button>
             </div>
           ) : (
             <div className="space-y-2">
@@ -248,12 +248,12 @@ export default function ModuleDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Untitled Lesson'}
+                              {lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Nomsiz dars'}
                             </h3>
                           </Link>
-                          <span className="text-sm text-muted-foreground">{lesson.duration || 0} min</span>
-                          <Badge variant="outline">{lesson.type || 'lesson'}</Badge>
-                          {lesson.is_public && <Badge variant="secondary">Public</Badge>}
+                          <span className="text-sm text-muted-foreground">{lesson.duration || 0} daqiqa</span>
+                          <Badge variant="outline">{lesson.type === 'lesson' ? 'Dars' : 'Test'}</Badge>
+                          {lesson.is_public && <Badge variant="secondary">Ommaviy</Badge>}
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -261,14 +261,14 @@ export default function ModuleDetailPage() {
                             variant="outline"
                             size="sm"
                           >
-                            Edit
+                            Tahrirlash
                           </Button>
                           <Button
                             onClick={() => handleDelete(lesson)}
                             variant="destructive"
                             size="sm"
                           >
-                            Delete
+                            O'chirish
                           </Button>
                         </div>
                       </div>
@@ -291,31 +291,31 @@ export default function ModuleDetailPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingLesson ? 'Edit Lesson' : 'Add Lesson'}
+        title={editingLesson ? 'Darsni tahrirlash' : 'Dars qo\'shish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <Select
-            label="Type"
+            label="Tur"
             options={lessonTypeOptions}
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             required
           />
           <Input
-            label="Duration (minutes)"
+            label="Davomiyligi (daqiqada)"
             type="number"
             value={formData.duration}
             onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
             required
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -330,14 +330,14 @@ export default function ModuleDetailPage() {
               className="w-4 h-4"
             />
             <label htmlFor="is_public" className="text-sm font-medium">
-              Public (visible to all users)
+              Ommaviy (barcha foydalanuvchilar ko'rishi mumkin)
             </label>
           </div>
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

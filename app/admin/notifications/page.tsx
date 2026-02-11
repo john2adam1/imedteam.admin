@@ -77,7 +77,7 @@ export default function NotificationsPage() {
   };
 
   const handleDelete = async (notification: Notification) => {
-    if (!confirm(`Are you sure you want to delete this notification?`)) {
+    if (!confirm(`Ushbu xabarnomani o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -86,7 +86,7 @@ export default function NotificationsPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete notification:', error);
-      alert('Failed to delete notification');
+      alert('Xabarnomani o\'chirishda xatolik');
     }
   };
 
@@ -95,7 +95,7 @@ export default function NotificationsPage() {
 
     // Validation
     if (formData.targetType === 'course' && (!formData.course_id || formData.course_id.trim() === '')) {
-      alert('Please select a course when targeting specific course notifications');
+      alert('Kursga oid xabarnoma uchun kursni tanlang');
       return;
     }
 
@@ -108,12 +108,12 @@ export default function NotificationsPage() {
     const messageEn = formData.message.en?.trim() || '';
 
     if (!titleUz || !titleRu || !titleEn) {
-      alert('Please fill in the title in all languages (UZ, RU, EN)');
+      alert('Sarlavhani barcha tillarda to\'ldiring (UZ, RU, EN)');
       return;
     }
 
     if (!messageUz || !messageRu || !messageEn) {
-      alert('Please fill in the message in all languages (UZ, RU, EN)');
+      alert('Xabarni barcha tillarda to\'ldiring (UZ, RU, EN)');
       return;
     }
 
@@ -122,6 +122,7 @@ export default function NotificationsPage() {
     const cleanMessage = { uz: messageUz, ru: messageRu, en: messageEn };
 
     try {
+      // ... same logic
       if (editingNotification) {
         // According to Swagger model.MasterNotificationUpdateBody, only title and message are allowed
         const updatePayload: any = {
@@ -149,44 +150,44 @@ export default function NotificationsPage() {
       loadData();
     } catch (error: any) {
       console.error('Failed to save notification:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save notification';
-      alert(`Error: ${errorMessage}`);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Xabarnomani saqlashda xatolik';
+      alert(`Xatolik: ${errorMessage}`);
     }
   };
 
   const columns = [
     {
       key: 'title',
-      header: 'Title',
+      header: 'Sarlavha',
       render: (item: Notification) => item.title.uz || item.title.en
     },
     {
       key: 'message',
-      header: 'Message',
+      header: 'Xabar',
       render: (item: Notification) => (
         <div className="max-w-md truncate">{item.message.uz || item.message.en}</div>
       ),
     },
     {
-      key: 'target',
-      header: 'Target',
-      render: (item: Notification) => item.type === 'selected' ? 'Specific Course' : 'All Users'
+      key: 'type',
+      header: 'Qabul qiluvchi',
+      render: (item: Notification) => item.type === 'selected' ? 'Maxsus Kurs' : 'Barcha Foydalanuvchilar'
     },
     {
       key: 'created_at',
-      header: 'Created At',
+      header: 'Yaratilgan vaqti',
       render: (item: Notification) => new Date(item.created_at).toLocaleDateString(),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: 'Amallar',
       render: (item: Notification) => (
         <div className="flex gap-2">
           <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-            Edit
+            Tahrirlash
           </Button>
           <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-            Delete
+            O'chirish
           </Button>
         </div>
       ),
@@ -194,30 +195,30 @@ export default function NotificationsPage() {
   ];
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return <div className="text-center py-8">Yuklanmoqda...</div>;
   }
 
   const courseOptions = [
-    ...courses.map(c => ({ value: c.id, label: c.name?.en || c.name?.uz || c.name?.ru || 'Untitled Course' }))
+    ...courses.map(c => ({ value: c.id, label: c.name?.en || c.name?.uz || c.name?.ru || 'Nomsiz Kurs' }))
   ];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Notifications</h1>
-        <Button onClick={handleCreate}>Create Notification</Button>
+        <h1 className="text-3xl font-bold">Xabarnomalar</h1>
+        <Button onClick={handleCreate}>Xabarnoma yaratish</Button>
       </div>
 
       <SearchFilters
         configs={[
-          { key: 'title', label: 'Title', type: 'text', placeholder: 'Search by title...' },
+          { key: 'title', label: 'Sarlavha', type: 'text', placeholder: 'Sarlavha bo\'yicha qidirish...' },
           {
             key: 'type',
-            label: 'Type',
+            label: 'Tur',
             type: 'select',
             options: [
-              { value: 'all', label: 'All Users' },
-              { value: 'selected', label: 'Specific Course' }
+              { value: 'all', label: 'Barcha Foydalanuvchilar' },
+              { value: 'selected', label: 'Maxsus Kurs' }
             ]
           }
         ]}
@@ -240,11 +241,11 @@ export default function NotificationsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingNotification ? 'Edit Notification' : 'Create Notification'}
+        title={editingNotification ? 'Xabarnomani tahrirlash' : 'Xabarnoma yaratish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Target Audience</label>
+            <label className="text-sm font-medium">Auditoriya</label>
             <div className="flex gap-4">
               <label className="flex items-center gap-2">
                 <input
@@ -254,7 +255,7 @@ export default function NotificationsPage() {
                   checked={formData.targetType === 'all'}
                   onChange={() => setFormData({ ...formData, targetType: 'all', course_id: '' })}
                 />
-                All Users
+                Barcha Foydalanuvchilar
               </label>
               <label className="flex items-center gap-2">
                 <input
@@ -264,14 +265,14 @@ export default function NotificationsPage() {
                   checked={formData.targetType === 'selected'}
                   onChange={() => setFormData({ ...formData, targetType: 'selected' })}
                 />
-                Selected Course
+                Tanlangan Kurs
               </label>
             </div>
           </div>
 
           {formData.targetType === 'selected' && (
             <Select
-              label="Course"
+              label="Kurs"
               options={courseOptions}
               value={formData.course_id}
               onChange={(e) => setFormData({ ...formData, course_id: e.target.value })}
@@ -279,13 +280,13 @@ export default function NotificationsPage() {
             />
           )}
           <MultilangInput
-            label="Title"
+            label="Sarlavha"
             value={formData.title}
             onChange={(title) => setFormData({ ...formData, title })}
             required
           />
           <MultilangInput
-            label="Message"
+            label="Xabar"
             value={formData.message}
             onChange={(message) => setFormData({ ...formData, message })}
             required
@@ -293,9 +294,9 @@ export default function NotificationsPage() {
 
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

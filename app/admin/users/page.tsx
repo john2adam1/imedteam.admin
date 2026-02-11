@@ -85,7 +85,7 @@ export default function UsersPage() {
         started_at: data.startedAt,
         ended_at: data.endedAt
       });
-      alert('Course access granted successfully');
+      alert('Kursga ruxsat muvaffaqiyatli berildi');
       setIsPermissionModalOpen(false);
       setSelectedUserForPermission(null);
       loadData();
@@ -97,7 +97,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (!confirm(`Are you sure you want to delete user ${user.name}?`)) {
+    if (!confirm(`Haqiqatan ham ${user.name} foydalanuvchisini o'chirmoqchimisiz?`)) {
       return;
     }
 
@@ -106,37 +106,36 @@ export default function UsersPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete user:', error);
-      alert('Failed to delete user');
+      alert('Foydalanuvchini o\'chirishda xatolik');
     }
   };
-
 
 
   const columns = [
     {
       key: 'name',
-      header: 'Name',
+      header: 'Ism',
       render: (item: User) => item.name
     },
-    { key: 'phone_number', header: 'Phone' },
+    { key: 'phone_number', header: 'Telefon' },
     {
       key: 'created_at',
-      header: 'Created At',
+      header: 'Yaratilgan vaqti',
       render: (item: User) => new Date(item.created_at).toLocaleDateString(),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: 'Amallar',
       render: (item: User) => (
         <div className="flex gap-2">
           <Button onClick={() => handleGrantPermissionClick(item)} variant="outline" size="sm">
-            Grant Course Access
+            Kursga ruxsat berish
           </Button>
           <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
-            Reset Password
+            Parolni tiklash
           </Button>
           <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-            Delete
+            O'chirish
           </Button>
         </div>
       ),
@@ -144,28 +143,28 @@ export default function UsersPage() {
   ];
 
   const filterConfigs: FilterConfig[] = [
-    { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
-    { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' },
+    { key: 'name', label: 'Ism', type: 'text', placeholder: 'Ism bo\'yicha qidirish...' },
+    { key: 'phone_number', label: 'Telefon', type: 'text', placeholder: 'Telefon bo\'yicha qidirish...' },
     {
       key: 'role',
-      label: 'Role',
+      label: 'Rol',
       type: 'select',
       options: [
-        { value: 'user', label: 'User' },
+        { value: 'user', label: 'Foydalanuvchi' },
         { value: 'admin', label: 'Admin' },
         { value: 'moderator', label: 'Moderator' },
       ],
     },
-    { key: 'is_blocked', label: 'Blocked', type: 'boolean' },
+    { key: 'is_blocked', label: 'Bloklangan', type: 'boolean' },
   ];
 
   if (loading && users.length === 0) {
-    return <div className="text-center py-8">Loading...</div>;
+    return <div className="text-center py-8">Yuklanmoqda...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Users</h1>
+      <h1 className="text-3xl font-bold mb-6">Foydalanuvchilar</h1>
 
       <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
 

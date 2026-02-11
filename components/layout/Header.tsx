@@ -14,9 +14,9 @@ export function Header() {
 
   return (
     <header className="border-b bg-background px-6 py-4 flex justify-between items-center">
-      <h2 className="text-lg font-semibold">Admin Dashboard</h2>
+      <h2 className="text-lg font-semibold">Boshqaruv Paneli</h2>
       <Button onClick={handleLogout} variant="destructive" size="sm">
-        Logout
+        Chiqish
       </Button>
     </header>
   );

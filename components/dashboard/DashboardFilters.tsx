@@ -18,12 +18,12 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
     const [to, setTo] = useState(initialValues?.to || '');
 
     const typeOptions = useMemo(() => [
-        { value: 'all', label: 'All Time' },
-        { value: 'day', label: 'Day' },
-        { value: 'week', label: 'Week' },
-        { value: 'month', label: 'Month' },
-        { value: 'year', label: 'Year' },
-        { value: 'range', label: 'Range' },
+        { value: 'all', label: 'Barcha vaqt' },
+        { value: 'day', label: 'Kun' },
+        { value: 'week', label: 'Hafta' },
+        { value: 'month', label: 'Oy' },
+        { value: 'year', label: 'Yil' },
+        { value: 'range', label: 'Oraliq' },
     ], []);
 
     const handleSubmit = useCallback((e?: React.FormEvent) => {
@@ -60,7 +60,7 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
             <div className="flex flex-wrap items-end gap-4">
                 <div className="min-w-[150px]">
                     <Select
-                        label="Period Type"
+                        label="Davr turi"
                         value={type}
                         onChange={(e) => setType(e.target.value as any)}
                         options={typeOptions}
@@ -71,7 +71,7 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
                 {type === 'day' && (
                     <div className="min-w-[180px]">
                         <Input
-                            label="Select Date"
+                            label="Sanani tanlang"
                             type="date"
                             value={day}
                             onChange={(e) => setDay(e.target.value)}
@@ -84,7 +84,7 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
                     <>
                         <div className="min-w-[180px]">
                             <Input
-                                label="From"
+                                label="Dan"
                                 type="date"
                                 value={from}
                                 onChange={(e) => setFrom(e.target.value)}
@@ -93,7 +93,7 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
                         </div>
                         <div className="min-w-[180px]">
                             <Input
-                                label="To"
+                                label="Gacha"
                                 type="date"
                                 value={to}
                                 onChange={(e) => setTo(e.target.value)}
@@ -106,22 +106,22 @@ function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFilters
                 {(type === 'week' || type === 'month' || type === 'year' || type === 'all') && (
                     <p className="text-sm text-muted-foreground pb-2">
                         {type === 'all'
-                            ? 'Displaying cumulative totals for all time.'
-                            : `Displaying data for the ${type} containing ${day}.`
+                            ? 'Barcha vaqtlar uchun umumiy ko\'rsatkichlar.'
+                            : `${day} sanasini o'z ichiga olgan ${type === 'week' ? 'hafta' : type === 'month' ? 'oy' : 'yil'} ma'lumotlari.`
                         }
                     </p>
                 )}
 
                 <div className="ml-auto">
                     <Button type="submit" variant="default">
-                        Apply Filters
+                        Filtrlarni qo'llash
                     </Button>
                 </div>
             </div>
 
             {type === 'range' && from && to && from > to && (
                 <p className="text-xs text-destructive mt-2">
-                    'From' date cannot be after 'To' date.
+                    'Dan' sanasi 'Gacha' sanasidan keyin bo'lishi mumkin emas.
                 </p>
             )}
         </form>

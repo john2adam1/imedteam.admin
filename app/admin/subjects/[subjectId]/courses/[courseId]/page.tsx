@@ -98,7 +98,7 @@ export default function CourseDetailPage() {
   };
 
   const handleDelete = async (module: Module) => {
-    if (!confirm(`Are you sure you want to delete this module?`)) {
+    if (!confirm(`Ushbu modulni o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -107,7 +107,7 @@ export default function CourseDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete module:', error);
-      alert('Failed to delete module');
+      alert('Modulni o\'chirishda xatolik');
     }
   };
 
@@ -124,14 +124,14 @@ export default function CourseDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to save module:', error);
-      alert('Failed to save module');
+      alert('Modulni saqlashda xatolik');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
   }
@@ -141,9 +141,9 @@ export default function CourseDetailPage() {
   }
 
   const breadcrumbItems = [
-    { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course' },
+    { label: 'Fanlar', href: '/admin/subjects' },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs' },
   ];
 
   return (
@@ -153,18 +153,18 @@ export default function CourseDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course'}
+            {course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs'}
           </h1>
           <p className="text-muted-foreground mt-1">
             {course?.description?.en || course?.description?.uz || course?.description?.ru || ''}
           </p>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant={course?.is_active ? 'success' : 'secondary'}>
-              {course?.is_active ? 'Active' : 'Inactive'}
+              {course?.is_active ? 'Faol' : 'Faol emas'}
             </Badge>
           </div>
         </div>
-        <Button onClick={handleCreate}>Add Module</Button>
+        <Button onClick={handleCreate}>Modul qo'shish</Button>
       </div>
 
       <Separator />
@@ -173,17 +173,17 @@ export default function CourseDetailPage() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Modules</CardTitle>
+              <CardTitle>Modullar</CardTitle>
               <CardDescription>
                 {modules.length === 0
-                  ? 'No modules in this course yet'
-                  : `${modules.length} module${modules.length !== 1 ? 's' : ''} in this course`}
+                  ? 'Ushbu kursda modullar mavjud emas'
+                  : `${modules.length} ta modul ushbu kursda`}
               </CardDescription>
             </div>
           </div>
           <div className="mt-4">
             <SearchFilters
-              configs={[{ key: 'name', label: 'Module Name', type: 'text', placeholder: 'Search by module name...' }]}
+              configs={[{ key: 'name', label: 'Modul nomi', type: 'text', placeholder: 'Modul nomi bo\'yicha qidirish...' }]}
               onFilter={setActiveFilters}
             />
           </div>
@@ -191,8 +191,8 @@ export default function CourseDetailPage() {
         <CardContent>
           {modules.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">No modules available</p>
-              <Button onClick={handleCreate}>Create your first module</Button>
+              <p className="text-muted-foreground mb-4">Modullar topilmadi</p>
+              <Button onClick={handleCreate}>Birinchi modulni yaratish</Button>
             </div>
           ) : (
             <div className="space-y-2">
@@ -211,7 +211,7 @@ export default function CourseDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {module.name?.en || module.name?.uz || module.name?.ru || 'Untitled Module'}
+                              {module.name?.en || module.name?.uz || module.name?.ru || 'Nomsiz modul'}
                             </h3>
                           </Link>
                         </div>
@@ -221,14 +221,14 @@ export default function CourseDetailPage() {
                             variant="outline"
                             size="sm"
                           >
-                            Edit
+                            Tahrirlash
                           </Button>
                           <Button
                             onClick={() => handleDelete(module)}
                             variant="destructive"
                             size="sm"
                           >
-                            Delete
+                            O'chirish
                           </Button>
                         </div>
                       </div>
@@ -251,22 +251,22 @@ export default function CourseDetailPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingModule ? 'Edit Module' : 'Add Module'}
+        title={editingModule ? 'Modulni tahrirlash' : 'Modul qo\'shish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <MultilangInput
-            label="Description"
+            label="Tavsif"
             value={formData.description}
             onChange={(description) => setFormData({ ...formData, description })}
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -274,7 +274,7 @@ export default function CourseDetailPage() {
           />
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
             <Button type="submit">Save</Button>
           </div>

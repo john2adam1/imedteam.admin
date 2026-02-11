@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { orderService, Order } from '@/services/order.service';
+import { userService } from '@/services/user.service';
+import { courseService } from '@/services/course.service';
+import { promocodeService } from '@/services/promocode.service';
 import { useRouter } from 'next/navigation';
 import { Table } from '@/components/ui/Table';
 import { toast } from 'sonner';
@@ -13,26 +16,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const STATUS_COLORS: Record<string, string> = {
     'PAID': 'bg-green-100 text-green-800',
     'NEW': 'bg-blue-100 text-blue-800',
-    'PENDING': 'bg-yellow-100 text-yellow-800',
     'CANCELLED': 'bg-red-100 text-red-800',
     'RESERVED': 'bg-purple-100 text-purple-800',
     'EXPIRED': 'bg-gray-100 text-gray-800'
 };
 
-const ORDER_FILTER_CONFIGS: FilterConfig[] = [
-    { key: 'user_id', label: 'User ID', type: 'text', placeholder: 'Search by User ID...' },
-    { key: 'course_id', label: 'Course ID', type: 'text', placeholder: 'Search by Course ID...' },
-    { key: 'promocode', label: 'Promocode', type: 'text', placeholder: 'Search by Promocode...' },
-    {
-        key: 'payment_type',
-        label: 'Payment Type',
-        type: 'select',
-        options: [
-            { value: 'click', label: 'Click' },
-            { value: 'admin', label: 'Admin' },
-        ],
-    },
-];
+const STATUS_TEXT: Record<string, string> = {
+    'PAID': 'To\'langan',
+    'NEW': 'Yangi',
+    'CANCELLED': 'Bekor qilingan',
+    'RESERVED': 'Band qilingan',
+    'EXPIRED': 'Muddati o\'tgan'
+};
+
 
 type DateRangeType = 'day' | 'week' | 'month' | 'year' | 'all' | 'custom';
 
@@ -50,6 +46,48 @@ export default function OrdersPage() {
     const [dateRangeType, setDateRangeType] = useState<DateRangeType>('month');
     const [customDate, setCustomDate] = useState({ from: '', to: '' });
     const [otherStatus, setOtherStatus] = useState('CANCELLED');
+
+    // Filter Options State
+    const [usersOptions, setUsersOptions] = useState<{ value: string; label: string }[]>([]);
+    const [coursesOptions, setCoursesOptions] = useState<{ value: string; label: string }[]>([]);
+    const [promocodesOptions, setPromocodesOptions] = useState<{ value: string; label: string }[]>([]);
+
+    useEffect(() => {
+        const fetchFilterOptions = async () => {
+            try {
+                // Fetch first 100 items for dropdowns
+                const [usersRes, coursesRes, promocodesRes] = await Promise.all([
+                    userService.getAll(1, 100),
+                    courseService.getAll(undefined, 1, 100),
+                    promocodeService.getAll(1, 100)
+                ]);
+
+                // Fix: Check if 'items' or 'data' exists, handling different response structures
+                const users = (usersRes as any).items || (usersRes as any).data || [];
+                const courses = (coursesRes as any).items || (coursesRes as any).data || [];
+
+                setUsersOptions(users.map((u: any) => ({
+                    value: u.id,
+                    label: `${u.first_name || u.name} ${u.last_name || ''} (${u.phone_number})`
+                })));
+
+                setCoursesOptions(courses.map((c: any) => {
+                    const name = c.name || c.title || 'Unknown Course';
+                    const label = typeof name === 'object'
+                        ? (name.uz || name.ru || name.en || 'Unknown Course')
+                        : String(name);
+                    return { value: c.id, label };
+                }));
+
+                setPromocodesOptions(promocodesRes.promo_codes.map(p => ({ value: p.code, label: p.code })));
+
+            } catch (error) {
+                console.error("Failed to fetch filter options", error);
+            }
+        };
+
+        fetchFilterOptions();
+    }, []);
 
     const getDateRange = (type: DateRangeType) => {
         const now = new Date();
@@ -160,7 +198,7 @@ export default function OrdersPage() {
     const columns = [
         {
             key: 'user',
-            header: 'User',
+            header: 'Foydalanuvchi',
             render: (order: Order) => (
                 <div>
                     <div className="font-medium">{order.user_name}</div>
@@ -168,55 +206,99 @@ export default function OrdersPage() {
                 </div>
             )
         },
-        { key: 'course_name', header: 'Course' },
+        { key: 'course_name', header: 'Kurs' },
         {
             key: 'amount',
-            header: 'Amount',
+            header: 'Summa',
             render: (order: Order) => (
                 <span>{new Intl.NumberFormat('uz-UZ').format(order.amount)} UZS</span>
             )
         },
         {
             key: 'status',
-            header: 'Status',
+            header: 'Holati',
             render: (order: Order) => {
-                const colorClass = STATUS_COLORS[order.status.toUpperCase()] || 'bg-gray-100 text-gray-800';
+                const statusKey = order.status.toUpperCase();
+                const colorClass = STATUS_COLORS[statusKey] || 'bg-gray-100 text-gray-800';
+                const statusText = STATUS_TEXT[statusKey] || order.status;
                 return (
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
-                        {order.status}
+                        {statusText}
                     </span>
                 );
             }
         },
         {
+            key: 'payment_type',
+            header: 'Usul',
+            render: (order: Order) => (
+                <span className="capitalize font-medium text-gray-700">
+                    {order.payment_type === 'admin' ? 'Admin' : 'Click'}
+                </span>
+            )
+        },
+        {
             key: 'created_at',
-            header: 'Date',
+            header: 'Sana',
             render: (order: Order) => (
                 <span>{order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</span>
             )
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Amallar',
             render: (order: Order) => (
                 <Button size="sm" variant="outline" onClick={() => router.push(`/admin/orders/${order.id}`)}>
-                    View
+                    Ko'rish
                 </Button>
             )
         }
     ];
 
+    const filterConfigs: FilterConfig[] = [
+        {
+            key: 'user_id',
+            label: 'Foydalanuvchi',
+            type: 'select',
+            placeholder: 'Foydalanuvchini tanlang',
+            options: usersOptions
+        },
+        {
+            key: 'course_id',
+            label: 'Kurs',
+            type: 'select',
+            placeholder: 'Kursni tanlang',
+            options: coursesOptions
+        },
+        {
+            key: 'promocode',
+            label: 'Promokod',
+            type: 'select',
+            placeholder: 'Promokodni tanlang',
+            options: promocodesOptions
+        },
+        {
+            key: 'payment_type',
+            label: 'To\'lov turi',
+            type: 'select',
+            options: [
+                { value: 'click', label: 'Click' },
+                { value: 'admin', label: 'Admin' },
+            ],
+        },
+    ];
+
     return (
         <div className="p-6">
-            <h1 className="text-2xl font-bold mb-6">Orders</h1>
+            <h1 className="text-2xl font-bold mb-6">Buyurtmalar</h1>
 
             {/* Status Tabs */}
             <div className="mb-6">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-3 max-w-md">
-                        <TabsTrigger value="paid">Paid</TabsTrigger>
-                        <TabsTrigger value="new">New (Clicked)</TabsTrigger>
-                        <TabsTrigger value="other">Other</TabsTrigger>
+                        <TabsTrigger value="paid">To'langan</TabsTrigger>
+                        <TabsTrigger value="new">Yangi (Click)</TabsTrigger>
+                        <TabsTrigger value="other">Boshqa</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
@@ -224,64 +306,63 @@ export default function OrdersPage() {
             {/* Secondary Status Filter for 'Other' Tab */}
             {activeTab === 'other' && (
                 <div className="mb-4 flex gap-2 items-center bg-gray-50 p-3 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Status:</span>
+                    <span className="text-sm font-medium text-gray-700">Holati:</span>
                     <select
                         value={otherStatus}
                         onChange={(e) => setOtherStatus(e.target.value)}
                         className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
                     >
-                        <option value="CANCELLED">Cancelled</option>
-                        <option value="RESERVED">Reserved</option>
-                        <option value="EXPIRED">Expired</option>
-                        <option value="PENDING">Pending</option>
+                        <option value="CANCELLED">Bekor qilingan</option>
+                        <option value="RESERVED">Band qilingan</option>
+                        <option value="EXPIRED">Muddati o'tgan</option>
                     </select>
                 </div>
             )}
 
             {/* Date Range Filters */}
             <div className="mb-6 flex flex-wrap gap-2 items-center">
-                <span className="text-sm font-medium text-gray-700 mr-2">Date Range:</span>
+                <span className="text-sm font-medium text-gray-700 mr-2">Sana oralig'i:</span>
                 <Button
                     variant={dateRangeType === 'day' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('day')}
                 >
-                    Day
+                    Kun
                 </Button>
                 <Button
                     variant={dateRangeType === 'week' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('week')}
                 >
-                    Week
+                    Hafta
                 </Button>
                 <Button
                     variant={dateRangeType === 'month' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('month')}
                 >
-                    Month
+                    Oy
                 </Button>
                 <Button
                     variant={dateRangeType === 'year' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('year')}
                 >
-                    Year
+                    Yil
                 </Button>
                 <Button
                     variant={dateRangeType === 'all' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('all')}
                 >
-                    All Time
+                    Barcha vaqt
                 </Button>
                 <Button
                     variant={dateRangeType === 'custom' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setDateRangeType('custom')}
                 >
-                    Custom
+                    Boshqa
                 </Button>
 
                 {dateRangeType === 'custom' && (
@@ -305,11 +386,11 @@ export default function OrdersPage() {
 
             <SearchFilters
                 onFilter={setActiveFilters}
-                configs={ORDER_FILTER_CONFIGS}
+                configs={filterConfigs}
             />
 
             {loading ? (
-                <div className="text-center py-10">Loading orders...</div>
+                <div className="text-center py-10">Buyurtmalar yuklanmoqda...</div>
             ) : (
                 <Table
                     data={orders}

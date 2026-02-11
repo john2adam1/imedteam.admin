@@ -85,7 +85,7 @@ export default function TeachersPage() {
     };
 
     const handleDelete = async (teacher: Teacher) => {
-        if (!confirm('Are you sure you want to delete this teacher?')) {
+        if (!confirm('Ushbu o\'qituvchini o\'chirishni xohlaysizmi?')) {
             return;
         }
 
@@ -93,7 +93,7 @@ export default function TeachersPage() {
             await teacherService.delete(teacher.id);
             loadData();
         } catch (error) {
-            alert('Failed to delete teacher');
+            alert('O\'qituvchini o\'chirishda xatolik');
         }
     };
 
@@ -109,15 +109,15 @@ export default function TeachersPage() {
             setIsModalOpen(false);
             loadData();
         } catch (error: any) {
-            const message = error?.response?.data?.message || error?.message || 'Failed to save teacher';
-            alert(`Error: ${message}`);
+            const message = error?.response?.data?.message || error?.message || 'O\'qituvchini saqlashda xatolik';
+            alert(`Xatolik: ${message}`);
         }
     };
 
     const columns = [
         {
             key: 'name',
-            header: 'Name',
+            header: 'Ism',
             render: (item: Teacher) => item.name
         },
         {
@@ -127,22 +127,22 @@ export default function TeachersPage() {
         },
         {
             key: 'phone_number',
-            header: 'Phone Number',
+            header: 'Telefon raqami',
             render: (item: Teacher) => item.phone_number
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Amallar',
             render: (item: Teacher) => (
                 <div className="flex gap-2">
                     <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-                        Edit
+                        Tahrirlash
                     </Button>
                     <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
-                        Reset Password
+                        Parolni tiklash
                     </Button>
                     <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-                        Delete
+                        O'chirish
                     </Button>
                 </div>
             ),
@@ -150,19 +150,19 @@ export default function TeachersPage() {
     ];
 
     const filterConfigs: FilterConfig[] = [
-        { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
-        { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' },
+        { key: 'name', label: 'Ism', type: 'text', placeholder: 'Ism bo\'yicha qidirish...' },
+        { key: 'phone_number', label: 'Telefon', type: 'text', placeholder: 'Telefon bo\'yicha qidirish...' },
     ];
 
     if (loading && teachers.length === 0) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8">Yuklanmoqda...</div>;
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Teachers</h1>
-                <Button onClick={handleCreate}>Add Teacher</Button>
+                <h1 className="text-3xl font-bold">O'qituvchilar</h1>
+                <Button onClick={handleCreate}>O'qituvchi qo'shish</Button>
             </div>
 
             <SearchFilters configs={filterConfigs} onFilter={setActiveFilters} />
@@ -180,11 +180,11 @@ export default function TeachersPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingTeacher ? 'Edit Teacher' : 'Add Teacher'}
+                title={editingTeacher ? 'O\'qituvchini tahrirlash' : 'O\'qituvchi qo\'shish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="Name"
+                        label="Ism"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
@@ -196,14 +196,14 @@ export default function TeachersPage() {
                         required
                     />
                     <Input
-                        label="Phone Number"
+                        label="Telefon raqami"
                         value={formData.phone_number}
                         onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                         required
                     />
                     {!editingTeacher && (
                         <Input
-                            label="Password"
+                            label="Parol"
                             type="password"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -212,9 +212,9 @@ export default function TeachersPage() {
                     )}
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>

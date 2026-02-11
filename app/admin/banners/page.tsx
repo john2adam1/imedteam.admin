@@ -74,7 +74,7 @@ export default function BannersPage() {
   };
 
   const handleDelete = async (banner: Banner) => {
-    if (!confirm('Are you sure you want to delete this banner?')) {
+    if (!confirm('Ushbu bannerni o\'chirishni xohlaysizmi?')) {
       return;
     }
 
@@ -83,7 +83,7 @@ export default function BannersPage() {
       loadBanners();
     } catch (error) {
       console.error('Failed to delete banner:', error);
-      alert('Failed to delete banner');
+      alert('Bannerni o\'chirishda xatolik');
     }
   };
 
@@ -108,46 +108,60 @@ export default function BannersPage() {
       loadBanners();
     } catch (error: any) {
       console.error('Failed to save banner:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save banner';
-      alert(`Error: ${errorMessage}`);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Bannerni saqlashda xatolik';
+      alert(`Xatolik: ${errorMessage}`);
     }
   };
 
   const columns = [
     {
       key: 'image_url',
-      header: 'Image',
+      header: 'Rasm',
       render: (item: Banner) => (
         <img src={item.image_url.en || item.image_url.uz || item.image_url.ru} alt="Banner" className="w-20 h-12 object-cover" />
       ),
     },
     {
       key: 'title',
-      header: 'Title',
+      header: 'Sarlavha',
       render: (item: Banner) => item.title.en || item.title.uz || item.title.ru
     },
-    { key: 'link_url', header: 'Link' },
-    { key: 'order_num', header: 'Order' },
+    { key: 'link_url', header: 'Havola' },
+    { key: 'order_num', header: 'Tartib' },
     {
       key: 'created_at',
-      header: 'Created At',
+      header: 'Yaratilgan vaqti',
       render: (item: Banner) => new Date(item.created_at).toLocaleDateString(),
     },
+    {
+      key: 'actions',
+      header: 'Amallar',
+      render: (item: Banner) => (
+        <div className="flex gap-2">
+          <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
+            Tahrirlash
+          </Button>
+          <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
+            O'chirish
+          </Button>
+        </div>
+      )
+    }
   ];
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return <div className="text-center py-8">Yuklanmoqda...</div>;
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Banners</h1>
-        <Button onClick={handleCreate}>Create Banner</Button>
+        <h1 className="text-3xl font-bold">Bannerlar</h1>
+        <Button onClick={handleCreate}>Banner yaratish</Button>
       </div>
 
       <SearchFilters
-        configs={[{ key: 'title', label: 'Title', type: 'text', placeholder: 'Search by title...' }]}
+        configs={[{ key: 'title', label: 'Sarlavha', type: 'text', placeholder: 'Sarlavha bo\'yicha qidirish...' }]}
         onFilter={setActiveFilters}
       />
 
@@ -169,34 +183,34 @@ export default function BannersPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingBanner ? 'Edit Banner' : 'Create Banner'}
+        title={editingBanner ? 'Bannerni tahrirlash' : 'Banner yaratish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Title"
+            label="Sarlavha"
             value={formData.title}
             onChange={(title) => setFormData({ ...formData, title })}
             required
           />
           <MultilangInput
-            label="Description"
+            label="Tavsif"
             value={formData.description}
             onChange={(description) => setFormData({ ...formData, description })}
             required
           />
           <MultilangInput
-            label="Image URL"
+            label="Rasm URL"
             value={formData.image_url}
             onChange={(image_url) => setFormData({ ...formData, image_url })}
             required
           />
           <Input
-            label="Link URL"
+            label="Havola URL"
             value={formData.link_url}
             onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -204,9 +218,9 @@ export default function BannersPage() {
           />
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

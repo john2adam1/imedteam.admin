@@ -128,7 +128,7 @@ export default function SubjectDetailPage() {
   };
 
   const handleDelete = async (course: Course) => {
-    if (!confirm(`Are you sure you want to delete this course?`)) {
+    if (!confirm(`Ushbu kursni o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -137,7 +137,7 @@ export default function SubjectDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete course:', error);
-      alert('Failed to delete course');
+      alert('Kursni o\'chirishda xatolik');
     }
   };
 
@@ -154,14 +154,14 @@ export default function SubjectDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to save course:', error);
-      alert('Failed to save course');
+      alert('Kursni saqlashda xatolik');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
   }
@@ -171,7 +171,7 @@ export default function SubjectDetailPage() {
   }
 
   const breadcrumbItems = [
-    { label: 'Subjects', href: '/admin/subjects' },
+    { label: 'Fanlar', href: '/admin/subjects' },
     { label: subject.name.en || subject.name.uz || subject.name.ru },
   ];
 
@@ -189,9 +189,9 @@ export default function SubjectDetailPage() {
           <h1 className="text-3xl font-bold tracking-tight">
             {subject.name.en || subject.name.uz || subject.name.ru}
           </h1>
-          <p className="text-muted-foreground mt-1">Manage courses in this subject</p>
+          <p className="text-muted-foreground mt-1">Ushbu fanga tegishli kurslarni boshqarish</p>
         </div>
-        <Button onClick={handleCreate}>Add Course</Button>
+        <Button onClick={handleCreate}>Kurs qo'shish</Button>
       </div>
 
       <Separator />
@@ -200,19 +200,19 @@ export default function SubjectDetailPage() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Courses</CardTitle>
+              <CardTitle>Kurslar</CardTitle>
               <CardDescription>
                 {courses.length === 0
-                  ? 'No courses in this subject yet'
-                  : `${courses.length} course${courses.length !== 1 ? 's' : ''} in this subject`}
+                  ? 'Ushbu fanda kurslar mavjud emas'
+                  : `${courses.length} ta kurs mavjud`}
               </CardDescription>
             </div>
           </div>
           <div className="mt-4">
             <SearchFilters
               configs={[
-                { key: 'name', label: 'Course Name', type: 'text', placeholder: 'Search by course name...' },
-                { key: 'is_public', label: 'Public', type: 'boolean' }
+                { key: 'name', label: 'Kurs nomi', type: 'text', placeholder: 'Kurs nomi bo\'yicha qidirish...' },
+                { key: 'is_public', label: 'Ommaviy', type: 'boolean' }
               ]}
               onFilter={setActiveFilters}
             />
@@ -221,8 +221,8 @@ export default function SubjectDetailPage() {
         <CardContent>
           {courses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">No courses available</p>
-              <Button onClick={handleCreate}>Create your first course</Button>
+              <p className="text-muted-foreground mb-4">Kurslar mavjud emas</p>
+              <Button onClick={handleCreate}>Birinchi kursni yaratish</Button>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -235,7 +235,7 @@ export default function SubjectDetailPage() {
                         <div className="flex-1">
                           <Link href={`/admin/subjects/${subjectId}/courses/${course.id}`}>
                             <CardTitle className="hover:text-primary transition-colors cursor-pointer line-clamp-2">
-                              {course.name?.en || course.name?.uz || course.name?.ru || 'Untitled Course'}
+                              {course.name?.en || course.name?.uz || course.name?.ru || 'Nomsiz kurs'}
                             </CardTitle>
                           </Link>
                           <CardDescription className="mt-2 line-clamp-2">
@@ -247,7 +247,7 @@ export default function SubjectDetailPage() {
                     <CardContent>
                       <div className="flex items-center justify-between mb-4">
                         <Badge variant={course.is_public ? 'success' : 'secondary'}>
-                          {course.is_public ? 'Public' : 'Private'}
+                          {course.is_public ? 'Ommaviy' : 'Shaxsiy'}
                         </Badge>
                       </div>
                       <div className="flex gap-2">
@@ -257,7 +257,7 @@ export default function SubjectDetailPage() {
                           size="sm"
                           className="flex-1"
                         >
-                          Edit
+                          Tahrirlash
                         </Button>
                         <Button
                           onClick={() => handleDelete(course)}
@@ -265,7 +265,7 @@ export default function SubjectDetailPage() {
                           size="sm"
                           className="flex-1"
                         >
-                          Delete
+                          O'chirish
                         </Button>
                       </div>
                     </CardContent>
@@ -287,24 +287,24 @@ export default function SubjectDetailPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingCourse ? 'Edit Course' : 'Add Course'}
+        title={editingCourse ? 'Kursni tahrirlash' : 'Kurs qo\'shish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <MultilangInput
-            label="Description"
+            label="Tavsif"
             value={formData.description}
             onChange={(description) => setFormData({ ...formData, description })}
             required
           />
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium">Price Options</label>
+              <label className="text-sm font-medium">Narx opsiyalari</label>
               <Button
                 type="button"
                 variant="outline"
@@ -316,13 +316,13 @@ export default function SubjectDetailPage() {
                   });
                 }}
               >
-                + Add Option
+                + Opsiya qo'shish
               </Button>
             </div>
             {formData.price.map((option, index) => (
               <div key={index} className="flex gap-2 items-end mb-2">
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Tariff</label>
+                  <label className="text-xs text-muted-foreground">Tarif</label>
                   <select
                     className="w-full px-3 py-2 border rounded-md"
                     value={option.duration}
@@ -338,13 +338,13 @@ export default function SubjectDetailPage() {
                   >
                     {tariffs.map((tariff) => (
                       <option key={tariff.id} value={tariff.duration}>
-                        {tariff.name} ({tariff.duration} days)
+                        {tariff.name} ({tariff.duration} kun)
                       </option>
                     ))}
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Price</label>
+                  <label className="text-xs text-muted-foreground">Narx</label>
                   <Input
                     type="number"
                     value={option.price}
@@ -353,7 +353,7 @@ export default function SubjectDetailPage() {
                       newPrice[index].price = parseInt(e.target.value) || 0;
                       setFormData({ ...formData, price: newPrice });
                     }}
-                    placeholder="Price"
+                    placeholder="Narx"
                     required
                   />
                 </div>
@@ -372,27 +372,27 @@ export default function SubjectDetailPage() {
             ))}
           </div>
           <Select
-            label="Teacher"
+            label="O'qituvchi"
             options={teacherOptions}
             value={formData.teacher_id}
             onChange={(e) => setFormData({ ...formData, teacher_id: e.target.value })}
             required
           />
           <Input
-            label="Image URL"
+            label="Rasm URL"
             value={formData.image_url}
             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
             required
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
             required
           />
           <div className="flex items-center justify-between py-2">
-            <label className="text-sm font-medium">Is Public</label>
+            <label className="text-sm font-medium">Ommaviymi</label>
             <Switch
               checked={formData.is_public}
               onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
@@ -400,7 +400,7 @@ export default function SubjectDetailPage() {
           </div>
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
             <Button type="submit">Save</Button>
           </div>

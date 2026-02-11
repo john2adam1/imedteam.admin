@@ -39,7 +39,7 @@ export default function AppConfigPage() {
             setConfig(mergedConfig);
         } catch (error: any) {
             console.error('Failed to load app config:', error);
-            toast.error('Failed to load app configuration');
+            toast.error('Ilova sozlamalarini yuklashda xatolik');
         } finally {
             setLoading(false);
         }
@@ -52,12 +52,12 @@ export default function AppConfigPage() {
         try {
             setSaving(true);
             await appRouteService.update(config);
-            toast.success('Configuration saved successfully');
+            toast.success('Sozlamalar muvaffaqiyatli saqlandi');
             loadConfig();
         } catch (error: any) {
             console.error('Failed to save app config:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save configuration';
-            toast.error(`Error: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Sozlamalarni saqlashda xatolik';
+            toast.error(`Xatolik: ${errorMessage}`);
         } finally {
             setSaving(false);
         }
@@ -82,38 +82,38 @@ export default function AppConfigPage() {
     };
 
     if (loading) {
-        return <div className="text-center py-8 text-muted-foreground">Loading configuration...</div>;
+        return <div className="text-center py-8 text-muted-foreground">Sozlamalar yuklanmoqda...</div>;
     }
 
     if (!config) {
-        return <div className="text-center py-8 text-destructive">Failed to load configuration.</div>;
+        return <div className="text-center py-8 text-destructive">Sozlamalarni yuklashda xatolik.</div>;
     }
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">App Configuration</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Ilova Sozlamalari</h1>
                 <Button onClick={handleSubmit} disabled={saving}>
-                    {saving ? 'Saving...' : 'Save Changes'}
+                    {saving ? 'Saqlanmoqda...' : 'O\'zgarishlarni saqlash'}
                 </Button>
             </div>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Contact & Support</CardTitle>
-                        <CardDescription>Official contact information and support channels.</CardDescription>
+                        <CardTitle>Aloqa va Yordam</CardTitle>
+                        <CardDescription>Rasmiy aloqa ma'lumotlari va yordam kanallari.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Input
-                            label="Call Center"
+                            label="Call Markaz"
                             value={config.call_center ?? ''}
                             onChange={(e) => handleChange('call_center', e.target.value)}
                             placeholder="+998901234567"
                             required
                         />
                         <Input
-                            label="Support URL (Telegram)"
+                            label="Yordam URL (Telegram)"
                             value={config.support_url ?? ''}
                             onChange={(e) => handleChange('support_url', e.target.value)}
                             placeholder="https://t.me/support"
@@ -124,20 +124,20 @@ export default function AppConfigPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>App Versions & Payments</CardTitle>
-                        <CardDescription>Control minimum versions and payment enforcement.</CardDescription>
+                        <CardTitle>Ilova Versiyalari va To'lovlar</CardTitle>
+                        <CardDescription>Minimal versiyalar va to'lovlarni boshqarish.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <Input
-                                label="Android Version"
+                                label="Android Versiya"
                                 value={config.app_version?.android ?? ''}
                                 onChange={(e) => handleChange('app_version.android', e.target.value)}
                                 placeholder="1.0.0"
                                 required
                             />
                             <Input
-                                label="iOS Version"
+                                label="iOS Versiya"
                                 value={config.app_version?.ios ?? ''}
                                 onChange={(e) => handleChange('app_version.ios', e.target.value)}
                                 placeholder="1.0.0"
@@ -145,7 +145,7 @@ export default function AppConfigPage() {
                             />
                         </div>
                         <Input
-                            label="Payment Min Version"
+                            label="Minimal To'lov Versiyasi"
                             value={config.payment_min_version ?? ''}
                             onChange={(e) => handleChange('payment_min_version', e.target.value)}
                             placeholder="1.0.0"
@@ -156,19 +156,19 @@ export default function AppConfigPage() {
 
                 <Card className="md:col-span-2">
                     <CardHeader>
-                        <CardTitle>Download Links</CardTitle>
-                        <CardDescription>Links to app stores for user downloads.</CardDescription>
+                        <CardTitle>Yuklab olish havolalari</CardTitle>
+                        <CardDescription>Foydalanuvchilar uchun ilova do'konlariga havolalar.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Input
-                            label="Google Play Store Link"
+                            label="Google Play Store Havolasi"
                             value={config.app_links?.google ?? ''}
                             onChange={(e) => handleChange('app_links.google', e.target.value)}
                             placeholder="https://play.google.com/..."
                             required
                         />
                         <Input
-                            label="Apple App Store Link"
+                            label="Apple App Store Havolasi"
                             value={config.app_links?.apple ?? ''}
                             onChange={(e) => handleChange('app_links.apple', e.target.value)}
                             placeholder="https://apps.apple.com/..."

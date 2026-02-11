@@ -111,10 +111,10 @@ export default function LessonDetailPage() {
           [language]: uploadResult.url,
         },
       });
-      alert('File uploaded successfully!');
+      alert('Fayl muvaffaqiyatli yuklandi!');
     } catch (error) {
       console.error('Failed to upload file:', error);
-      alert('Failed to upload file');
+      alert('Fayl yuklashda xatolik');
     } finally {
       setUploading(false);
     }
@@ -133,7 +133,7 @@ export default function LessonDetailPage() {
   };
 
   const handleDelete = async (source: Source) => {
-    if (!confirm(`Are you sure you want to delete this source?`)) {
+    if (!confirm(`Ushbu manbani o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -142,7 +142,7 @@ export default function LessonDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete source:', error);
-      alert('Failed to delete source');
+      alert('Manbani o\'chirishda xatolik');
     }
   };
 
@@ -165,14 +165,14 @@ export default function LessonDetailPage() {
       loadData();
     } catch (error) {
       console.error('Failed to save source:', error);
-      alert('Failed to save source');
+      alert('Manbani saqlashda xatolik');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
   }
@@ -182,16 +182,16 @@ export default function LessonDetailPage() {
   }
 
   const breadcrumbItems = [
-    { label: 'Subjects', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Unnamed Subject', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Untitled Course', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Untitled Module', href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
-    { label: lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Untitled Lesson' },
+    { label: 'Fanlar', href: '/admin/subjects' },
+    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul', href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
+    { label: lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Nomsiz dars' },
   ];
 
   const sourceTypeOptions = [
     { value: 'video', label: 'Video' },
-    { value: 'document', label: 'Document' },
+    { value: 'document', label: 'Hujjat' },
     { value: 'test', label: 'Test' },
   ];
 
@@ -202,16 +202,16 @@ export default function LessonDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Untitled Lesson'}
+            {lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Nomsiz dars'}
           </h1>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-sm text-muted-foreground">{lesson.duration} minutes</span>
+            <span className="text-sm text-muted-foreground">{lesson.duration} daqiqa</span>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => handleCreate('video')}>Add Video</Button>
-          <Button onClick={() => handleCreate('document')} variant="outline">Add Document</Button>
-          <Button onClick={() => handleCreate('test')} variant="secondary">Add Test</Button>
+          <Button onClick={() => handleCreate('video')}>Video qo'shish</Button>
+          <Button onClick={() => handleCreate('document')} variant="outline">Hujjat qo'shish</Button>
+          <Button onClick={() => handleCreate('test')} variant="secondary">Test qo'shish</Button>
         </div>
       </div>
 
@@ -221,19 +221,19 @@ export default function LessonDetailPage() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Sources</CardTitle>
+              <CardTitle>Manbalar</CardTitle>
               <CardDescription>
                 {sources.length === 0
-                  ? 'No sources in this lesson yet'
-                  : `${sources.length} source${sources.length !== 1 ? 's' : ''} in this lesson`}
+                  ? 'Ushbu darsda manbalar mavjud emas'
+                  : `${sources.length} ta manba ushbu darsda`}
               </CardDescription>
             </div>
           </div>
           <div className="mt-4">
             <SearchFilters
               configs={[
-                { key: 'name', label: 'Source Name', type: 'text', placeholder: 'Search by source name...' },
-                { key: 'type', label: 'Type', type: 'select', options: [{ value: 'video', label: 'Video' }, { value: 'document', label: 'Document' }, { value: 'test', label: 'Test' }] }
+                { key: 'name', label: 'Manba nomi', type: 'text', placeholder: 'Manba nomi bo\'yicha qidirish...' },
+                { key: 'type', label: 'Tur', type: 'select', options: [{ value: 'video', label: 'Video' }, { value: 'document', label: 'Hujjat' }, { value: 'test', label: 'Test' }] }
               ]}
               onFilter={setActiveFilters}
             />
@@ -242,8 +242,8 @@ export default function LessonDetailPage() {
         <CardContent>
           {sources.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground mb-4">No sources available</p>
-              <Button onClick={() => handleCreate('video')}>Create your first source</Button>
+              <p className="text-muted-foreground mb-4">Manbalar topilmadi</p>
+              <Button onClick={() => handleCreate('video')}>Birinchi manbani yaratish</Button>
             </div>
           ) : (
             <div className="space-y-2">
@@ -259,7 +259,7 @@ export default function LessonDetailPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold">
-                              {source.name?.en || source.name?.uz || source.name?.ru || 'Untitled Source'}
+                              {source.name?.en || source.name?.uz || source.name?.ru || 'Nomsiz manba'}
                             </h3>
                             <a
                               href={source.url?.en || source.url?.uz || source.url?.ru}
@@ -270,7 +270,7 @@ export default function LessonDetailPage() {
                               {source.url?.en || source.url?.uz || source.url?.ru}
                             </a>
                           </div>
-                          <Badge variant="outline">{source.type}</Badge>
+                          <Badge variant="outline">{source.type === 'video' ? 'Video' : source.type === 'document' ? 'Hujjat' : 'Test'}</Badge>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -278,14 +278,14 @@ export default function LessonDetailPage() {
                             variant="outline"
                             size="sm"
                           >
-                            Edit
+                            Tahrirlash
                           </Button>
                           <Button
                             onClick={() => handleDelete(source)}
                             variant="destructive"
                             size="sm"
                           >
-                            Delete
+                            O'chirish
                           </Button>
                         </div>
                       </div>
@@ -308,18 +308,18 @@ export default function LessonDetailPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingSource ? 'Edit Source' : 'Add Source'}
+        title={editingSource ? 'Manbani tahrirlash' : 'Manba qo\'shish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <div className="space-y-4">
             <label className="text-sm font-medium">
-              {formData.type === 'video' ? 'YouTube URLs' : 'URLs or Upload Files'}
+              {formData.type === 'video' ? 'YouTube URLlari' : 'URLlar yoki Fayl yuklash'}
             </label>
             {(['uz', 'ru', 'en'] as const).map((lang) => (
               <div key={lang} className="space-y-2">
@@ -334,8 +334,8 @@ export default function LessonDetailPage() {
                     })}
                     placeholder={
                       formData.type === 'video'
-                        ? `Enter ${lang.toUpperCase()} YouTube URL`
-                        : `Enter ${lang.toUpperCase()} URL or upload file`
+                        ? `${lang.toUpperCase()} YouTube URLini kiriting`
+                        : `${lang.toUpperCase()} URLini kiriting yoki fayl yuklang`
                     }
                     className="flex-1"
                   />
@@ -360,7 +360,7 @@ export default function LessonDetailPage() {
                         onClick={() => document.getElementById(`file-upload-${lang}`)?.click()}
                         disabled={uploading}
                       >
-                        {uploading ? 'Uploading...' : 'Upload'}
+                        {uploading ? 'Yuklanmoqda...' : 'Yuklash'}
                       </Button>
                     </>
                   )}
@@ -369,14 +369,14 @@ export default function LessonDetailPage() {
             ))}
           </div>
           <Select
-            label="Type"
+            label="Tur"
             options={sourceTypeOptions}
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             required
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -384,9 +384,9 @@ export default function LessonDetailPage() {
           />
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

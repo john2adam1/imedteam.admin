@@ -58,7 +58,7 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                             onChange={(e) => handleChange(config.key, e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
                         >
-                            <option value="">All</option>
+                            <option value="">Barchasi</option>
                             {config.options?.map((opt) => (
                                 <option key={String(opt.value)} value={String(opt.value)}>
                                     {opt.label}
@@ -75,9 +75,9 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                             }}
                             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px]"
                         >
-                            <option value="">All</option>
-                            <option value="true">Yes</option>
-                            <option value="false">No</option>
+                            <option value="">Barchasi</option>
+                            <option value="true">Ha</option>
+                            <option value="false">Yo'q</option>
                         </select>
                     )}
                     {config.type === 'date' && (
@@ -92,10 +92,10 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
             ))}
             <div className="flex gap-2">
                 <Button onClick={handleSearch} variant="default">
-                    Search
+                    Qidirish
                 </Button>
                 <Button onClick={handleReset} variant="outline">
-                    Reset
+                    Tozalash
                 </Button>
             </div>
         </div>

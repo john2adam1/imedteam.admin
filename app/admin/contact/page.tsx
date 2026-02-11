@@ -45,7 +45,7 @@ export default function ContactPage() {
     };
 
     const handleDelete = async (item: Contact) => {
-        if (!confirm('Are you sure you want to delete this message?')) {
+        if (!confirm('Ushbu xabarni o\'chirishni xohlaysizmi?')) {
             return;
         }
 
@@ -54,7 +54,7 @@ export default function ContactPage() {
             loadData();
         } catch (error) {
             console.error('Failed to delete message:', error);
-            alert('Failed to delete message');
+            alert('Xabarni o\'chirishda xatolik');
         }
     };
 
@@ -91,30 +91,30 @@ export default function ContactPage() {
             loadData();
         } catch (error: any) {
             console.error('Failed to save contact:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save contact';
-            alert(`Error: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Aloqani saqlashda xatolik';
+            alert(`Xatolik: ${errorMessage}`);
         }
     };
 
     const columns = [
-        { key: 'name', header: 'Name' },
-        { key: 'phone_number', header: 'Phone' },
-        { key: 'link_url', header: 'Link' },
+        { key: 'name', header: 'Ism' },
+        { key: 'phone_number', header: 'Telefon' },
+        { key: 'link_url', header: 'Havola' },
         {
             key: 'created_at',
-            header: 'Date',
+            header: 'Sana',
             render: (item: Contact) => new Date(item.created_at).toLocaleDateString(),
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Amallar',
             render: (item: Contact) => (
                 <div className="flex gap-2">
                     <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-                        Edit
+                        Tahrirlash
                     </Button>
                     <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-                        Delete
+                        O'chirish
                     </Button>
                 </div>
             ),
@@ -122,20 +122,20 @@ export default function ContactPage() {
     ];
 
     if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8">Yuklanmoqda...</div>;
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Contacts</h1>
-                <Button onClick={handleCreate}>Add Contact</Button>
+                <h1 className="text-3xl font-bold">Aloqa</h1>
+                <Button onClick={handleCreate}>Aloqa qo'shish</Button>
             </div>
 
             <SearchFilters
                 configs={[
-                    { key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' },
-                    { key: 'phone_number', label: 'Phone', type: 'text', placeholder: 'Search by phone...' }
+                    { key: 'name', label: 'Ism', type: 'text', placeholder: 'Ism bo\'yicha qidirish...' },
+                    { key: 'phone_number', label: 'Telefon', type: 'text', placeholder: 'Telefon bo\'yicha qidirish...' }
                 ]}
                 onFilter={setActiveFilters}
             />
@@ -153,31 +153,31 @@ export default function ContactPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingContact ? 'Edit Contact' : 'Add Contact'}
+                title={editingContact ? 'Aloqani tahrirlash' : 'Aloqa qo\'shish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="Name"
+                        label="Ism"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
                     />
                     <Input
-                        label="Phone Number"
+                        label="Telefon raqami"
                         value={formData.phone_number}
                         onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
                         required
                     />
                     <Input
-                        label="Link URL"
+                        label="Havola URL"
                         value={formData.link_url}
                         onChange={(e) => setFormData({ ...formData, link_url: e.target.value })}
                     />
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>

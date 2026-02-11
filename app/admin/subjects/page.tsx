@@ -70,7 +70,7 @@ export default function SubjectsPage() {
   };
 
   const handleDelete = async (subject: Subject) => {
-    if (!confirm(`Are you sure you want to delete this subject?`)) {
+    if (!confirm(`Ushbu fanni o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -79,7 +79,7 @@ export default function SubjectsPage() {
       loadSubjects();
     } catch (error) {
       console.error('Failed to delete subject:', error);
-      alert('Failed to delete subject');
+      alert('Fanni o\'chirishda xatolik');
     }
   };
 
@@ -96,34 +96,34 @@ export default function SubjectsPage() {
       loadSubjects();
     } catch (error) {
       console.error('Failed to save subject:', error);
-      alert('Failed to save subject');
+      alert('Fanni saqlashda xatolik');
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">Yuklanmoqda...</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <Breadcrumb items={[{ label: 'Subjects' }]} />
+      <Breadcrumb items={[{ label: 'Fanlar' }]} />
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Subjects</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Fanlar</h1>
           <p className="text-muted-foreground mt-1">
-            Manage your content subjects
+            Fanlarni boshqarish
           </p>
         </div>
-        <Button onClick={handleCreate}>Create Subject</Button>
+        <Button onClick={handleCreate}>Fan yaratish</Button>
       </div>
 
       <SearchFilters
-        configs={[{ key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' }]}
+        configs={[{ key: 'name', label: 'Nom', type: 'text', placeholder: 'Nom bo\'yicha qidirish...' }]}
         onFilter={setActiveFilters}
       />
 
@@ -132,8 +132,8 @@ export default function SubjectsPage() {
       {subjects.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No subjects available</p>
-            <Button onClick={handleCreate}>Create your first subject</Button>
+            <p className="text-muted-foreground mb-4">Fanlar mavjud emas</p>
+            <Button onClick={handleCreate}>Birinchi fanni yarating</Button>
           </CardContent>
         </Card>
       ) : (
@@ -151,7 +151,7 @@ export default function SubjectsPage() {
                         </CardTitle>
                       </Link>
                       <CardDescription className="mt-1">
-                        Order: {subject.order_num}
+                        Tartib: {subject.order_num}
                       </CardDescription>
                     </div>
                   </div>
@@ -164,7 +164,7 @@ export default function SubjectsPage() {
                       size="sm"
                       className="flex-1"
                     >
-                      Edit
+                      Tahrirlash
                     </Button>
                     <Button
                       onClick={() => handleDelete(subject)}
@@ -172,7 +172,7 @@ export default function SubjectsPage() {
                       size="sm"
                       className="flex-1"
                     >
-                      Delete
+                      O'chirish
                     </Button>
                   </div>
                 </CardContent>
@@ -192,23 +192,23 @@ export default function SubjectsPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingSubject ? 'Edit Subject' : 'Create Subject'}
+        title={editingSubject ? 'Fanni tahrirlash' : 'Fan yaratish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
           <Input
-            label="Image URL"
+            label="Rasm URL"
             value={formData.image_url}
             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
             required
           />
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -216,9 +216,9 @@ export default function SubjectsPage() {
           />
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

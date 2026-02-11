@@ -27,7 +27,7 @@ export default function LoginPage() {
 
     try {
       if (!login.trim() || !password.trim()) {
-        setError('Login and password are required');
+        setError('Login va parol talab qilinadi');
         setLoading(false);
         return;
       }
@@ -37,7 +37,7 @@ export default function LoginPage() {
     } catch (err: any) {
       console.error('Login error:', err);
       // Show the actual error message from the backend
-      const errorMessage = err?.response?.data?.message || err?.message || 'Login failed. Please check your credentials.';
+      const errorMessage = err?.response?.data?.message || err?.message || 'Kirishda xatolik. Iltimos, ma\'lumotlarni tekshiring.';
       setError(errorMessage);
       setLoading(false);
     }
@@ -46,27 +46,27 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Admin Kirish</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             type="text"
             label="Login"
             value={login}
             onChange={(e) => setLogin(e.target.value)}
-            placeholder="Enter login"
+            placeholder="Loginni kiriting"
             error={error}
             required
           />
           <Input
             type="password"
-            label="Password"
+            label="Parol"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
+            placeholder="Parolni kiriting"
             required
           />
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Kirilmoqda...' : 'Kirish'}
           </Button>
         </form>
       </div>

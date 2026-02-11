@@ -29,7 +29,7 @@ export function Pagination({ currentPage, totalItems, perPage, onPageChange }: P
             pages.push(
                 <Button
                     key={i}
-                    variant={i === currentPage ? 'primary' : 'outline'}
+                    variant={i === currentPage ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => onPageChange(i)}
                     className="w-10 h-10 p-0"
@@ -44,8 +44,7 @@ export function Pagination({ currentPage, totalItems, perPage, onPageChange }: P
     return (
         <div className="flex items-center justify-between px-2 py-4">
             <div className="text-sm text-muted-foreground">
-                Showing {Math.min((currentPage - 1) * perPage + 1, totalItems)} to{' '}
-                {Math.min(currentPage * perPage, totalItems)} of {totalItems} results
+                jami {totalItems} tadan {Math.min((currentPage - 1) * perPage + 1, totalItems)} - {Math.min(currentPage * perPage, totalItems)} ko'rsatilmoqda
             </div>
             <div className="flex items-center space-x-2">
                 <Button
@@ -54,7 +53,7 @@ export function Pagination({ currentPage, totalItems, perPage, onPageChange }: P
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
                 >
-                    Previous
+                    Oldingi
                 </Button>
                 <div className="flex items-center space-x-1">
                     {renderPageNumbers()}
@@ -65,7 +64,7 @@ export function Pagination({ currentPage, totalItems, perPage, onPageChange }: P
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                 >
-                    Next
+                    Keyingi
                 </Button>
             </div>
         </div>

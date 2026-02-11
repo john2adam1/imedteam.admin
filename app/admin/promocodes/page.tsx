@@ -148,35 +148,35 @@ export default function PromocodesPage() {
                 const { code, ...updatePayload } = payload;
                 console.log('Updating promocode:', editingPromo.id, updatePayload);
                 await promocodeService.update(editingPromo.id, updatePayload as any);
-                toast.success('Promocode updated successfully');
+                toast.success('Promokod muvaffaqiyatli yangilandi');
             } else {
                 // Create
                 await promocodeService.create(payload);
-                toast.success('Promocode created successfully');
+                toast.success('Promokod muvaffaqiyatli yaratildi');
             }
             handleCloseModal();
             fetchPromocodes();
         } catch (error: any) {
-            const message = error.response?.data?.message || error.message || 'Failed to save promocode';
-            toast.error(`Error: ${message}`);
+            const message = error.response?.data?.message || error.message || 'Promokodni saqlashda xatolik';
+            toast.error(`Xatolik: ${message}`);
         }
     };
 
     const handleDelete = async (promo: PromoCode) => {
-        if (!confirm('Are you sure you want to delete this promocode?')) return;
+        if (!confirm('Ushbu promokodni o\'chirishni xohlaysizmi?')) return;
         try {
             await promocodeService.delete(promo.id);
-            toast.success('Promocode deleted successfully');
+            toast.success('Promokod muvaffaqiyatli o\'chirildi');
             fetchPromocodes();
         } catch (error) {
-            toast.error('Failed to delete promocode');
+            toast.error('Promokodni o\'chirishda xatolik');
         }
     };
 
     const columns = [
         {
             key: 'code',
-            header: 'Code',
+            header: 'Kod',
             render: (item: PromoCode) => (
                 <Link href={`/admin/promocodes/${item.id}`} className="text-blue-600 hover:underline font-medium">
                     {item.code}
@@ -185,21 +185,21 @@ export default function PromocodesPage() {
         },
         {
             key: 'discount',
-            header: 'Discount',
+            header: 'Chegirma',
             render: (item: PromoCode) => (
                 <span>{item.discount_value} {item.discount_type === 'percent' ? '%' : ' UZS'}</span>
             )
         },
         {
             key: 'usage',
-            header: 'Usage',
+            header: 'Ishlatilishi',
             render: (item: PromoCode) => (
-                <span>{item.max_uses_total} total / {item.max_uses_per_user} per user</span>
+                <span>{item.max_uses_total} jami / {item.max_uses_per_user} har bir foydalanuvchi</span>
             )
         },
         {
             key: 'validity',
-            header: 'Validity',
+            header: 'Amal qilish muddati',
             render: (item: PromoCode) => {
                 // Parse YYYY-MM-DD format properly
                 const startDate = item.starts_at ? new Date(item.starts_at + 'T00:00:00') : null;
@@ -215,7 +215,7 @@ export default function PromocodesPage() {
         },
         {
             key: 'status',
-            header: 'Status',
+            header: 'Holat',
             render: (item: PromoCode) => (
                 <span
                     className={`px-2 py-1 rounded-full text-xs ${item.is_active
@@ -223,25 +223,25 @@ export default function PromocodesPage() {
                         : 'bg-red-100 text-red-800'
                         }`}
                 >
-                    {item.is_active ? 'Active' : 'Inactive'}
+                    {item.is_active ? 'Faol' : 'Faol emas'}
                 </span>
             )
         },
     ];
 
     const filterConfigs: FilterConfig[] = [
-        { key: 'code', label: 'Code', type: 'text', placeholder: 'Search by code...' },
-        { key: 'is_active', label: 'Active', type: 'boolean' },
+        { key: 'code', label: 'Kod', type: 'text', placeholder: 'Kod bo\'yicha qidirish...' },
+        { key: 'is_active', label: 'Faol', type: 'boolean' },
     ];
 
-    if (loading && promocodes.length === 0) return <div className="p-8">Loading...</div>;
+    if (loading && promocodes.length === 0) return <div className="p-8">Yuklanmoqda...</div>;
 
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold tracking-tight">Promocodes</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Promokodlar</h1>
                 <Button onClick={() => handleOpenModal()}>
-                    <span className="mr-2">➕</span> Create Promocode
+                    <span className="mr-2">➕</span> Promokod yaratish
                 </Button>
             </div>
 
@@ -265,12 +265,12 @@ export default function PromocodesPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
-                title={editingPromo ? 'Edit Promocode' : 'Create Promocode'}
+                title={editingPromo ? 'Promokodni tahrirlash' : 'Promokod yaratish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <Input
-                            label="Code"
+                            label="Kod"
                             id="code"
                             value={formData.code}
                             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
@@ -278,28 +278,28 @@ export default function PromocodesPage() {
                             required
                         />
                         <Select
-                            label="Status"
+                            label="Holat"
                             value={formData.is_active ? 'true' : 'false'}
                             onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
                             options={[
-                                { value: 'true', label: 'Active' },
-                                { value: 'false', label: 'Inactive' },
+                                { value: 'true', label: 'Faol' },
+                                { value: 'false', label: 'Faol emas' },
                             ]}
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <Select
-                            label="Discount Type"
+                            label="Chegirma turi"
                             value={formData.discount_type}
                             onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
                             options={[
-                                { value: 'percent', label: 'Percentage' },
-                                { value: 'fixed', label: 'Fixed Amount' },
+                                { value: 'percent', label: 'Foiz' },
+                                { value: 'fixed', label: 'Aniq summa' },
                             ]}
                         />
                         <Input
-                            label="Discount Value"
+                            label="Chegirma qiymati"
                             id="value"
                             type="number"
                             value={formData.discount_value}
@@ -310,7 +310,7 @@ export default function PromocodesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Input
-                            label="Starts At"
+                            label="Boshlanish vaqti"
                             id="starts_at"
                             type="datetime-local"
                             value={formData.starts_at}
@@ -318,7 +318,7 @@ export default function PromocodesPage() {
                             required
                         />
                         <Input
-                            label="Ends At"
+                            label="Tugash vaqti"
                             id="ends_at"
                             type="datetime-local"
                             value={formData.ends_at}
@@ -329,7 +329,7 @@ export default function PromocodesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Input
-                            label="Max Uses (Total)"
+                            label="Maksimal ishlatish (Jami)"
                             id="max_uses"
                             type="number"
                             value={formData.max_uses_total}
@@ -337,7 +337,7 @@ export default function PromocodesPage() {
                             required
                         />
                         <Input
-                            label="Max Uses (Per User)"
+                            label="Maksimal ishlatish (Har bir foydalanuvchi)"
                             id="max_per_user"
                             type="number"
                             value={formData.max_uses_per_user}
@@ -348,7 +348,7 @@ export default function PromocodesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Input
-                            label="Min Order Amount"
+                            label="Minimal buyurtma summasi"
                             id="min_order"
                             type="number"
                             value={formData.min_order_amount}
@@ -356,7 +356,7 @@ export default function PromocodesPage() {
                             required
                         />
                         <Input
-                            label="Max Discount Amount"
+                            label="Maksimal chegirma summasi"
                             id="max_discount"
                             type="number"
                             value={formData.max_discount}
@@ -367,9 +367,9 @@ export default function PromocodesPage() {
 
                     <div className="flex justify-end gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={handleCloseModal}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>

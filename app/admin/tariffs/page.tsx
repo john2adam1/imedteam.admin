@@ -43,7 +43,7 @@ export default function TariffsPage() {
             setTotalItems(response.meta?.total_items || (response.data || []).length);
 
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load tariffs';
+            const errorMessage = error?.response?.data?.message || error?.message || 'Tariflarni yuklashda xatolik';
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -73,7 +73,7 @@ export default function TariffsPage() {
     };
 
     const handleDelete = async (tariff: Tariff) => {
-        if (!confirm('Are you sure you want to delete this tariff?')) {
+        if (!confirm('Ushbu tarifni o\'chirishni xohlaysizmi?')) {
             return;
         }
 
@@ -81,8 +81,8 @@ export default function TariffsPage() {
             await tariffService.delete(tariff.id);
             loadTariffs();
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete tariff';
-            alert(`Failed to delete tariff: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Tarifni o\'chirishda xatolik';
+            alert(`Tarifni o'chirishda xatolik: ${errorMessage}`);
         }
     };
 
@@ -106,59 +106,59 @@ export default function TariffsPage() {
             setIsModalOpen(false);
             loadTariffs();
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save tariff';
-            alert(`Error: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Tarifni saqlashda xatolik';
+            alert(`Xatolik: ${errorMessage}`);
         }
     };
 
     const columns = [
         {
             key: 'name',
-            header: 'Name',
-            render: (item: Tariff) => item?.name || 'N/A'
+            header: 'Nom',
+            render: (item: Tariff) => item?.name || 'Mavjud emas'
         },
         {
             key: 'duration',
-            header: 'Duration',
+            header: 'Davomiylik',
             render: (item: Tariff) => {
-                if (!item?.duration) return 'N/A';
+                if (!item?.duration) return 'Mavjud emas';
                 // If duration >= 30 days, display as months
                 if (item.duration >= 30) {
                     const months = Math.floor(item.duration / 30);
-                    return months === 1 ? '1 month' : `${months} months`;
+                    return months === 1 ? '1 oy' : `${months} oy`;
                 }
                 // Otherwise display as days
-                return `${item.duration} days`;
+                return `${item.duration} kun`;
             }
         },
         {
             key: 'order_num',
-            header: 'Order',
-            render: (item: Tariff) => item?.order_num ?? 'N/A'
+            header: 'Tartib',
+            render: (item: Tariff) => item?.order_num ?? 'Mavjud emas'
         },
         {
             key: 'created_at',
-            header: 'Created At',
-            render: (item: Tariff) => item?.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A',
+            header: 'Yaratilgan vaqti',
+            render: (item: Tariff) => item?.created_at ? new Date(item.created_at).toLocaleDateString() : 'Mavjud emas',
         },
     ];
 
     if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8">Yuklanmoqda...</div>;
     }
 
     if (error) {
         return (
             <div className="text-center py-8">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-                    <p className="font-bold">Error loading tariffs</p>
+                    <p className="font-bold">Tariflarni yuklashda xatolik</p>
                     <p className="text-sm">{error}</p>
                 </div>
                 <button
                     onClick={loadTariffs}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                    Retry
+                    Qayta urinish
                 </button>
             </div>
         );
@@ -167,12 +167,12 @@ export default function TariffsPage() {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Tariffs</h1>
-                <Button onClick={handleCreate}>Create Tariff</Button>
+                <h1 className="text-3xl font-bold">Tariflar</h1>
+                <Button onClick={handleCreate}>Tarif yaratish</Button>
             </div>
 
             <SearchFilters
-                configs={[{ key: 'name', label: 'Name', type: 'text', placeholder: 'Search by name...' }]}
+                configs={[{ key: 'name', label: 'Nom', type: 'text', placeholder: 'Nom bo\'yicha qidirish...' }]}
                 onFilter={setActiveFilters}
             />
 
@@ -194,30 +194,30 @@ export default function TariffsPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingTariff ? 'Edit Tariff' : 'Create Tariff'}
+                title={editingTariff ? 'Tarifni tahrirlash' : 'Tarif yaratish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input
-                        label="Name"
+                        label="Nom"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
                     />
                     <Input
-                        label="Description"
+                        label="Tavsif"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         required
                     />
                     <Input
-                        label="Duration (days)"
+                        label="Davomiylik (kun)"
                         type="number"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
                         required
                     />
                     <Input
-                        label="Order Number"
+                        label="Tartib raqami"
                         type="number"
                         value={formData.order_num}
                         onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -226,9 +226,9 @@ export default function TariffsPage() {
 
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>

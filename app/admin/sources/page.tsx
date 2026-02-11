@@ -84,7 +84,7 @@ export default function SourcesPage() {
   };
 
   const handleDelete = async (source: Source) => {
-    if (!confirm(`Are you sure you want to delete this source?`)) {
+    if (!confirm(`Ushbu manbani o'chirishni xohlaysizmi?`)) {
       return;
     }
 
@@ -93,7 +93,7 @@ export default function SourcesPage() {
       loadData();
     } catch (error) {
       console.error('Failed to delete source:', error);
-      alert('Failed to delete source');
+      alert('Manbani o\'chirishda xatolik');
     }
   };
 
@@ -108,10 +108,10 @@ export default function SourcesPage() {
           [language]: uploadResult.url,
         },
       });
-      alert('File uploaded successfully!');
+      alert('Fayl muvaffaqiyatli yuklandi!');
     } catch (error) {
       console.error('Failed to upload file:', error);
-      alert('Failed to upload file');
+      alert('Fayl yuklashda xatolik');
     } finally {
       setUploading(false);
     }
@@ -122,7 +122,7 @@ export default function SourcesPage() {
 
     // Validation
     if (!formData.lesson_id || formData.lesson_id.trim() === '') {
-      alert('Please select a lesson');
+      alert('Iltimos, darsni tanlang');
       return;
     }
 
@@ -132,7 +132,7 @@ export default function SourcesPage() {
     const nameEn = formData.name.en?.trim() || '';
 
     if (!nameUz || !nameRu || !nameEn) {
-      alert('Please fill in the name in all languages (UZ, RU, EN)');
+      alert('Iltimos, nomni barcha tillarda to\'ldiring (UZ, RU, EN)');
       return;
     }
 
@@ -142,7 +142,7 @@ export default function SourcesPage() {
     const urlEn = formData.url.en?.trim() || '';
 
     if (!urlUz && !urlRu && !urlEn) {
-      alert('Please provide at least one URL or upload a file');
+      alert('Iltimos, kamida bitta URL kiriting yoki fayl yuklang');
       return;
     }
 
@@ -165,27 +165,27 @@ export default function SourcesPage() {
       loadData();
     } catch (error) {
       console.error('Failed to save source:', error);
-      alert('Failed to save source');
+      alert('Manbani saqlashda xatolik');
     }
   };
 
   const columns = [
     {
       key: 'lesson',
-      header: 'Lesson',
+      header: 'Dars',
       render: (item: Source) => {
         const lesson = lessons.find(l => l.id === item.lesson_id);
-        return lesson ? (lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Unknown') : 'Unknown';
+        return lesson ? (lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Noma\'lum') : 'Noma\'lum';
       },
     },
     {
       key: 'name',
-      header: 'Name',
+      header: 'Nom',
       render: (item: Source) => item.name.uz || item.name.en || item.name.ru
     },
     {
       key: 'type',
-      header: 'Type',
+      header: 'Tur',
       render: (item: Source) => (
         <span className={`px-2 py-1 rounded text-xs ${item.type === 'video' ? 'bg-blue-100 text-blue-800' :
           item.type === 'document' ? 'bg-green-100 text-green-800' :
@@ -205,24 +205,24 @@ export default function SourcesPage() {
           rel="noopener noreferrer"
           className="text-blue-600 hover:underline truncate max-w-xs"
         >
-          {item.url.uz || item.url.en || item.url.ru || 'No URL'}
+          {item.url.uz || item.url.en || item.url.ru || 'URL yo\'q'}
         </a>
       ),
     },
     {
       key: 'order_num',
-      header: 'Order',
+      header: 'Tartib',
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: 'Amallar',
       render: (item: Source) => (
         <div className="flex gap-2">
           <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-            Edit
+            Tahrirlash
           </Button>
           <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-            Delete
+            O'chirish
           </Button>
         </div>
       ),
@@ -230,36 +230,36 @@ export default function SourcesPage() {
   ];
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>;
+    return <div className="text-center py-8">Yuklanmoqda...</div>;
   }
 
   const lessonOptions = lessons.map(l => ({
     value: l.id,
-    label: l.name?.en || l.name?.uz || l.name?.ru || 'Untitled Lesson'
+    label: l.name?.en || l.name?.uz || l.name?.ru || 'Nomsiz dars'
   }));
 
   const sourceTypeOptions = [
     { value: 'video', label: 'Video' },
-    { value: 'document', label: 'Document (PDF)' },
+    { value: 'document', label: 'Hujjat (PDF)' },
     { value: 'test', label: 'Test (PDF)' },
   ];
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Sources</h1>
+        <h1 className="text-3xl font-bold">Manbalar</h1>
         <div className="flex gap-2">
-          <Button onClick={() => handleCreate('video')}>Add Video</Button>
-          <Button onClick={() => handleCreate('document')} variant="outline">Add Document</Button>
-          <Button onClick={() => handleCreate('test')} variant="secondary">Add Test</Button>
+          <Button onClick={() => handleCreate('video')}>Video qo'shish</Button>
+          <Button onClick={() => handleCreate('document')} variant="outline">Hujjat qo'shish</Button>
+          <Button onClick={() => handleCreate('test')} variant="secondary">Test qo'shish</Button>
         </div>
       </div>
 
       <div className="mb-4">
         <Select
-          label="Filter by Lesson"
+          label="Dars bo'yicha filtrlash"
           options={[
-            { value: '', label: 'All Lessons' },
+            { value: '', label: 'Barcha darslar' },
             ...lessonOptions
           ]}
           value={selectedLessonId}
@@ -275,11 +275,11 @@ export default function SourcesPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingSource ? 'Edit Source' : 'Create Source'}
+        title={editingSource ? 'Manbani tahrirlash' : 'Manba yaratish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Select
-            label="Lesson"
+            label="Dars"
             options={lessonOptions}
             value={formData.lesson_id}
             onChange={(e) => setFormData({ ...formData, lesson_id: e.target.value })}
@@ -287,7 +287,7 @@ export default function SourcesPage() {
           />
 
           <Select
-            label="Type"
+            label="Tur"
             options={sourceTypeOptions}
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value as 'video' | 'document' | 'test' })}
@@ -295,7 +295,7 @@ export default function SourcesPage() {
           />
 
           <MultilangInput
-            label="Name"
+            label="Nom"
             value={formData.name}
             onChange={(name) => setFormData({ ...formData, name })}
             required
@@ -303,7 +303,7 @@ export default function SourcesPage() {
 
           <div className="space-y-4">
             <label className="text-sm font-medium">
-              {formData.type === 'video' ? 'YouTube URLs' : 'URLs or Upload Files'}
+              {formData.type === 'video' ? 'YouTube URLlari' : 'URLlar yoki Fayl Yuklash'}
             </label>
             {(['uz', 'ru', 'en'] as const).map((lang) => (
               <div key={lang} className="space-y-2">
@@ -318,8 +318,8 @@ export default function SourcesPage() {
                     })}
                     placeholder={
                       formData.type === 'video'
-                        ? `Enter ${lang.toUpperCase()} YouTube URL`
-                        : `Enter ${lang.toUpperCase()} URL or upload file`
+                        ? `${lang.toUpperCase()} YouTube URLini kiriting`
+                        : `${lang.toUpperCase()} URLini kiriting yoki fayl yuklang`
                     }
                     className="flex-1"
                   />
@@ -344,7 +344,7 @@ export default function SourcesPage() {
                         onClick={() => document.getElementById(`file-upload-${lang}`)?.click()}
                         disabled={uploading}
                       >
-                        {uploading ? 'Uploading...' : 'Upload'}
+                        {uploading ? 'Yuklanmoqda...' : 'Yuklash'}
                       </Button>
                     </>
                   )}
@@ -354,7 +354,7 @@ export default function SourcesPage() {
           </div>
 
           <Input
-            label="Order Number"
+            label="Tartib raqami"
             type="number"
             value={formData.order_num}
             onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -363,9 +363,9 @@ export default function SourcesPage() {
 
           <div className="flex gap-2 justify-end pt-4">
             <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
+              Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>

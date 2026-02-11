@@ -66,7 +66,7 @@ export default function FAQPage() {
     };
 
     const handleDelete = async (item: FAQ) => {
-        if (!confirm('Are you sure you want to delete this FAQ?')) {
+        if (!confirm('Ushbu savol-javobni o\'chirishni xohlaysizmi?')) {
             return;
         }
 
@@ -75,7 +75,7 @@ export default function FAQPage() {
             loadData();
         } catch (error) {
             console.error('Failed to delete FAQ:', error);
-            alert('Failed to delete FAQ');
+            alert('Savol-javobni o\'chirishda xatolik');
         }
     };
 
@@ -92,31 +92,31 @@ export default function FAQPage() {
             loadData();
         } catch (error: any) {
             console.error('Failed to save FAQ:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save FAQ';
-            alert(`Error: ${errorMessage}`);
+            const errorMessage = error?.response?.data?.message || error?.message || 'Savol-javobni saqlashda xatolik';
+            alert(`Xatolik: ${errorMessage}`);
         }
     };
 
     const columns = [
         {
             key: 'question',
-            header: 'Question',
+            header: 'Savol',
             render: (item: FAQ) => item.question.en || item.question.uz || item.question.ru
         },
         {
             key: 'order_num',
-            header: 'Order',
+            header: 'Tartib',
         },
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Amallar',
             render: (item: FAQ) => (
                 <div className="flex gap-2">
                     <Button onClick={() => handleEdit(item)} variant="outline" size="sm">
-                        Edit
+                        Tahrirlash
                     </Button>
                     <Button onClick={() => handleDelete(item)} variant="destructive" size="sm">
-                        Delete
+                        O'chirish
                     </Button>
                 </div>
             ),
@@ -124,18 +124,18 @@ export default function FAQPage() {
     ];
 
     if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <div className="text-center py-8">Yuklanmoqda...</div>;
     }
 
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Frequently Asked Questions</h1>
-                <Button onClick={handleCreate}>Add FAQ</Button>
+                <h1 className="text-3xl font-bold">Ko'p beriladigan savollar</h1>
+                <Button onClick={handleCreate}>Savol-javob qo'shish</Button>
             </div>
 
             <SearchFilters
-                configs={[{ key: 'question', label: 'Question', type: 'text', placeholder: 'Search by question...' }]}
+                configs={[{ key: 'question', label: 'Savol', type: 'text', placeholder: 'Savol bo\'yicha qidirish...' }]}
                 onFilter={setActiveFilters}
             />
 
@@ -152,23 +152,23 @@ export default function FAQPage() {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingItem ? 'Edit FAQ' : 'Add FAQ'}
+                title={editingItem ? 'Savol-javobni tahrirlash' : 'Savol-javob qo\'shish'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <MultilangInput
-                        label="Question"
+                        label="Savol"
                         value={formData.question}
                         onChange={(question) => setFormData({ ...formData, question })}
                         required
                     />
                     <MultilangInput
-                        label="Answer"
+                        label="Javob"
                         value={formData.answer}
                         onChange={(answer) => setFormData({ ...formData, answer })}
                         required
                     />
                     <Input
-                        label="Order Number"
+                        label="Tartib raqami"
                         type="number"
                         value={formData.order_num}
                         onChange={(e) => setFormData({ ...formData, order_num: parseInt(e.target.value) || 1 })}
@@ -176,9 +176,9 @@ export default function FAQPage() {
                     />
                     <div className="flex gap-2 justify-end pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            Bekor qilish
                         </Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit">Saqlash</Button>
                     </div>
                 </form>
             </Modal>
