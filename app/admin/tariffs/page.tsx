@@ -43,7 +43,6 @@ export default function TariffsPage() {
             setTotalItems(response.meta?.total_items || (response.data || []).length);
 
         } catch (error: any) {
-            console.error('Failed to load tariffs:', error);
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to load tariffs';
             setError(errorMessage);
         } finally {
@@ -79,15 +78,9 @@ export default function TariffsPage() {
         }
 
         try {
-            console.log('Attempting to delete tariff with ID:', tariff.id);
             await tariffService.delete(tariff.id);
-            console.log('Delete successful');
             loadTariffs();
         } catch (error: any) {
-            console.error('Failed to delete tariff:', error);
-            console.error('Error response:', error?.response);
-            console.error('Error status:', error?.response?.status);
-            console.error('Error data:', error?.response?.data);
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to delete tariff';
             alert(`Failed to delete tariff: ${errorMessage}`);
         }
@@ -104,22 +97,15 @@ export default function TariffsPage() {
             order_num: formData.order_num,
         };
 
-        console.log('Submitting tariff data:', tariffData);
-        console.log('Editing tariff:', editingTariff);
-
         try {
             if (editingTariff) {
-                console.log('Updating tariff with ID:', editingTariff.id);
                 await tariffService.update(editingTariff.id, tariffData);
             } else {
-                console.log('Creating new tariff');
                 await tariffService.create(tariffData);
             }
             setIsModalOpen(false);
             loadTariffs();
         } catch (error: any) {
-            console.error('Failed to save tariff:', error);
-            console.error('Error response:', error?.response);
             const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save tariff';
             alert(`Error: ${errorMessage}`);
         }

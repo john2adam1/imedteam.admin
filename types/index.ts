@@ -354,7 +354,7 @@ export interface DashboardRes {
 }
 
 export interface GetDashboardReq {
-  type: 'range' | 'day' | 'week' | 'month' | 'year';
+  type: 'range' | 'day' | 'week' | 'month' | 'year' | 'all';
   day?: string; // YYYY-MM-DD
   from?: string; // YYYY-MM-DD
   to?: string; // YYYY-MM-DD

@@ -42,12 +42,16 @@ export default function OrderDetailsPage() {
 
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Order #{order.id.slice(0, 8)}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Order #{order.id?.slice(0, 8) || id}</h1>
                     <p className="text-gray-500 mt-1">Created on {new Date(order.created_at).toLocaleString('en-GB', { dateStyle: 'full', timeStyle: 'short' })}</p>
                 </div>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold capitalize 
-            ${order.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {order.status}
+                        ${order.status.toUpperCase() === 'PAID' ? 'bg-green-100 text-green-800' :
+                        order.status.toUpperCase() === 'NEW' ? 'bg-blue-100 text-blue-800' :
+                            order.status.toUpperCase() === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                order.status.toUpperCase() === 'RESERVED' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-gray-100 text-gray-800'}`}>
+                    {order.status.toLowerCase()}
                 </span>
             </div>
 

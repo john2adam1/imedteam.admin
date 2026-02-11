@@ -6,7 +6,7 @@ import { Button } from './Button';
 export interface FilterConfig {
     key: string;
     label: string;
-    type: 'text' | 'select' | 'boolean';
+    type: 'text' | 'select' | 'boolean' | 'date';
     options?: { value: string | number | boolean; label: string }[];
     placeholder?: string;
 }
@@ -80,10 +80,18 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                             <option value="false">No</option>
                         </select>
                     )}
+                    {config.type === 'date' && (
+                        <input
+                            type="date"
+                            value={filters[config.key] || ''}
+                            onChange={(e) => handleChange(config.key, e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
+                        />
+                    )}
                 </div>
             ))}
             <div className="flex gap-2">
-                <Button onClick={handleSearch} variant="primary">
+                <Button onClick={handleSearch} variant="default">
                     Search
                 </Button>
                 <Button onClick={handleReset} variant="outline">

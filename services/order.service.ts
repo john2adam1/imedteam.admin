@@ -29,7 +29,7 @@ export interface OrderListResponse {
 }
 
 export const orderService = {
-    getAll: async (page = 1, limit = 10, filters?: { status?: string; user_id?: string; course_id?: string; promocode?: string }): Promise<OrderListResponse> => {
+    getAll: async (page = 1, limit = 10, filters?: { status?: string; user_id?: string; course_id?: string; promocode?: string; type?: string; from?: string; to?: string; payment_type?: string }): Promise<OrderListResponse> => {
         // Assuming /web/order supports pagination/filtering
         const response = await api.get<OrderListResponse>('order', {
             params: { page, limit, ...filters }
@@ -38,7 +38,8 @@ export const orderService = {
     },
 
     getOne: async (id: string): Promise<Order> => {
-        const response = await api.get<Order>(`order/${id}`);
-        return response.data;
+        const response = await api.get<any>(`order/${id}`);
+        // Response is { order: { ... } }
+        return response.data.order || response.data;
     }
 };

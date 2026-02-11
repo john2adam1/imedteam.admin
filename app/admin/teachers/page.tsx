@@ -42,7 +42,7 @@ export default function TeachersPage() {
             setTeachers(response.data);
             setTotalItems(response.meta?.total_items || response.data.length);
         } catch (error) {
-            console.error('Failed to load teachers:', error);
+            // Error handling
         } finally {
             setLoading(false);
         }
@@ -80,7 +80,6 @@ export default function TeachersPage() {
             const response = await teacherService.resetPassword(teacherId);
             return response.password;
         } catch (error: any) {
-            console.error('Failed to reset teacher password:', error);
             throw error;
         }
     };
@@ -94,14 +93,12 @@ export default function TeachersPage() {
             await teacherService.delete(teacher.id);
             loadData();
         } catch (error) {
-            console.error('Failed to delete teacher:', error);
             alert('Failed to delete teacher');
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Sending teacher data:', formData);
 
         try {
             if (editingTeacher) {
@@ -112,7 +109,6 @@ export default function TeachersPage() {
             setIsModalOpen(false);
             loadData();
         } catch (error: any) {
-            console.error('Failed to save teacher:', error);
             const message = error?.response?.data?.message || error?.message || 'Failed to save teacher';
             alert(`Error: ${message}`);
         }

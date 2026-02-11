@@ -44,9 +44,6 @@ export default function PromocodesPage() {
         try {
             setLoading(true);
             const res = await promocodeService.getAll(page, limit, activeFilters);
-            console.log('=== Fetch Promocodes Response ===');
-            console.log('Full response:', res);
-            console.log('All keys:', Object.keys(res));
 
             // Try different response structures
             let promocodesData: PromoCode[] = [];
@@ -64,16 +61,12 @@ export default function PromocodesPage() {
             } else if ((res as any).promocodes) {
                 promocodesData = (res as any).promocodes;
             } else {
-                console.warn('Unknown response structure. Keys:', Object.keys(res));
-                console.warn('Full object:', res);
+                // Unknown response structure
             }
 
-            console.log('Setting promocodes:', promocodesData);
-            console.log('First promocode sample:', promocodesData[0]);
             setPromocodes(promocodesData);
             setTotalItems(res.count || (res as any).meta?.total_items || promocodesData.length);
         } catch (error) {
-            console.error('Failed to fetch promocodes:', error);
             toast.error('Failed to fetch promocodes');
         } finally {
             setLoading(false);
@@ -150,32 +143,20 @@ export default function PromocodesPage() {
                 max_discount: Number(formData.max_discount) || 0,
             };
 
-            console.log('=== Promocode Submission ===');
-            console.log('Form Data:', formData);
-            console.log('Payload to send:', payload);
-
             if (editingPromo) {
                 // Update
                 const { code, ...updatePayload } = payload;
                 console.log('Updating promocode:', editingPromo.id, updatePayload);
-                const result = await promocodeService.update(editingPromo.id, updatePayload as any);
-                console.log('Update result:', result);
+                await promocodeService.update(editingPromo.id, updatePayload as any);
                 toast.success('Promocode updated successfully');
             } else {
                 // Create
-                console.log('Creating new promocode');
-                const result = await promocodeService.create(payload);
-                console.log('Create result:', result);
+                await promocodeService.create(payload);
                 toast.success('Promocode created successfully');
             }
             handleCloseModal();
             fetchPromocodes();
         } catch (error: any) {
-            console.error('=== Promocode Error ===');
-            console.error('Error object:', error);
-            console.error('Error response:', error.response);
-            console.error('Error response data:', error.response?.data);
-            console.error('Error message:', error.message);
             const message = error.response?.data?.message || error.message || 'Failed to save promocode';
             toast.error(`Error: ${message}`);
         }
@@ -188,7 +169,6 @@ export default function PromocodesPage() {
             toast.success('Promocode deleted successfully');
             fetchPromocodes();
         } catch (error) {
-            console.error('Failed to delete promocode:', error);
             toast.error('Failed to delete promocode');
         }
     };

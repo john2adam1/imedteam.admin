@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Select } from '../ui/Select';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -11,44 +11,49 @@ interface DashboardFiltersProps {
     initialValues?: GetDashboardReq;
 }
 
-export function DashboardFilters({ onFilter, initialValues }: DashboardFiltersProps) {
+function DashboardFiltersComponent({ onFilter, initialValues }: DashboardFiltersProps) {
     const [type, setType] = useState<GetDashboardReq['type']>(initialValues?.type || 'month');
     const [day, setDay] = useState(initialValues?.day || new Date().toISOString().split('T')[0]);
     const [from, setFrom] = useState(initialValues?.from || '');
     const [to, setTo] = useState(initialValues?.to || '');
 
-    const typeOptions = [
+    const typeOptions = useMemo(() => [
+        { value: 'all', label: 'All Time' },
         { value: 'day', label: 'Day' },
         { value: 'week', label: 'Week' },
         { value: 'month', label: 'Month' },
         { value: 'year', label: 'Year' },
         { value: 'range', label: 'Range' },
-    ];
+    ], []);
 
-    const handleSubmit = (e?: React.FormEvent) => {
+    const handleSubmit = useCallback((e?: React.FormEvent) => {
         if (e) e.preventDefault();
 
-        const params: GetDashboardReq = { type };
+        const params: GetDashboardReq = { type: type === 'all' ? 'range' : type };
 
-        if (type === 'day') {
+        if (type === 'all') {
+            params.from = '2000-01-01';
+            params.to = '2030-12-31';
+        } else if (type === 'day') {
             params.day = day;
         } else if (type === 'range') {
+            if (!from || !to) return; // Don't filter if range is incomplete
             params.from = from;
             params.to = to;
         } else {
-            // For others, we can optionally send today as reference
-            params.day = new Date().toISOString().split('T')[0];
+            // For week, month, year - always send current selected day as anchor
+            params.day = day;
         }
 
         onFilter(params);
-    };
+    }, [type, day, from, to, onFilter]);
 
-    // Auto-apply on change if not range (range needs both dates usually)
+    // Auto-apply on change if strictly possible
     useEffect(() => {
         if (type !== 'range') {
             handleSubmit();
         }
-    }, [type, day]);
+    }, [type, day, handleSubmit]);
 
     return (
         <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-sm border mb-6">
@@ -98,14 +103,17 @@ export function DashboardFilters({ onFilter, initialValues }: DashboardFiltersPr
                     </>
                 )}
 
-                {(type === 'week' || type === 'month' || type === 'year') && (
+                {(type === 'week' || type === 'month' || type === 'year' || type === 'all') && (
                     <p className="text-sm text-muted-foreground pb-2">
-                        Displaying data for the current {type}.
+                        {type === 'all'
+                            ? 'Displaying cumulative totals for all time.'
+                            : `Displaying data for the ${type} containing ${day}.`
+                        }
                     </p>
                 )}
 
                 <div className="ml-auto">
-                    <Button type="submit" variant="primary">
+                    <Button type="submit" variant="default">
                         Apply Filters
                     </Button>
                 </div>
@@ -119,3 +127,5 @@ export function DashboardFilters({ onFilter, initialValues }: DashboardFiltersPr
         </form>
     );
 }
+
+export const DashboardFilters = React.memo(DashboardFiltersComponent);
