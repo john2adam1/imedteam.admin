@@ -16,7 +16,12 @@ export interface PaginationMeta {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  meta: PaginationMeta;
+  total: number;          // total number of items
+  page: number;           // current page
+  limit: number;          // items per page
+  total_page: number;     // total pages
+  has_previous: boolean;  // has previous page
+  has_next: boolean;      // has next page
 }
 
 // Common Fields

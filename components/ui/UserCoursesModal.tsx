@@ -22,6 +22,14 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     const [loading, setLoading] = useState(false);
     const [isGranting, setIsGranting] = useState(false);
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [limit] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [hasPrevious, setHasPrevious] = useState(false);
+    const [hasNext, setHasNext] = useState(false);
+
     // Grant Form State
     const [grantForm, setGrantForm] = useState({
         courseId: '',
@@ -31,24 +39,44 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     useEffect(() => {
         if (isOpen && user) {
             if (!showGrantForm) {
-                loadPermissions();
+                loadPermissions(1); // Reset to page 1 when modal opens
             }
             setIsGranting(false);
             setGrantForm({ courseId: '', tariffId: '' });
         }
     }, [isOpen, user?.id, showGrantForm]);
 
-    const loadPermissions = async () => {
+    const loadPermissions = async (page: number = currentPage) => {
         if (!user) return;
         setLoading(true);
         try {
-            const res = await courseService.getPermissions(1, 100, { user_id: user.id });
+            const res = await courseService.getPermissions(page, limit, { user_id: user.id });
             setPermissions(res.data);
+
+            // Update pagination state from API response
+            // The API returns: total, page, limit, total_page, has_previous, has_next directly
+            setCurrentPage(res.page);
+            setTotal(res.total);
+            setTotalPages(res.total_page);
+            setHasPrevious(res.has_previous);
+            setHasNext(res.has_next);
         } catch (error) {
             console.error('Failed to load permissions:', error);
             toast.error('Ruxsatlarni yuklashda xatolik');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) {
+            loadPermissions(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) {
+            loadPermissions(currentPage + 1);
         }
     };
 
@@ -319,17 +347,46 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                         {loading ? (
                             <div className="text-center py-4">Yuklanmoqda...</div>
                         ) : (
-                            <div className="max-h-[400px] overflow-y-auto">
-                                <Table
-                                    data={permissions}
-                                    columns={columns}
-                                />
-                                {permissions.length === 0 && !loading && (
-                                    <div className="text-center py-8 text-gray-500 text-sm">
-                                        Hozircha kurslar yo'q
+                            <>
+                                <div className="max-h-[400px] overflow-y-auto">
+                                    <Table
+                                        data={permissions}
+                                        columns={columns}
+                                    />
+                                    {permissions.length === 0 && !loading && (
+                                        <div className="text-center py-8 text-gray-500 text-sm">
+                                            Hozircha kurslar yo'q
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                {permissions.length > 0 && (
+                                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                                        <div className="text-sm text-gray-600">
+                                            Sahifa {currentPage} / {totalPages} (Jami: {total})
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handlePrevPage}
+                                                disabled={!hasPrevious || currentPage === 1}
+                                            >
+                                                Oldingi
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleNextPage}
+                                                disabled={!hasNext || currentPage >= totalPages}
+                                            >
+                                                Keyingi
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
-                            </div>
+                            </>
                         )}
                     </>
                 )}
