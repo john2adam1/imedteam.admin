@@ -7,14 +7,15 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  maxWidth?: string; // Add optional maxWidth prop
 }
 
-export function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl' }: ModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-background rounded-lg border shadow-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className={`bg-background rounded-lg border shadow-lg w-full mx-4 max-h-[90vh] overflow-y-auto ${maxWidth}`}>
         <div className="flex justify-between items-center p-6 border-b">
           <h2 className="text-xl font-semibold">{title}</h2>
           <button

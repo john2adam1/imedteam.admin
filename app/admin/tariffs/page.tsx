@@ -25,7 +25,7 @@ export default function TariffsPage() {
 
         name: '',
         description: '',
-        duration: 30,
+        duration: 1,
         order_num: 1,
     });
 
@@ -55,7 +55,7 @@ export default function TariffsPage() {
         setFormData({
             name: '',
             description: '',
-            duration: 30,
+            duration: 1,
             order_num: tariffs.length + 1,
         });
         setIsModalOpen(true);
@@ -66,7 +66,7 @@ export default function TariffsPage() {
         setFormData({
             name: tariff.name,
             description: tariff.description,
-            duration: tariff.duration,
+            duration: Math.ceil(tariff.duration / 30),
             order_num: tariff.order_num,
         });
         setIsModalOpen(true);
@@ -93,7 +93,7 @@ export default function TariffsPage() {
         const tariffData = {
             name: formData.name,
             description: formData.description,
-            duration: formData.duration,
+            duration: formData.duration * 30,
             order_num: formData.order_num,
         };
 
@@ -210,7 +210,7 @@ export default function TariffsPage() {
                         required
                     />
                     <Input
-                        label="Davomiylik (kun)"
+                        label="Davomiylik (oy)"
                         type="number"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}

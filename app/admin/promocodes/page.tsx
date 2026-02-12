@@ -146,7 +146,6 @@ export default function PromocodesPage() {
             if (editingPromo) {
                 // Update
                 const { code, ...updatePayload } = payload;
-                console.log('Updating promocode:', editingPromo.id, updatePayload);
                 await promocodeService.update(editingPromo.id, updatePayload as any);
                 toast.success('Promokod muvaffaqiyatli yangilandi');
             } else {

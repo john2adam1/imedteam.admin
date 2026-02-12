@@ -11,6 +11,7 @@ import { tariffService } from '@/services/tariff.service';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
+import { CourseUsersModal } from '@/components/ui/CourseUsersModal'; // New import
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
@@ -36,6 +37,8 @@ export default function SubjectDetailPage() {
   const limit = 10;
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false); // New state
+  const [selectedCourseForUsers, setSelectedCourseForUsers] = useState<Course | null>(null); // New state
 
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState<{
@@ -125,6 +128,11 @@ export default function SubjectDetailPage() {
       description: course.description,
     });
     setIsModalOpen(true);
+  };
+
+  const handleCourseUsersClick = (course: Course) => {
+    setSelectedCourseForUsers(course);
+    setIsCourseUsersModalOpen(true);
   };
 
   const handleDelete = async (course: Course) => {
@@ -249,6 +257,14 @@ export default function SubjectDetailPage() {
                         <Badge variant={course.is_public ? 'success' : 'secondary'}>
                           {course.is_public ? 'Ommaviy' : 'Shaxsiy'}
                         </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-6"
+                          onClick={() => handleCourseUsersClick(course)}
+                        >
+                          Foydalanuvchilar
+                        </Button>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -283,6 +299,14 @@ export default function SubjectDetailPage() {
         onPageChange={setPage}
       />
 
+      <CourseUsersModal
+        isOpen={isCourseUsersModalOpen}
+        onClose={() => {
+          setIsCourseUsersModalOpen(false);
+          setSelectedCourseForUsers(null);
+        }}
+        course={selectedCourseForUsers}
+      />
 
       <Modal
         isOpen={isModalOpen}

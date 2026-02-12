@@ -8,7 +8,7 @@ import { tariffService } from '@/services/tariff.service';
 import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { PasswordUpdateModal } from '@/components/ui/PasswordUpdateModal';
-import { CoursePermissionModal } from '@/components/ui/CoursePermissionModal';
+import { UserCoursesModal } from '@/components/ui/UserCoursesModal';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 
@@ -19,8 +19,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
-  const [selectedUserForPermission, setSelectedUserForPermission] = useState<User | null>(null);
+  const [isUserCoursesModalOpen, setIsUserCoursesModalOpen] = useState(false); // New state
+  const [selectedUserForCourses, setSelectedUserForCourses] = useState<User | null>(null); // New state
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -71,29 +71,9 @@ export default function UsersPage() {
     }
   };
 
-  const handleGrantPermissionClick = (user: User) => {
-    setSelectedUserForPermission(user);
-    setIsPermissionModalOpen(true);
-  };
-
-  const handleGrantPermission = async (data: { userId: string, courseId: string, tariffId: string, startedAt: string, endedAt: string }) => {
-    try {
-      await courseService.grantPermission({
-        user_id: data.userId,
-        course_id: data.courseId,
-        tariff_id: data.tariffId,
-        started_at: data.startedAt,
-        ended_at: data.endedAt
-      });
-      alert('Kursga ruxsat muvaffaqiyatli berildi');
-      setIsPermissionModalOpen(false);
-      setSelectedUserForPermission(null);
-      loadData();
-    } catch (error: any) {
-      console.error('Failed to grant permission:', error);
-      // Error is handled in the modal component
-      throw error;
-    }
+  const handleUserCoursesClick = (user: User) => {
+    setSelectedUserForCourses(user);
+    setIsUserCoursesModalOpen(true);
   };
 
   const handleDelete = async (user: User) => {
@@ -128,8 +108,8 @@ export default function UsersPage() {
       header: 'Amallar',
       render: (item: User) => (
         <div className="flex gap-2">
-          <Button onClick={() => handleGrantPermissionClick(item)} variant="outline" size="sm">
-            Kursga ruxsat berish
+          <Button onClick={() => handleUserCoursesClick(item)} variant="outline" size="sm">
+            Kurslar
           </Button>
           <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
             Parolni tiklash
@@ -189,16 +169,15 @@ export default function UsersPage() {
         onSubmit={handlePasswordUpdate}
       />
 
-      <CoursePermissionModal
-        isOpen={isPermissionModalOpen}
+      <UserCoursesModal
+        isOpen={isUserCoursesModalOpen}
         onClose={() => {
-          setIsPermissionModalOpen(false);
-          setSelectedUserForPermission(null);
+          setIsUserCoursesModalOpen(false);
+          setSelectedUserForCourses(null);
         }}
-        user={selectedUserForPermission}
-        courses={courses}
-        tariffs={tariffs}
-        onSubmit={handleGrantPermission}
+        user={selectedUserForCourses}
+        allCourses={courses}
+        allTariffs={tariffs}
       />
     </div>
   );
