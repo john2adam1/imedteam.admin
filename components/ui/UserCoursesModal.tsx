@@ -14,9 +14,10 @@ interface UserCoursesModalProps {
     user: User | null;
     allCourses: Course[];
     allTariffs: Tariff[];
+    showGrantForm?: boolean; // Optional prop to control if grant form should be shown
 }
 
-export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs }: UserCoursesModalProps) {
+export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs, showGrantForm = false }: UserCoursesModalProps) {
     const [permissions, setPermissions] = useState<CoursePermission[]>([]);
     const [loading, setLoading] = useState(false);
     const [isGranting, setIsGranting] = useState(false);
@@ -29,11 +30,13 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
     useEffect(() => {
         if (isOpen && user) {
-            loadPermissions();
+            if (!showGrantForm) {
+                loadPermissions();
+            }
             setIsGranting(false);
             setGrantForm({ courseId: '', tariffId: '' });
         }
-    }, [isOpen, user]);
+    }, [isOpen, user?.id, showGrantForm]);
 
     const loadPermissions = async () => {
         if (!user) return;
@@ -61,6 +64,30 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
             return;
         }
 
+        const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
+        if (!selectedCourse) {
+            toast.error('Kurs topilmadi');
+            return;
+        }
+
+        // Validate that the course has a price option for this tariff
+        const tariffDurationInDays = Number(selectedTariff.duration);
+        const hasPriceOption = selectedCourse.price?.some(priceOption => {
+            const priceDurationInDays = Number(priceOption.duration) * 30;
+            return priceDurationInDays === tariffDurationInDays;
+        });
+
+        if (!hasPriceOption) {
+            toast.error('Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.');
+            console.error('Validation failed:', {
+                course: selectedCourse.name,
+                tariff: selectedTariff.name,
+                coursePrices: selectedCourse.price,
+                tariffDuration: tariffDurationInDays
+            });
+            return;
+        }
+
         // Check if user already has this course
         if (permissions.some(p => p.course_id === grantForm.courseId && new Date(p.ended_at) > new Date())) {
             toast.error('Foydalanuvchi allaqachon ushbu kursga ega');
@@ -70,7 +97,13 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         const payload = {
             user_id: user.id,
             course_id: grantForm.courseId,
-            tariff_id: grantForm.tariffId
+            tariff_id: grantForm.tariffId,
+            started_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+            ended_at: (() => {
+                const endDate = new Date();
+                endDate.setDate(endDate.getDate() + selectedTariff.duration);
+                return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
+            })()
         };
 
         console.log('Granting permission with payload:', payload);
@@ -168,7 +201,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`${user.name} - Kurslari`}
+            title={showGrantForm ? `${user.name} - Ruxsat berish` : `${user.name} - Kurslari`}
             maxWidth="3xl"
         >
             <div className="space-y-4">
@@ -176,14 +209,9 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                     <div className="text-sm text-gray-500">
                         {user.phone_number}
                     </div>
-                    {!isGranting && (
-                        <Button onClick={() => setIsGranting(true)} size="sm">
-                            + Yangi kurs qo'shish
-                        </Button>
-                    )}
                 </div>
 
-                {isGranting && (
+                {showGrantForm ? (
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3 border">
                         <h3 className="font-medium text-sm">Yangi kursga ruxsat berish</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -216,6 +244,15 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
                                         const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
 
+                                        console.log('=====================================');
+                                        console.log('DEBUGGING TARIFF FILTER');
+                                        console.log('Selected Course ID:', grantForm.courseId);
+                                        console.log('Selected Course:', selectedCourse);
+                                        console.log('Course Name:', selectedCourse?.name);
+                                        console.log('Course Price Array:', selectedCourse?.price);
+                                        console.log('All Tariffs:', allTariffs);
+                                        console.log('=====================================');
+
                                         if (!selectedCourse || !selectedCourse.price || selectedCourse.price.length === 0) {
                                             return <option value="" disabled>Bu kurs uchun narx belgilanmagan</option>;
                                         }
@@ -226,11 +263,22 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                         const validTariffs = allTariffs.filter(tariff => {
                                             const match = selectedCourse.price.some(priceOption => {
                                                 const tariffDuration = Number(tariff.duration);
-                                                const priceDurationInDays = Number(priceOption.duration) * 30; // Convert months to days
+                                                const priceDurationInDays = Number(priceOption.duration) * 30;
+
+                                                console.log(`COMPARING: Tariff "${tariff.name}" (ID: ${tariff.id})`);
+                                                console.log(`  Tariff duration: ${tariffDuration} days`);
+                                                console.log(`  Price option duration: ${priceOption.duration} (raw)`);
+                                                console.log(`  Price option duration in days: ${priceDurationInDays} days`);
+                                                console.log(`  Match: ${tariffDuration === priceDurationInDays}`);
+                                                console.log('---');
+
                                                 return tariffDuration === priceDurationInDays;
                                             });
+                                            console.log(`Tariff "${tariff.name}" - Final match: ${match}`);
                                             return match;
                                         });
+
+                                        console.log('Valid Tariffs:', validTariffs);
 
                                         if (validTariffs.length === 0) {
                                             return <option value="" disabled>Bu kurs uchun hech qanday tarif mavjud emas</option>;
@@ -256,7 +304,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                             </div>
                         </div>
                         <div className="flex gap-2 justify-end">
-                            <Button variant="outline" size="sm" onClick={() => setIsGranting(false)}>Bekor qilish</Button>
+                            <Button variant="outline" size="sm" onClick={onClose}>Bekor qilish</Button>
                             <Button
                                 size="sm"
                                 onClick={handleGrantAccess}
@@ -266,22 +314,24 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                             </Button>
                         </div>
                     </div>
-                )}
-
-                {loading ? (
-                    <div className="text-center py-4">Yuklanmoqda...</div>
                 ) : (
-                    <div className="max-h-[400px] overflow-y-auto">
-                        <Table
-                            data={permissions}
-                            columns={columns}
-                        />
-                        {permissions.length === 0 && !loading && (
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                                Hozircha kurslar yo'q
+                    <>
+                        {loading ? (
+                            <div className="text-center py-4">Yuklanmoqda...</div>
+                        ) : (
+                            <div className="max-h-[400px] overflow-y-auto">
+                                <Table
+                                    data={permissions}
+                                    columns={columns}
+                                />
+                                {permissions.length === 0 && !loading && (
+                                    <div className="text-center py-8 text-gray-500 text-sm">
+                                        Hozircha kurslar yo'q
+                                    </div>
+                                )}
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
 
                 <div className="flex justify-end pt-2">

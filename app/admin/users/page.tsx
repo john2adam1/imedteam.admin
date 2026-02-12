@@ -19,8 +19,9 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isUserCoursesModalOpen, setIsUserCoursesModalOpen] = useState(false); // New state
-  const [selectedUserForCourses, setSelectedUserForCourses] = useState<User | null>(null); // New state
+  const [isUserCoursesModalOpen, setIsUserCoursesModalOpen] = useState(false);
+  const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
+  const [selectedUserForCourses, setSelectedUserForCourses] = useState<User | null>(null);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -76,6 +77,11 @@ export default function UsersPage() {
     setIsUserCoursesModalOpen(true);
   };
 
+  const handleGrantPermissionClick = (user: User) => {
+    setSelectedUserForCourses(user);
+    setIsGrantModalOpen(true);
+  };
+
   const handleDelete = async (user: User) => {
     if (!confirm(`Haqiqatan ham ${user.name} foydalanuvchisini o'chirmoqchimisiz?`)) {
       return;
@@ -110,6 +116,9 @@ export default function UsersPage() {
         <div className="flex gap-2">
           <Button onClick={() => handleUserCoursesClick(item)} variant="outline" size="sm">
             Kurslar
+          </Button>
+          <Button onClick={() => handleGrantPermissionClick(item)} variant="default" size="sm">
+            Ruxsat berish
           </Button>
           <Button onClick={() => handlePasswordClick(item)} variant="outline" size="sm">
             Parolni tiklash
@@ -178,6 +187,19 @@ export default function UsersPage() {
         user={selectedUserForCourses}
         allCourses={courses}
         allTariffs={tariffs}
+        showGrantForm={false}
+      />
+
+      <UserCoursesModal
+        isOpen={isGrantModalOpen}
+        onClose={() => {
+          setIsGrantModalOpen(false);
+          setSelectedUserForCourses(null);
+        }}
+        user={selectedUserForCourses}
+        allCourses={courses}
+        allTariffs={tariffs}
+        showGrantForm={true}
       />
     </div>
   );
