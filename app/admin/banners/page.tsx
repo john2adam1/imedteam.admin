@@ -41,7 +41,7 @@ export default function BannersPage() {
       setLoading(true);
       const response = await bannerService.getAll(page, limit, activeFilters);
       setBanners(response.data);
-      setTotalItems(response.meta?.total_items || response.data.length);
+      setTotalItems(response.meta?.total_items || 0);
     } catch (error) {
       console.error('Failed to load banners:', error);
     } finally {

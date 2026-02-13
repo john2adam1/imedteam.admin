@@ -87,7 +87,7 @@ export default function SubjectDetailPage() {
 
       setSubject(subjectData);
       setCourses(coursesResponse.data);
-      setTotalItems(coursesResponse.meta?.total_items || coursesResponse.data.length);
+      setTotalItems(coursesResponse.meta?.total_items || 0);
       setTeachers(teachersResponse.data);
       setTariffs(tariffsResponse.data);
 
@@ -362,7 +362,7 @@ export default function SubjectDetailPage() {
                   >
                     {tariffs.map((tariff) => (
                       <option key={tariff.id} value={tariff.duration}>
-                        {tariff.name} ({tariff.duration} kun)
+                        {tariff.name} ({tariff.duration} oy)
                       </option>
                     ))}
                   </select>

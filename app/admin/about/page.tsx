@@ -38,7 +38,7 @@ export default function AboutPage() {
             setLoading(true);
             const response = await aboutService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            setTotalItems(response.meta?.total_items || response.data.length);
+            setTotalItems(response.meta?.total_items || 0);
         } catch (error) {
             console.error('Failed to load about items:', error);
         } finally {

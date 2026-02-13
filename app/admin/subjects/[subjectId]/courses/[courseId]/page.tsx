@@ -66,7 +66,7 @@ export default function CourseDetailPage() {
       setSubject(subjectData);
       setCourse(courseData);
       setModules(modulesResponse.data);
-      setTotalItems(modulesResponse.meta?.total_items || modulesResponse.data.length);
+      setTotalItems(modulesResponse.meta?.total_items || 0);
 
     } catch (error) {
       console.error('Failed to load data:', error);

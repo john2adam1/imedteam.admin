@@ -40,7 +40,7 @@ export default function TeachersPage() {
             setLoading(true);
             const response = await teacherService.getAll(page, limit, activeFilters);
             setTeachers(response.data);
-            setTotalItems(response.meta?.total_items || response.data.length);
+            setTotalItems(response.meta?.total_items || 0);
         } catch (error) {
             // Error handling
         } finally {

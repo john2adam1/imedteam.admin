@@ -45,7 +45,7 @@ export default function NotificationsPage() {
         courseService.getAll()
       ]);
       setNotifications(notifsResponse.data);
-      setTotalItems(notifsResponse.meta?.total_items || notifsResponse.data.length);
+      setTotalItems(notifsResponse.meta?.total_items || 0);
       setCourses(coursesResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);

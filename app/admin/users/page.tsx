@@ -42,7 +42,7 @@ export default function UsersPage() {
         tariffService.getAll(),
       ]);
       setUsers(usersResponse.data);
-      setTotalItems(usersResponse.meta?.total_items || usersResponse.data.length);
+      setTotalItems(usersResponse.meta?.total_items || 0);
 
       setCourses(coursesResponse.data);
       setTariffs(tariffsResponse.data);

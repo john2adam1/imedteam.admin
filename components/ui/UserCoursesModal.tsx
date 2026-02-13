@@ -99,10 +99,11 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         }
 
         // Validate that the course has a price option for this tariff
-        const tariffDurationInDays = Number(selectedTariff.duration);
+        // Both tariff.duration and priceOption.duration are in MONTHS
+        const tariffDurationInMonths = Number(selectedTariff.duration);
         const hasPriceOption = selectedCourse.price?.some(priceOption => {
-            const priceDurationInDays = Number(priceOption.duration) * 30;
-            return priceDurationInDays === tariffDurationInDays;
+            const priceDurationInMonths = Number(priceOption.duration);
+            return priceDurationInMonths === tariffDurationInMonths;
         });
 
         if (!hasPriceOption) {
@@ -111,7 +112,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                 course: selectedCourse.name,
                 tariff: selectedTariff.name,
                 coursePrices: selectedCourse.price,
-                tariffDuration: tariffDurationInDays
+                tariffDurationInMonths: tariffDurationInMonths
             });
             return;
         }
@@ -129,7 +130,8 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
             started_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
             ended_at: (() => {
                 const endDate = new Date();
-                endDate.setDate(endDate.getDate() + selectedTariff.duration);
+                // Add months, not days (selectedTariff.duration is in months)
+                endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
                 return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
             })()
         };
@@ -142,7 +144,9 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
             toast.success('Ruxsat berildi');
             setIsGranting(false);
             setGrantForm({ courseId: '', tariffId: '' });
-            loadPermissions();
+
+            // Close the modal after success
+            onClose();
         } catch (error: any) {
             console.error('Failed to grant permission:', error);
             console.error('Error response:', error.response?.data);
@@ -286,21 +290,19 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                         }
 
                                         // Filter tariffs to only those with price options for this course
-                                        // CoursePriceOption.duration is in MONTHS, Tariff.duration is in DAYS
-                                        // Convert months to days: 1 month = 30 days
+                                        // Both Tariff.duration and CoursePriceOption.duration are in MONTHS
                                         const validTariffs = allTariffs.filter(tariff => {
                                             const match = selectedCourse.price.some(priceOption => {
                                                 const tariffDuration = Number(tariff.duration);
-                                                const priceDurationInDays = Number(priceOption.duration) * 30;
+                                                const priceDuration = Number(priceOption.duration);
 
                                                 console.log(`COMPARING: Tariff "${tariff.name}" (ID: ${tariff.id})`);
-                                                console.log(`  Tariff duration: ${tariffDuration} days`);
-                                                console.log(`  Price option duration: ${priceOption.duration} (raw)`);
-                                                console.log(`  Price option duration in days: ${priceDurationInDays} days`);
-                                                console.log(`  Match: ${tariffDuration === priceDurationInDays}`);
+                                                console.log(`  Tariff duration: ${tariffDuration} months`);
+                                                console.log(`  Price option duration: ${priceDuration} months`);
+                                                console.log(`  Match: ${tariffDuration === priceDuration}`);
                                                 console.log('---');
 
-                                                return tariffDuration === priceDurationInDays;
+                                                return tariffDuration === priceDuration;
                                             });
                                             console.log(`Tariff "${tariff.name}" - Final match: ${match}`);
                                             return match;
@@ -314,7 +316,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
                                         return validTariffs.map(t => (
                                             <option key={t.id} value={t.id}>
-                                                {t.name} ({Math.ceil(t.duration / 30)} oy)
+                                                {t.name} ({t.duration} oy)
                                             </option>
                                         ));
                                     })()}

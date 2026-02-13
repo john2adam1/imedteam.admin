@@ -22,6 +22,7 @@ export interface PaginatedResponse<T> {
   total_page: number;     // total pages
   has_previous: boolean;  // has previous page
   has_next: boolean;      // has next page
+  meta?: PaginationMeta;  // pagination metadata (optional because not all responses include it)
 }
 
 // Common Fields
@@ -155,7 +156,7 @@ export type SourceUpdateBody = Partial<SourceCreateBody>;
 
 // ─── COURSE ──────────────────────────────
 export interface CoursePriceOption {
-  duration: number;
+  duration: number; // in MONTHS
   price: number;
 }
 
@@ -187,7 +188,7 @@ export interface CoursePermission {
   started_at: DateString;
   ended_at: DateString;
   is_active: boolean;
-  duration: number; // in days
+  duration: number; // in months
   created_at: DateString;
   updated_at: DateString;
 }
@@ -308,7 +309,7 @@ export interface Tariff {
   id: ID;
   name: string; // Backend expects string, not MultilangText
   description: string; // Backend expects string, not MultilangText
-  duration: number; // in days
+  duration: number; // in MONTHS (not days)
   order_num: number;
   created_at: DateString;
   updated_at: DateString;

@@ -36,7 +36,7 @@ export default function ContactPage() {
             setLoading(true);
             const response = await contactService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            setTotalItems(response.meta?.total_items || response.data.length);
+            setTotalItems(response.meta?.total_items || 0);
         } catch (error) {
             console.error('Failed to load messages:', error);
         } finally {

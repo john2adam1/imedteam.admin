@@ -66,7 +66,7 @@ export default function TariffsPage() {
         setFormData({
             name: tariff.name,
             description: tariff.description,
-            duration: Math.ceil(tariff.duration / 30),
+            duration: tariff.duration, // Already in months
             order_num: tariff.order_num,
         });
         setIsModalOpen(true);
@@ -89,11 +89,11 @@ export default function TariffsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Backend expects name and description as strings
+        // Backend expects name and description as strings, duration in months
         const tariffData = {
             name: formData.name,
             description: formData.description,
-            duration: formData.duration * 30,
+            duration: formData.duration, // Already in months
             order_num: formData.order_num,
         };
 
@@ -122,13 +122,9 @@ export default function TariffsPage() {
             header: 'Davomiylik',
             render: (item: Tariff) => {
                 if (!item?.duration) return 'Mavjud emas';
-                // If duration >= 30 days, display as months
-                if (item.duration >= 30) {
-                    const months = Math.floor(item.duration / 30);
-                    return months === 1 ? '1 oy' : `${months} oy`;
-                }
-                // Otherwise display as days
-                return `${item.duration} kun`;
+                // Duration is already in months from backend
+                const months = item.duration;
+                return months === 1 ? '1 oy' : `${months} oy`;
             }
         },
         {

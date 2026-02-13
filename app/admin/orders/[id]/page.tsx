@@ -102,7 +102,7 @@ export default function OrderDetailsPage() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-500">Davomiyligi</span>
-                            <span className="font-medium">{order.duration} kun</span>
+                            <span className="font-medium">{order.duration} oy</span>
                         </div>
 
                     </div>
