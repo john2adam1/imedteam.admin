@@ -19,7 +19,7 @@ export default function FAQPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
 
     const [formData, setFormData] = useState({
         question: { uz: '', ru: '', en: '' },
@@ -58,9 +58,9 @@ export default function FAQPage() {
     const handleEdit = (item: FAQ) => {
         setEditingItem(item);
         setFormData({
-            question: item.question,
-            answer: item.answer,
-            order_num: item.order_num,
+            question: item.question || { uz: '', ru: '', en: '' },
+            answer: item.answer || { uz: '', ru: '', en: '' },
+            order_num: item.order_num || 1,
         });
         setIsModalOpen(true);
     };
@@ -82,11 +82,16 @@ export default function FAQPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const submitData = {
+            ...formData,
+            order_num: Number(formData.order_num)
+        };
+
         try {
             if (editingItem) {
-                await faqService.update(editingItem.id, formData);
+                await faqService.update(editingItem.id, submitData);
             } else {
-                await faqService.create(formData);
+                await faqService.create(submitData);
             }
             setIsModalOpen(false);
             loadData();
@@ -101,7 +106,7 @@ export default function FAQPage() {
         {
             key: 'question',
             header: 'Savol',
-            render: (item: FAQ) => item.question.en || item.question.uz || item.question.ru
+            render: (item: FAQ) => item.question.uz || item.question.ru || item.question.en
         },
         {
             key: 'order_num',
@@ -141,12 +146,12 @@ export default function FAQPage() {
 
             <Table data={items} columns={columns} />
 
-            <Pagination
+            {/* <Pagination
                 currentPage={page}
                 totalItems={totalItems}
                 perPage={limit}
                 onPageChange={setPage}
-            />
+            /> */}
 
 
             <Modal

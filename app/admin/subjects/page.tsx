@@ -23,7 +23,7 @@ export default function SubjectsPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
   const [formData, setFormData] = useState({
 
     image_url: '',
@@ -147,7 +147,7 @@ export default function SubjectsPage() {
                     <div className="flex-1">
                       <Link href={`/admin/subjects/${subject.id}`}>
                         <CardTitle className="hover:text-primary transition-colors cursor-pointer">
-                          {subject.name.en || subject.name.uz || subject.name.ru}
+                          {subject.name.uz || subject.name.ru || subject.name.en}
                         </CardTitle>
                       </Link>
                       <CardDescription className="mt-1">
@@ -181,12 +181,12 @@ export default function SubjectsPage() {
         </div>
       )}
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal

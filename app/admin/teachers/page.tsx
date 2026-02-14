@@ -21,7 +21,7 @@ export default function TeachersPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
     const [formData, setFormData] = useState({
 
         name: '',
@@ -102,7 +102,14 @@ export default function TeachersPage() {
 
         try {
             if (editingTeacher) {
-                await teacherService.update(editingTeacher.id, formData);
+                // Remove password if empty to avoid overwriting with empty string
+                const { password, ...rest } = formData;
+                const updateData: any = { ...rest };
+                if (password && password.trim() !== '') {
+                    updateData.password = password;
+                }
+
+                await teacherService.update(editingTeacher.id, updateData);
             } else {
                 await teacherService.create(formData);
             }
@@ -169,12 +176,12 @@ export default function TeachersPage() {
 
             <Table data={teachers} columns={columns} />
 
-            <Pagination
+            {/* <Pagination
                 currentPage={page}
                 totalItems={totalItems}
                 perPage={limit}
                 onPageChange={setPage}
-            />
+            /> */}
 
 
             <Modal

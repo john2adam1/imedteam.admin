@@ -18,7 +18,7 @@ export default function ContactPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
 
     const [formData, setFormData] = useState({
         name: '',
@@ -142,12 +142,12 @@ export default function ContactPage() {
 
             <Table data={items} columns={columns} />
 
-            <Pagination
+            {/* <Pagination
                 currentPage={page}
                 totalItems={totalItems}
                 perPage={limit}
                 onPageChange={setPage}
-            />
+            /> */}
 
 
             <Modal

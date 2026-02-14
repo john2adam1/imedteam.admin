@@ -175,13 +175,13 @@ export default function SourcesPage() {
       header: 'Dars',
       render: (item: Source) => {
         const lesson = lessons.find(l => l.id === item.lesson_id);
-        return lesson ? (lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Noma\'lum') : 'Noma\'lum';
+        return lesson ? (lesson.name?.uz || lesson.name?.ru || lesson.name?.en || 'Noma\'lum') : 'Noma\'lum';
       },
     },
     {
       key: 'name',
       header: 'Nom',
-      render: (item: Source) => item.name.uz || item.name.en || item.name.ru
+      render: (item: Source) => item.name.uz || item.name.ru || item.name.en
     },
     {
       key: 'type',
@@ -200,12 +200,12 @@ export default function SourcesPage() {
       header: 'URL',
       render: (item: Source) => (
         <a
-          href={item.url.uz || item.url.en || item.url.ru}
+          href={item.url.uz || item.url.ru || item.url.en}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:underline truncate max-w-xs"
         >
-          {item.url.uz || item.url.en || item.url.ru || 'URL yo\'q'}
+          {item.url.uz || item.url.ru || item.url.en || 'URL yo\'q'}
         </a>
       ),
     },
@@ -235,7 +235,7 @@ export default function SourcesPage() {
 
   const lessonOptions = lessons.map(l => ({
     value: l.id,
-    label: l.name?.en || l.name?.uz || l.name?.ru || 'Nomsiz dars'
+    label: l.name?.uz || l.name?.ru || l.name?.en || 'Nomsiz dars'
   }));
 
   const sourceTypeOptions = [

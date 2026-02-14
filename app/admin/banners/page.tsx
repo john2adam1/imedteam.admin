@@ -19,7 +19,7 @@ export default function BannersPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
 
 
   // Using objects for multilingual support
@@ -64,10 +64,10 @@ export default function BannersPage() {
   const handleEdit = (banner: Banner) => {
     setEditingBanner(banner);
     setFormData({
-      image_url: banner.image_url,
+      image_url: banner.image_url || { uz: '', ru: '', en: '' },
       link_url: banner.link_url || '',
-      title: banner.title,
-      description: banner.description,
+      title: banner.title || { uz: '', ru: '', en: '' },
+      description: banner.description || { uz: '', ru: '', en: '' },
       order_num: banner.order_num || 1,
     });
     setIsModalOpen(true);
@@ -95,7 +95,7 @@ export default function BannersPage() {
       link_url: formData.link_url,
       title: formData.title,
       description: formData.description,
-      order_num: formData.order_num,
+      order_num: Number(formData.order_num),
     };
 
     try {
@@ -118,13 +118,13 @@ export default function BannersPage() {
       key: 'image_url',
       header: 'Rasm',
       render: (item: Banner) => (
-        <img src={item.image_url.en || item.image_url.uz || item.image_url.ru} alt="Banner" className="w-20 h-12 object-cover" />
+        <img src={item.image_url.uz || item.image_url.ru || item.image_url.en} alt="Banner" className="w-20 h-12 object-cover" />
       ),
     },
     {
       key: 'title',
       header: 'Sarlavha',
-      render: (item: Banner) => item.title.en || item.title.uz || item.title.ru
+      render: (item: Banner) => item.title.uz || item.title.ru || item.title.en
     },
     { key: 'link_url', header: 'Havola' },
     { key: 'order_num', header: 'Tartib' },
@@ -168,16 +168,14 @@ export default function BannersPage() {
       <Table
         data={banners}
         columns={columns}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
       />
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal

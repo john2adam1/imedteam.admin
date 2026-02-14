@@ -40,7 +40,7 @@ export default function LessonDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
   const [uploading, setUploading] = useState(false);
   const [editingSource, setEditingSource] = useState<Source | null>(null);
 
@@ -183,10 +183,10 @@ export default function LessonDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Fanlar', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul', href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
-    { label: lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Nomsiz dars' },
+    { label: subject?.name?.uz || subject?.name?.ru || subject?.name?.en || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.uz || course?.name?.ru || course?.name?.en || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.uz || module?.name?.ru || module?.name?.en || 'Nomsiz modul', href: `/admin/subjects/${subjectId}/courses/${courseId}/modules/${moduleId}` },
+    { label: lesson?.name?.uz || lesson?.name?.ru || lesson?.name?.en || 'Nomsiz dars' },
   ];
 
   const sourceTypeOptions = [
@@ -202,7 +202,7 @@ export default function LessonDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {lesson?.name?.en || lesson?.name?.uz || lesson?.name?.ru || 'Nomsiz dars'}
+            {lesson?.name?.uz || lesson?.name?.ru || lesson?.name?.en || 'Nomsiz dars'}
           </h1>
           <div className="flex items-center gap-3 mt-2">
             <span className="text-sm text-muted-foreground">{lesson.duration} daqiqa</span>
@@ -259,15 +259,15 @@ export default function LessonDetailPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold">
-                              {source.name?.en || source.name?.uz || source.name?.ru || 'Nomsiz manba'}
+                              {source.name?.uz || source.name?.ru || source.name?.en || 'Nomsiz manba'}
                             </h3>
                             <a
-                              href={source.url?.en || source.url?.uz || source.url?.ru}
+                              href={source.url?.uz || source.url?.ru || source.url?.en}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-sm text-blue-500 hover:underline"
                             >
-                              {source.url?.en || source.url?.uz || source.url?.ru}
+                              {source.url?.uz || source.url?.ru || source.url?.en}
                             </a>
                           </div>
                           <Badge variant="outline">{source.type === 'video' ? 'Video' : source.type === 'document' ? 'Hujjat' : 'Test'}</Badge>
@@ -297,12 +297,12 @@ export default function LessonDetailPage() {
         </CardContent>
       </Card>
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal

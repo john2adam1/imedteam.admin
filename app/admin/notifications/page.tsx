@@ -22,7 +22,7 @@ export default function NotificationsPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
 
 
   const [formData, setFormData] = useState({
@@ -69,9 +69,9 @@ export default function NotificationsPage() {
     setEditingNotification(notification);
     setFormData({
       course_id: notification.course_id || '',
-      title: notification.title,
-      message: notification.message,
-      targetType: notification.type // Use the type from the notification object directly
+      title: notification.title || { uz: '', ru: '', en: '' },
+      message: notification.message || { uz: '', ru: '', en: '' },
+      targetType: notification.type || 'all'
     });
     setIsModalOpen(true);
   };
@@ -94,7 +94,7 @@ export default function NotificationsPage() {
     e.preventDefault();
 
     // Validation
-    if (formData.targetType === 'course' && (!formData.course_id || formData.course_id.trim() === '')) {
+    if (formData.targetType === 'selected' && (!formData.course_id || formData.course_id.trim() === '')) {
       alert('Kursga oid xabarnoma uchun kursni tanlang');
       return;
     }
@@ -124,11 +124,19 @@ export default function NotificationsPage() {
     try {
       // ... same logic
       if (editingNotification) {
-        // According to Swagger model.MasterNotificationUpdateBody, only title and message are allowed
+        // Include type and course_id in update payload to allow changing audience
         const updatePayload: any = {
           title: cleanTitle,
           message: cleanMessage,
+          type: formData.targetType as 'all' | 'selected',
         };
+
+        if (updatePayload.type === 'selected' && formData.course_id) {
+          updatePayload.course_id = formData.course_id.trim();
+        } else {
+          updatePayload.course_id = null; // Clear course_id if type is 'all'
+        }
+
         await notificationService.update(editingNotification.id, updatePayload);
       } else {
         // For creation, use model.NotificationCreateBody
@@ -199,7 +207,7 @@ export default function NotificationsPage() {
   }
 
   const courseOptions = [
-    ...courses.map(c => ({ value: c.id, label: c.name?.en || c.name?.uz || c.name?.ru || 'Nomsiz Kurs' }))
+    ...courses.map(c => ({ value: c.id, label: c.name?.uz || c.name?.ru || c.name?.en || 'Nomsiz Kurs' }))
   ];
 
   return (
@@ -230,12 +238,12 @@ export default function NotificationsPage() {
         columns={columns}
       />
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal
@@ -244,33 +252,35 @@ export default function NotificationsPage() {
         title={editingNotification ? 'Xabarnomani tahrirlash' : 'Xabarnoma yaratish'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Auditoriya</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="targetType"
-                  value="all"
-                  checked={formData.targetType === 'all'}
-                  onChange={() => setFormData({ ...formData, targetType: 'all', course_id: '' })}
-                />
-                Barcha Foydalanuvchilar
-              </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="targetType"
-                  value="selected"
-                  checked={formData.targetType === 'selected'}
-                  onChange={() => setFormData({ ...formData, targetType: 'selected' })}
-                />
-                Tanlangan Kurs
-              </label>
+          {!editingNotification && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Auditoriya</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="targetType"
+                    value="all"
+                    checked={formData.targetType === 'all'}
+                    onChange={() => setFormData({ ...formData, targetType: 'all', course_id: '' })}
+                  />
+                  Barcha Foydalanuvchilar
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="targetType"
+                    value="selected"
+                    checked={formData.targetType === 'selected'}
+                    onChange={() => setFormData({ ...formData, targetType: 'selected' })}
+                  />
+                  Tanlangan Kurs
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
-          {formData.targetType === 'selected' && (
+          {!editingNotification && formData.targetType === 'selected' && (
             <Select
               label="Kurs"
               options={courseOptions}

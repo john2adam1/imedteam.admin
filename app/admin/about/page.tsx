@@ -19,7 +19,7 @@ export default function AboutPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
 
     const [formData, setFormData] = useState({
         title: { uz: '', ru: '', en: '' },
@@ -104,7 +104,7 @@ export default function AboutPage() {
         {
             key: 'title',
             header: 'Sarlavha',
-            render: (item: About) => item.title.en || item.title.uz || item.title.ru
+            render: (item: About) => item.title.uz || item.title.ru || item.title.en
         },
         {
             key: 'order_num',
@@ -144,12 +144,12 @@ export default function AboutPage() {
 
             <Table data={items} columns={columns} />
 
-            <Pagination
+            {/* <Pagination
                 currentPage={page}
                 totalItems={totalItems}
                 perPage={limit}
                 onPageChange={setPage}
-            />
+            /> */}
 
 
             <Modal

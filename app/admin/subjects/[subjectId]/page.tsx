@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Subject, Course, Teacher, CoursePriceOption, Tariff } from '@/types';
+import { Subject, Course, Teacher, CoursePriceOption, Tariff, CourseUpdateBody } from '@/types';
 import { subjectService } from '@/services/subject.service';
 import { courseService } from '@/services/course.service';
 import { teacherService } from '@/services/teacher.service';
@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
+import { toast } from 'sonner';
 
 export default function SubjectDetailPage() {
   const params = useParams();
@@ -34,7 +35,7 @@ export default function SubjectDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false); // New state
@@ -114,20 +115,31 @@ export default function SubjectDetailPage() {
     setIsModalOpen(true);
   };
 
-  const handleEdit = (course: Course) => {
-    setEditingCourse(course);
-    setFormData({
-      subject_id: course.subject_id,
-      teacher_id: course.teacher_id || '',
-      image_url: course.image_url,
-      is_public: course.is_public,
-      is_active: course.is_active,
-      order_num: course.order_num,
-      price: Array.isArray(course.price) ? course.price : [],
-      name: course.name,
-      description: course.description,
-    });
-    setIsModalOpen(true);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+
+  const handleEdit = async (course: Course) => {
+    try {
+      setIsEditLoading(true);
+      const fullCourse = await courseService.getById(course.id);
+      setEditingCourse(fullCourse);
+      setFormData({
+        subject_id: fullCourse.subject_id,
+        teacher_id: fullCourse.teacher_id || '',
+        image_url: fullCourse.image_url,
+        is_public: fullCourse.is_public,
+        is_active: fullCourse.is_active,
+        order_num: fullCourse.order_num,
+        price: Array.isArray(fullCourse.price) ? fullCourse.price : [],
+        name: fullCourse.name,
+        description: fullCourse.description,
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch course details:', error);
+      alert('Kurs ma\'lumotlarini yuklashda xatolik');
+    } finally {
+      setIsEditLoading(false);
+    }
   };
 
   const handleCourseUsersClick = (course: Course) => {
@@ -153,16 +165,31 @@ export default function SubjectDetailPage() {
     e.preventDefault();
 
     try {
+      // If course is public (free) or prices are removed, explicitly set price to null
+      // to ensure the backend removes existing prices. 
+      // Some backends ignore empty arrays [] but process null for clearing.
+      const submissionData: CourseUpdateBody = {
+        ...formData,
+        price: (formData.is_public || formData.price.length === 0) ? [] : formData.price
+      };
+
+      console.log('Saving course data:', submissionData);
+
       if (editingCourse) {
-        await courseService.update(editingCourse.id, formData);
+        await courseService.update(editingCourse.id, submissionData);
+        toast.success('Kurs muvaffaqiyatli yangilandi');
       } else {
-        await courseService.create(formData);
+        await courseService.create(submissionData as any);
+        toast.success('Kurs muvaffaqiyatli yaratildi');
       }
       setIsModalOpen(false);
       loadData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save course:', error);
-      alert('Kursni saqlashda xatolik');
+      console.error('Error response data:', error.response?.data);
+
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Kursni saqlashda xatolik';
+      toast.error(`Xatolik: ${errorMessage}`);
     }
   };
 
@@ -180,7 +207,7 @@ export default function SubjectDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Fanlar', href: '/admin/subjects' },
-    { label: subject.name.en || subject.name.uz || subject.name.ru },
+    { label: subject.name.uz || subject.name.ru || subject.name.en },
   ];
 
   const teacherOptions = teachers.map((t) => ({
@@ -195,7 +222,7 @@ export default function SubjectDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {subject.name.en || subject.name.uz || subject.name.ru}
+            {subject.name.uz || subject.name.ru || subject.name.en}
           </h1>
           <p className="text-muted-foreground mt-1">Ushbu fanga tegishli kurslarni boshqarish</p>
         </div>
@@ -243,11 +270,11 @@ export default function SubjectDetailPage() {
                         <div className="flex-1">
                           <Link href={`/admin/subjects/${subjectId}/courses/${course.id}`}>
                             <CardTitle className="hover:text-primary transition-colors cursor-pointer line-clamp-2">
-                              {course.name?.en || course.name?.uz || course.name?.ru || 'Nomsiz kurs'}
+                              {course.name?.uz || course.name?.ru || course.name?.en || 'Nomsiz kurs'}
                             </CardTitle>
                           </Link>
                           <CardDescription className="mt-2 line-clamp-2">
-                            {course.description?.en || course.description?.uz || course.description?.ru || ''}
+                            {course.description?.uz || course.description?.ru || course.description?.en || ''}
                           </CardDescription>
                         </div>
                       </div>
@@ -272,8 +299,9 @@ export default function SubjectDetailPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
+                          disabled={isEditLoading}
                         >
-                          Tahrirlash
+                          {isEditLoading && editingCourse?.id === course.id ? 'Yuklanmoqda...' : 'Tahrirlash'}
                         </Button>
                         <Button
                           onClick={() => handleDelete(course)}
@@ -292,12 +320,12 @@ export default function SubjectDetailPage() {
         </CardContent>
       </Card>
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
       <CourseUsersModal
         isOpen={isCourseUsersModalOpen}
@@ -326,75 +354,82 @@ export default function SubjectDetailPage() {
             onChange={(description) => setFormData({ ...formData, description })}
             required
           />
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="text-sm font-medium">Narx opsiyalari</label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setFormData({
-                    ...formData,
-                    price: [...formData.price, { duration: tariffs[0]?.duration || 1, price: 0 }],
-                  });
-                }}
-              >
-                + Opsiya qo'shish
-              </Button>
-            </div>
-            {formData.price.map((option, index) => (
-              <div key={index} className="flex gap-2 items-end mb-2">
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Tarif</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md"
-                    value={option.duration}
-                    onChange={(e) => {
-                      const selectedTariff = tariffs.find(t => t.duration === parseInt(e.target.value));
-                      if (selectedTariff) {
-                        const newPrice = [...formData.price];
-                        newPrice[index].duration = selectedTariff.duration;
-                        setFormData({ ...formData, price: newPrice });
-                      }
-                    }}
-                    required
-                  >
-                    {tariffs.map((tariff) => (
-                      <option key={tariff.id} value={tariff.duration}>
-                        {tariff.name} ({tariff.duration} oy)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex-1">
-                  <label className="text-xs text-muted-foreground">Narx</label>
-                  <Input
-                    type="number"
-                    value={option.price}
-                    onChange={(e) => {
-                      const newPrice = [...formData.price];
-                      newPrice[index].price = parseInt(e.target.value) || 0;
-                      setFormData({ ...formData, price: newPrice });
-                    }}
-                    placeholder="Narx"
-                    required
-                  />
-                </div>
+          {!formData.is_public && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-sm font-medium">Narx opsiyalari</label>
                 <Button
                   type="button"
-                  variant="destructive"
-                  size="icon"
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
-                    const newPrice = formData.price.filter((_, i) => i !== index);
-                    setFormData({ ...formData, price: newPrice });
+                    setFormData({
+                      ...formData,
+                      price: [...formData.price, {
+                        duration: tariffs[0]?.duration || 1,
+                        price: 0,
+                        tariff_id: tariffs[0]?.id
+                      }],
+                    });
                   }}
                 >
-                  X
+                  + Opsiya qo'shish
                 </Button>
               </div>
-            ))}
-          </div>
+              {formData.price.map((option, index) => (
+                <div key={index} className="flex gap-2 items-end mb-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground">Tarif</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-md"
+                      value={option.tariff_id}
+                      onChange={(e) => {
+                        const selectedTariff = tariffs.find(t => t.id === e.target.value);
+                        if (selectedTariff) {
+                          const newPrice = [...formData.price];
+                          newPrice[index].duration = selectedTariff.duration;
+                          newPrice[index].tariff_id = selectedTariff.id;
+                          setFormData({ ...formData, price: newPrice });
+                        }
+                      }}
+                      required
+                    >
+                      {tariffs.map((tariff) => (
+                        <option key={tariff.id} value={tariff.id}>
+                          {tariff.name} ({tariff.duration} oy)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground">Narx</label>
+                    <Input
+                      type="number"
+                      value={option.price}
+                      onChange={(e) => {
+                        const newPrice = [...formData.price];
+                        newPrice[index].price = parseInt(e.target.value) || 0;
+                        setFormData({ ...formData, price: newPrice });
+                      }}
+                      placeholder="Narx"
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => {
+                      const newPrice = formData.price.filter((_, i) => i !== index);
+                      setFormData({ ...formData, price: newPrice });
+                    }}
+                  >
+                    X
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
           <Select
             label="O'qituvchi"
             options={teacherOptions}

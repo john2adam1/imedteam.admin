@@ -158,6 +158,7 @@ export type SourceUpdateBody = Partial<SourceCreateBody>;
 export interface CoursePriceOption {
   duration: number; // in MONTHS
   price: number;
+  tariff_id?: ID;
 }
 
 export interface Course {
@@ -177,7 +178,9 @@ export interface Course {
 }
 
 export type CourseCreateBody = Omit<Course, 'id' | 'created_at' | 'updated_at'>;
-export type CourseUpdateBody = Partial<CourseCreateBody>;
+export type CourseUpdateBody = Omit<Partial<CourseCreateBody>, 'price'> & {
+  price?: CoursePriceOption[] | null;
+};
 
 // User-Course Relationship (updated to match Swagger)
 export interface CoursePermission {

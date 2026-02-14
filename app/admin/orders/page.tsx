@@ -38,7 +38,7 @@ export default function OrdersPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
     const router = useRouter();
 
     // New State for Tabs and Date Filters
@@ -63,13 +63,26 @@ export default function OrdersPage() {
                     promocodeService.getAll(1, 100)
                 ]);
 
-                // Fix: Check if 'items' or 'data' exists, handling different response structures
-                const users = (usersRes as any).items || (usersRes as any).data || [];
-                const courses = (coursesRes as any).items || (coursesRes as any).data || [];
+                // Fix: Check if 'items', 'data', or specific keys exist
+                const users = (usersRes as any).items || (usersRes as any).data || (Array.isArray(usersRes) ? usersRes : []);
+                const courses = (coursesRes as any).items || (coursesRes as any).data || (Array.isArray(coursesRes) ? coursesRes : []);
+
+                let promocodes: any[] = [];
+                if (Array.isArray(promocodesRes)) {
+                    promocodes = promocodesRes;
+                } else if ((promocodesRes as any).promo_codes) {
+                    promocodes = (promocodesRes as any).promo_codes;
+                } else if ((promocodesRes as any).promocodes) {
+                    promocodes = (promocodesRes as any).promocodes;
+                } else if ((promocodesRes as any).data) {
+                    promocodes = (promocodesRes as any).data;
+                } else if ((promocodesRes as any).items) {
+                    promocodes = (promocodesRes as any).items;
+                }
 
                 setUsersOptions(users.map((u: any) => ({
                     value: u.id,
-                    label: `${u.first_name || u.name} ${u.last_name || ''} (${u.phone_number})`
+                    label: `${u.first_name || u.name || ''} ${u.last_name || ''} (${u.phone_number || ''})`.trim() || 'Nomsiz Foydalanuvchi'
                 })));
 
                 setCoursesOptions(courses.map((c: any) => {
@@ -80,7 +93,7 @@ export default function OrdersPage() {
                     return { value: c.id, label };
                 }));
 
-                setPromocodesOptions(promocodesRes.promo_codes.map(p => ({ value: p.code, label: p.code })));
+                setPromocodesOptions(promocodes.map(p => ({ value: p.code, label: p.code })));
 
             } catch (error) {
                 console.error("Failed to fetch filter options", error);
@@ -147,7 +160,8 @@ export default function OrdersPage() {
                 status,
                 from: activeTab === 'all' ? undefined : from, // If 'all' tab exist but we don't have one
                 to: activeTab === 'all' ? undefined : to,
-                type: 'range' // Enforce range type for date filtering
+                type: 'range', // Enforce range type for date filtering
+                payment_type: activeFilters.promocode ? 'click' : activeFilters.payment_type
             };
 
             // If range type is 'all', we might want to extend the range or remove type='range' depending on backend
@@ -411,12 +425,12 @@ export default function OrdersPage() {
                 />
             )}
 
-            <Pagination
+            {/* <Pagination
                 currentPage={page}
                 totalItems={totalItems}
                 perPage={limit}
                 onPageChange={setPage}
-            />
+            /> */}
 
         </div>
     );

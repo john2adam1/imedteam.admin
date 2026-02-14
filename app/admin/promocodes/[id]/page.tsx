@@ -26,7 +26,7 @@ export default function PromocodeDetailPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 10;
+    const limit = 1000;
 
 
     useEffect(() => {
@@ -209,12 +209,12 @@ export default function PromocodeDetailPage() {
                     ) : (
                         <div className="space-y-4">
                             <Table data={redemptions} columns={columns} />
-                            <Pagination
+                            {/* <Pagination
                                 currentPage={page}
                                 totalItems={totalItems}
                                 perPage={limit}
                                 onPageChange={setPage}
-                            />
+                            /> */}
                         </div>
                     )}
 

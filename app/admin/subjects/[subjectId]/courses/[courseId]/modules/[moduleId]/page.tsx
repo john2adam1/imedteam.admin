@@ -37,7 +37,7 @@ export default function ModuleDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [formData, setFormData] = useState({
 
@@ -175,9 +175,9 @@ export default function ModuleDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Fanlar', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
-    { label: module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul' },
+    { label: subject?.name?.uz || subject?.name?.ru || subject?.name?.en || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.uz || course?.name?.ru || course?.name?.en || 'Nomsiz kurs', href: `/admin/subjects/${subjectId}/courses/${courseId}` },
+    { label: module?.name?.uz || module?.name?.ru || module?.name?.en || 'Nomsiz modul' },
   ];
 
   const lessonTypeOptions = [
@@ -192,7 +192,7 @@ export default function ModuleDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {module?.name?.en || module?.name?.uz || module?.name?.ru || 'Nomsiz modul'}
+            {module?.name?.uz || module?.name?.ru || module?.name?.en || 'Nomsiz modul'}
           </h1>
           <p className="text-muted-foreground mt-1">Ushbu moduldagi darslarni boshqarish</p>
         </div>
@@ -248,7 +248,7 @@ export default function ModuleDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {lesson.name?.en || lesson.name?.uz || lesson.name?.ru || 'Nomsiz dars'}
+                              {lesson.name?.uz || lesson.name?.ru || lesson.name?.en || 'Nomsiz dars'}
                             </h3>
                           </Link>
                           <span className="text-sm text-muted-foreground">{lesson.duration || 0} daqiqa</span>
@@ -280,12 +280,12 @@ export default function ModuleDetailPage() {
         </CardContent>
       </Card>
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal

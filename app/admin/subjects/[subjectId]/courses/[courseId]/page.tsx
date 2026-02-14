@@ -30,7 +30,7 @@ export default function CourseDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 10;
+  const limit = 1000;
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -142,8 +142,8 @@ export default function CourseDetailPage() {
 
   const breadcrumbItems = [
     { label: 'Fanlar', href: '/admin/subjects' },
-    { label: subject?.name?.en || subject?.name?.uz || subject?.name?.ru || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
-    { label: course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs' },
+    { label: subject?.name?.uz || subject?.name?.ru || subject?.name?.en || 'Nomsiz fan', href: `/admin/subjects/${subjectId}` },
+    { label: course?.name?.uz || course?.name?.ru || course?.name?.en || 'Nomsiz kurs' },
   ];
 
   return (
@@ -153,10 +153,10 @@ export default function CourseDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {course?.name?.en || course?.name?.uz || course?.name?.ru || 'Nomsiz kurs'}
+            {course?.name?.uz || course?.name?.ru || course?.name?.en || 'Nomsiz kurs'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {course?.description?.en || course?.description?.uz || course?.description?.ru || ''}
+            {course?.description?.uz || course?.description?.ru || course?.description?.en || ''}
           </p>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant={course?.is_active ? 'success' : 'secondary'}>
@@ -211,7 +211,7 @@ export default function CourseDetailPage() {
                             className="flex-1"
                           >
                             <h3 className="font-semibold hover:text-primary transition-colors cursor-pointer">
-                              {module.name?.en || module.name?.uz || module.name?.ru || 'Nomsiz modul'}
+                              {module.name?.uz || module.name?.ru || module.name?.en || 'Nomsiz modul'}
                             </h3>
                           </Link>
                         </div>
@@ -240,12 +240,12 @@ export default function CourseDetailPage() {
         </CardContent>
       </Card>
 
-      <Pagination
+      {/* <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      />
+      /> */}
 
 
       <Modal
