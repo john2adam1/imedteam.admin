@@ -19,7 +19,7 @@ export default function FAQPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 1000;
+    const limit = 10;
 
     const [formData, setFormData] = useState({
         question: { uz: '', ru: '', en: '' },
@@ -37,7 +37,12 @@ export default function FAQPage() {
             setLoading(true);
             const response = await faqService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            setTotalItems(response.meta?.total_items || 0);
+            const total = response.meta?.total_items ||
+                (response as any).count ||
+                (response as any).total_items ||
+                (response as any).total ||
+                0;
+            setTotalItems(total);
         } catch (error) {
             console.error('Failed to load FAQs:', error);
         } finally {
@@ -146,12 +151,12 @@ export default function FAQPage() {
 
             <Table data={items} columns={columns} />
 
-            {/* <Pagination
+            <Pagination
                 currentPage={page}
-                totalItems={totalItems}
+                totalItems={totalItems || items.length}
                 perPage={limit}
                 onPageChange={setPage}
-            /> */}
+            />
 
 
             <Modal

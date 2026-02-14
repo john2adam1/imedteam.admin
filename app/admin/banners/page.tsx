@@ -19,7 +19,7 @@ export default function BannersPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
 
 
   // Using objects for multilingual support
@@ -41,7 +41,12 @@ export default function BannersPage() {
       setLoading(true);
       const response = await bannerService.getAll(page, limit, activeFilters);
       setBanners(response.data);
-      setTotalItems(response.meta?.total_items || 0);
+      const total = response.meta?.total_items ||
+        (response as any).count ||
+        (response as any).total_items ||
+        (response as any).total ||
+        0;
+      setTotalItems(total);
     } catch (error) {
       console.error('Failed to load banners:', error);
     } finally {
@@ -170,12 +175,12 @@ export default function BannersPage() {
         columns={columns}
       />
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
-        totalItems={totalItems}
+        totalItems={totalItems || banners.length}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
 
       <Modal

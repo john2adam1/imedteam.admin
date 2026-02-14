@@ -25,7 +25,7 @@ export default function UsersPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
 
 
   useEffect(() => {
@@ -42,7 +42,15 @@ export default function UsersPage() {
         tariffService.getAll(),
       ]);
       setUsers(usersResponse.data);
-      setTotalItems(usersResponse.meta?.total_items || 0);
+
+      // Handle various pagination response structures
+      // Prioritize meta.total_items as it is the most reliable source for total DB count
+      const total = usersResponse.meta?.total_items ||
+        (usersResponse as any).count ||
+        (usersResponse as any).total_items ||
+        (usersResponse as any).total ||
+        0;
+      setTotalItems(total);
 
       setCourses(coursesResponse.data);
       setTariffs(tariffsResponse.data);
@@ -159,12 +167,12 @@ export default function UsersPage() {
 
       <Table data={users} columns={columns} />
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
-        totalItems={totalItems}
+        totalItems={totalItems || users.length}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
 
       <PasswordUpdateModal

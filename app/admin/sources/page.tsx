@@ -11,6 +11,7 @@ import { Select } from '@/components/ui/Select';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Pagination } from '@/components/ui/Pagination';
 
 export default function SourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
@@ -20,7 +21,10 @@ export default function SourcesPage() {
   const [editingSource, setEditingSource] = useState<Source | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedLessonId, setSelectedLessonId] = useState<string>('');
-  const [filteredSources, setFilteredSources] = useState<Source[]>([]);
+
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
 
   const [formData, setFormData] = useState({
     lesson_id: '',
@@ -32,25 +36,22 @@ export default function SourcesPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
-
-  useEffect(() => {
-    if (selectedLessonId) {
-      setFilteredSources(sources.filter(s => s.lesson_id === selectedLessonId));
-    } else {
-      setFilteredSources(sources);
-    }
-  }, [selectedLessonId, sources]);
+  }, [page, selectedLessonId]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       const [sourcesResponse, lessonsResponse] = await Promise.all([
-        sourceService.getAll(undefined, 1, 1000), // Get all sources
-        lessonService.getAll(undefined, 1, 1000) // Get all lessons
+        sourceService.getAll(selectedLessonId || undefined, page, limit),
+        lessonService.getAll(undefined, 1, 1000)
       ]);
       setSources(sourcesResponse.data);
-      setFilteredSources(sourcesResponse.data);
+      const total = sourcesResponse.meta?.total_items ||
+        (sourcesResponse as any).count ||
+        (sourcesResponse as any).total_items ||
+        (sourcesResponse as any).total ||
+        0;
+      setTotalItems(total);
       setLessons(lessonsResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -66,7 +67,7 @@ export default function SourcesPage() {
       name: { uz: '', ru: '', en: '' },
       url: { uz: '', ru: '', en: '' },
       type,
-      order_num: filteredSources.length + 1,
+      order_num: totalItems + 1,
     });
     setIsModalOpen(true);
   };
@@ -263,13 +264,23 @@ export default function SourcesPage() {
             ...lessonOptions
           ]}
           value={selectedLessonId}
-          onChange={(e) => setSelectedLessonId(e.target.value)}
+          onChange={(e) => {
+            setSelectedLessonId(e.target.value);
+            setPage(1);
+          }}
         />
       </div>
 
       <Table
-        data={filteredSources}
+        data={sources}
         columns={columns}
+      />
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems || sources.length}
+        perPage={limit}
+        onPageChange={setPage}
       />
 
       <Modal

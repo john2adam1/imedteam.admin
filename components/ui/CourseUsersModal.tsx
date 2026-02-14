@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Table } from '@/components/ui/Table';
 import { toast } from 'sonner';
+import { Pagination } from '@/components/ui/Pagination';
 
 interface CourseUsersModalProps {
     isOpen: boolean;
@@ -23,20 +24,29 @@ interface CourseUser extends CoursePermission {
 export function CourseUsersModal({ isOpen, onClose, course }: CourseUsersModalProps) {
     const [permissions, setPermissions] = useState<CourseUser[]>([]);
     const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
+    const limit = 10;
 
     useEffect(() => {
         if (isOpen && course) {
             loadCourseUsers();
         }
-    }, [isOpen, course]);
+    }, [isOpen, course, page]);
 
     const loadCourseUsers = async () => {
         if (!course) return;
         setLoading(true);
         try {
             // Fetch permissions for this course
-            const permRes = await courseService.getPermissions(1, 100, { course_id: course.id });
+            const permRes = await courseService.getPermissions(page, limit, { course_id: course.id });
             const perms = permRes.data;
+            const total = permRes.meta?.total_items ||
+                (permRes as any).count ||
+                (permRes as any).total_items ||
+                permRes.total ||
+                0;
+            setTotalItems(total);
 
             // Fetch user details for each permission
             // Note: In a real optimized scenario, the permission endpoint should probably expand user details
@@ -153,16 +163,27 @@ export function CourseUsersModal({ isOpen, onClose, course }: CourseUsersModalPr
                 {loading ? (
                     <div className="text-center py-4">Yuklanmoqda...</div>
                 ) : (
-                    <div className="max-h-[400px] overflow-y-auto">
-                        <Table
-                            data={permissions}
-                            columns={columns}
-                        />
-                        {permissions.length === 0 && !loading && (
-                            <div className="text-center py-8 text-gray-500 text-sm">
-                                Bu kursga a'zo foydalanuvchilar yo'q
-                            </div>
-                        )}
+                    <div className="max-h-[600px] overflow-y-auto flex flex-col h-full">
+                        <div className="flex-1">
+                            <Table
+                                data={permissions}
+                                columns={columns}
+                            />
+                            {permissions.length === 0 && !loading && (
+                                <div className="text-center py-8 text-gray-500 text-sm">
+                                    Bu kursga a'zo foydalanuvchilar yo'q
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-4">
+                            <Pagination
+                                currentPage={page}
+                                totalItems={totalItems || permissions.length}
+                                perPage={limit}
+                                onPageChange={setPage}
+                            />
+                        </div>
                     </div>
                 )}
 

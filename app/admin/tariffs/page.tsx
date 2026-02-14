@@ -20,7 +20,7 @@ export default function TariffsPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 1000;
+    const limit = 10;
     const [formData, setFormData] = useState({
 
         name: '',
@@ -40,7 +40,12 @@ export default function TariffsPage() {
             setError(null);
             const response = await tariffService.getAll(page, limit, activeFilters);
             setTariffs(response.data || []);
-            setTotalItems(response.meta?.total_items || (response.data || []).length);
+            const total = response.meta?.total_items ||
+                (response as any).count ||
+                (response as any).total_items ||
+                (response as any).total ||
+                (response.data || []).length;
+            setTotalItems(total);
 
         } catch (error: any) {
             const errorMessage = error?.response?.data?.message || error?.message || 'Tariflarni yuklashda xatolik';
@@ -179,12 +184,12 @@ export default function TariffsPage() {
                 onDelete={handleDelete}
             />
 
-            {/* <Pagination
+            <Pagination
                 currentPage={page}
-                totalItems={totalItems}
+                totalItems={totalItems || tariffs.length}
                 perPage={limit}
                 onPageChange={setPage}
-            /> */}
+            />
 
 
             <Modal

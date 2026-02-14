@@ -22,7 +22,7 @@ export default function NotificationsPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
 
 
   const [formData, setFormData] = useState({
@@ -45,7 +45,12 @@ export default function NotificationsPage() {
         courseService.getAll()
       ]);
       setNotifications(notifsResponse.data);
-      setTotalItems(notifsResponse.meta?.total_items || 0);
+      const total = notifsResponse.meta?.total_items ||
+        (notifsResponse as any).count ||
+        (notifsResponse as any).total_items ||
+        (notifsResponse as any).total ||
+        0;
+      setTotalItems(total);
       setCourses(coursesResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -238,12 +243,12 @@ export default function NotificationsPage() {
         columns={columns}
       />
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
-        totalItems={totalItems}
+        totalItems={totalItems || notifications.length}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
 
       <Modal

@@ -35,7 +35,7 @@ export default function SubjectDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false); // New state
@@ -88,7 +88,13 @@ export default function SubjectDetailPage() {
 
       setSubject(subjectData);
       setCourses(coursesResponse.data);
-      setTotalItems(coursesResponse.meta?.total_items || 0);
+      setCourses(coursesResponse.data);
+      const total = coursesResponse.meta?.total_items ||
+        (coursesResponse as any).count ||
+        (coursesResponse as any).total_items ||
+        (coursesResponse as any).total ||
+        0;
+      setTotalItems(total);
       setTeachers(teachersResponse.data);
       setTariffs(tariffsResponse.data);
 
@@ -320,12 +326,12 @@ export default function SubjectDetailPage() {
         </CardContent>
       </Card>
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
         totalItems={totalItems}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
       <CourseUsersModal
         isOpen={isCourseUsersModalOpen}

@@ -21,7 +21,7 @@ export default function TeachersPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 1000;
+    const limit = 10;
     const [formData, setFormData] = useState({
 
         name: '',
@@ -40,7 +40,12 @@ export default function TeachersPage() {
             setLoading(true);
             const response = await teacherService.getAll(page, limit, activeFilters);
             setTeachers(response.data);
-            setTotalItems(response.meta?.total_items || 0);
+            const total = response.meta?.total_items ||
+                (response as any).count ||
+                (response as any).total_items ||
+                (response as any).total ||
+                0;
+            setTotalItems(total);
         } catch (error) {
             // Error handling
         } finally {
@@ -176,12 +181,12 @@ export default function TeachersPage() {
 
             <Table data={teachers} columns={columns} />
 
-            {/* <Pagination
+            <Pagination
                 currentPage={page}
-                totalItems={totalItems}
+                totalItems={totalItems || teachers.length}
                 perPage={limit}
                 onPageChange={setPage}
-            /> */}
+            />
 
 
             <Modal

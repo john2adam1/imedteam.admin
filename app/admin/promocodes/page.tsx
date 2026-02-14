@@ -21,7 +21,7 @@ export default function PromocodesPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 1000;
+    const limit = 10;
     const searchParams = useSearchParams();
 
     const editId = searchParams.get('edit');
@@ -65,7 +65,13 @@ export default function PromocodesPage() {
             }
 
             setPromocodes(promocodesData);
-            setTotalItems(res.count || (res as any).meta?.total_items || promocodesData.length);
+            setPromocodes(promocodesData);
+            const total = res.count ||
+                (res as any).total_items ||
+                (res as any).meta?.total_items ||
+                (res as any).total ||
+                promocodesData.length;
+            setTotalItems(total);
         } catch (error) {
             toast.error('Failed to fetch promocodes');
         } finally {
@@ -253,12 +259,12 @@ export default function PromocodesPage() {
                 onDelete={handleDelete}
             />
 
-            {/* <Pagination
+            <Pagination
                 currentPage={page}
-                totalItems={totalItems}
+                totalItems={totalItems || promocodes.length}
                 perPage={limit}
                 onPageChange={setPage}
-            /> */}
+            />
 
 
             <Modal

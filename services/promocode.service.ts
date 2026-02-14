@@ -81,5 +81,12 @@ export const promocodeService = {
             params: { page, limit, ...filters }
         });
         return response.data;
+    },
+
+    getAllRedemptions: async (page = 1, limit = 10, filters?: { user_id?: string; promo_id?: string; is_active?: string }): Promise<any> => {
+        const response = await api.get<any>('promocode/redemption', {
+            params: { page, limit, ...filters }
+        });
+        return response.data;
     }
 };

@@ -23,7 +23,7 @@ export default function SubjectsPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
   const [formData, setFormData] = useState({
 
     image_url: '',
@@ -41,7 +41,12 @@ export default function SubjectsPage() {
       setLoading(true);
       const response = await subjectService.getAll(page, limit, activeFilters);
       setSubjects(response.data);
-      setTotalItems(response.meta?.total_items || 0);
+      const total = response.meta?.total_items ||
+        (response as any).count ||
+        (response as any).total_items ||
+        (response as any).total ||
+        0;
+      setTotalItems(total);
     } catch (error) {
       console.error('Failed to load subjects:', error);
     } finally {
@@ -181,12 +186,12 @@ export default function SubjectsPage() {
         </div>
       )}
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
-        totalItems={totalItems}
+        totalItems={totalItems || subjects.length}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
 
       <Modal

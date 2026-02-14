@@ -30,7 +30,7 @@ export default function CourseDetailPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const limit = 1000;
+  const limit = 10;
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -66,7 +66,12 @@ export default function CourseDetailPage() {
       setSubject(subjectData);
       setCourse(courseData);
       setModules(modulesResponse.data);
-      setTotalItems(modulesResponse.meta?.total_items || 0);
+      const total = modulesResponse.meta?.total_items ||
+        (modulesResponse as any).count ||
+        (modulesResponse as any).total_items ||
+        (modulesResponse as any).total ||
+        0;
+      setTotalItems(total);
 
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -240,12 +245,12 @@ export default function CourseDetailPage() {
         </CardContent>
       </Card>
 
-      {/* <Pagination
+      <Pagination
         currentPage={page}
-        totalItems={totalItems}
+        totalItems={totalItems || lessons.length}
         perPage={limit}
         onPageChange={setPage}
-      /> */}
+      />
 
 
       <Modal

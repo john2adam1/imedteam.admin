@@ -38,7 +38,7 @@ export default function OrdersPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const limit = 1000;
+    const limit = 10;
     const router = useRouter();
 
     // New State for Tabs and Date Filters
@@ -197,7 +197,13 @@ export default function OrdersPage() {
             }
 
             setOrders(ordersData);
-            setTotalItems(res.count || (res as any).meta?.total_items || ordersData.length);
+            setOrders(ordersData);
+            const total = res.count ||
+                (res as any).total_items ||
+                (res as any).meta?.total_items ||
+                (res as any).total ||
+                ordersData.length;
+            setTotalItems(total);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
             // toast.error('Failed to fetch orders'); // Suppress toast on initial load or frequent updates
@@ -425,12 +431,12 @@ export default function OrdersPage() {
                 />
             )}
 
-            {/* <Pagination
+            <Pagination
                 currentPage={page}
-                totalItems={totalItems}
+                totalItems={totalItems || orders.length}
                 perPage={limit}
                 onPageChange={setPage}
-            /> */}
+            />
 
         </div>
     );
