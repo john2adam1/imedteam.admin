@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Banner } from '@/types';
 import { bannerService } from '@/services/banner.service';
+import { getMediaUrl } from '@/lib/mediaUtils';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
@@ -123,7 +124,7 @@ export default function BannersPage() {
       key: 'image_url',
       header: 'Rasm',
       render: (item: Banner) => (
-        <img src={item.image_url.uz || item.image_url.ru || item.image_url.en} alt="Banner" className="w-20 h-12 object-cover" />
+        <img src={getMediaUrl(item.image_url.uz || item.image_url.ru || item.image_url.en)} alt="Banner" className="w-20 h-12 object-cover" />
       ),
     },
     {

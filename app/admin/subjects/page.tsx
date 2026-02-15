@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Subject } from '@/types';
 import { subjectService } from '@/services/subject.service';
+import { getMediaUrl } from '@/lib/mediaUtils';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
@@ -208,7 +209,7 @@ export default function SubjectsPage() {
           />
           <Input
             label="Rasm URL"
-            value={formData.image_url}
+            value={getMediaUrl(formData.image_url)}
             onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
             required
           />
