@@ -192,6 +192,8 @@ export interface CoursePermission {
   ended_at: DateString;
   is_active: boolean;
   duration: number; // in months
+  course?: Course;
+  tariff?: Tariff;
   created_at: DateString;
   updated_at: DateString;
 }

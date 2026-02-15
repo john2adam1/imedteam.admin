@@ -1,25 +1,14 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { authService } from '@/services/auth.service';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export default function HomePage() {
-  const router = useRouter();
+  const cookieStore = cookies();
+  const token = cookieStore.get('admin_token');
 
-  useEffect(() => {
-    // Redirect to admin login or dashboard based on auth status
-    if (authService.isAuthenticated()) {
-      router.push('/admin/dashboard');
-    } else {
-      router.push('/admin/login');
-    }
-  }, [router]);
-
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Redirecting...</p>
-    </div>
-  );
+  if (token) {
+    redirect('/admin/dashboard');
+  } else {
+    redirect('/admin/login');
+  }
 }
 

@@ -77,8 +77,8 @@ export const promocodeService = {
     },
 
     getRedemptions: async (id: string, page = 1, limit = 10, filters?: any): Promise<PromocodeRedemptionListResponse> => {
-        const response = await api.get<PromocodeRedemptionListResponse>(`promocode/${id}/redemptions`, {
-            params: { page, limit, ...filters }
+        const response = await api.get<PromocodeRedemptionListResponse>(`promocode/redemption`, {
+            params: { page, limit, promo_id: id, ...filters }
         });
         return response.data;
     },

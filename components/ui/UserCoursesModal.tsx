@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User, Course, Tariff, CoursePermission } from '@/types';
+import { getMultilangValue } from '@/lib/utils/multilang';
 import { courseService } from '@/services/course.service';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -21,10 +22,11 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     const [permissions, setPermissions] = useState<CoursePermission[]>([]);
     const [loading, setLoading] = useState(false);
     const [isGranting, setIsGranting] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(10);
+    const [limit] = useState(50); // Increased limit to ensure recent courses are seen
     const [total, setTotal] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [hasPrevious, setHasPrevious] = useState(false);
@@ -50,7 +52,14 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         if (!user) return;
         setLoading(true);
         try {
-            const res = await courseService.getPermissions(page, limit, { user_id: user.id });
+            console.log(`Loading permissions for user ${user.id} page ${page}`);
+            // Try user_id and userId and student_id to be safe
+            const res = await courseService.getPermissions(page, limit, {
+                user_id: user.id,
+                userId: user.id,
+                student_id: user.id
+            } as any);
+            console.log('Permissions loaded:', res);
             setPermissions(res.data);
 
             // Update pagination state from API response
@@ -80,7 +89,14 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         }
     };
 
+
+
+    // ... existing useEffect ...
+
+
+
     const handleGrantAccess = async () => {
+        console.log('>>> BUTTON CLICKED: handleGrantAccess started');
         if (!user || !grantForm.courseId || !grantForm.tariffId) {
             toast.error('Iltimos, kurs va tarifni tanlang');
             return;
@@ -108,37 +124,72 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
         if (!hasPriceOption) {
             toast.error('Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.');
-            console.error('Validation failed:', {
-                course: selectedCourse.name,
-                tariff: selectedTariff.name,
-                coursePrices: selectedCourse.price,
-                tariffDurationInMonths: tariffDurationInMonths
-            });
             return;
         }
 
-        // Check if user already has this course
-        if (permissions.some(p => p.course_id === grantForm.courseId && new Date(p.ended_at) > new Date())) {
+        // Check if user already has this course locally (in current page)
+        // Check if active (Active = ended_at is in the future OR today)
+        // We compare timestamps. We set the ended_at to the end of that day to be safe/inclusive.
+        const isLocallyActive = permissions.some(p => {
+            if (p.course_id !== grantForm.courseId) return false;
+            const endDate = new Date(p.ended_at);
+            // set end date to end of day to be inclusive
+            endDate.setHours(23, 59, 59, 999);
+            return endDate > new Date();
+        });
+
+        if (isLocallyActive) {
             toast.error('Foydalanuvchi allaqachon ushbu kursga ega');
             return;
         }
 
-        const payload = {
-            user_id: user.id,
-            course_id: grantForm.courseId,
-            tariff_id: grantForm.tariffId,
-            started_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-            ended_at: (() => {
-                const endDate = new Date();
-                // Add months, not days (selectedTariff.duration is in months)
-                endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
-                return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
-            })()
-        };
-
-        console.log('Granting permission with payload:', payload);
-
+        setIsSaving(true);
         try {
+            // Pre-check: Fetch permissions specifically for this course from backend
+            // Increase limit to find older permissions if API doesn't support strict filtering
+            console.log(`Checking existing permissions for User: ${user.id}, Course: ${grantForm.courseId}`);
+
+            // Try user_id and userId and student_id to be safe
+            const existingPermissions = await courseService.getPermissions(1, 100, {
+                user_id: user.id,
+                userId: user.id,
+                student_id: user.id
+            } as any);
+
+            console.log('Existing permissions fetched:', existingPermissions.data);
+
+            const hasActivePermission = existingPermissions.data.some(p => {
+                if (p.course_id !== grantForm.courseId) return false;
+
+                const endDate = new Date(p.ended_at);
+                endDate.setHours(23, 59, 59, 999);
+                const isActive = endDate > new Date();
+                console.log(`Permission ${p.id}: Course ${p.course_id} Ends ${p.ended_at} -> Active? ${isActive}`);
+                return isActive;
+            });
+
+            if (hasActivePermission) {
+                console.warn('Blocked by pre-check: User has active permission');
+                toast.error('Foydalanuvchi allaqachon ushbu kursga ega (Serverdagi ma\'lumot)');
+                setIsSaving(false);
+                return;
+            }
+
+            const payload = {
+                user_id: user.id,
+                course_id: grantForm.courseId,
+                tariff_id: grantForm.tariffId,
+                started_at: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                ended_at: (() => {
+                    const endDate = new Date();
+                    // Add months, not days (selectedTariff.duration is in months)
+                    endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
+                    return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
+                })()
+            };
+
+            console.log('Granting permission with payload:', payload);
+
             await courseService.grantPermission(payload);
 
             toast.success('Ruxsat berildi');
@@ -147,203 +198,205 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
             // Close the modal after success
             onClose();
+            // Reload the list to show the new permission
+            loadPermissions(1);
         } catch (error: any) {
-            console.error('Failed to grant permission:', error);
-            console.error('Error response:', error.response?.data);
-
             const errorData = error.response?.data;
             let errorMessage = 'Ruxsat berishda xatolik';
+            let isKnownError = false;
 
-            // Check for specific price option error
-            if (errorData?.message && errorData.message.toLowerCase().includes('price option not found')) {
-                errorMessage = 'Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.';
-            } else if (errorData?.message) {
-                errorMessage = errorData.message;
+            // Check for specific errors to handle gracefully
+            if (errorData?.message) {
+                const lowerMsg = errorData.message.toLowerCase();
+                if (lowerMsg.includes('price option not found')) {
+                    errorMessage = 'Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.';
+                    isKnownError = true;
+                } else if (lowerMsg.includes('course is still active')) {
+                    errorMessage = 'Tizim xatosi: Serverda bu kurs allaqachon faol deb ko\'rsatilgan, lekin ro\'yxatda ko\'rinmayapti. Iltimos, ma\'lumotlar bazasini tekshiring.';
+                    isKnownError = true;
+                } else {
+                    errorMessage = errorData.message;
+                }
             } else if (errorData?.error) {
                 errorMessage = errorData.error;
             }
 
+            if (isKnownError) {
+                console.warn('Handled known error during permission grant:', errorMessage);
+            } else {
+                console.error('Failed to grant permission:', error);
+                console.error('Error response:', error.response?.data);
+            }
+
             toast.error(`Xatolik: ${errorMessage}`);
+        } finally {
+            setIsSaving(false);
         }
     };
 
+    // ... handleRevoke ... (unchanged)
+
+    // ... columns ... (unchanged)
+
     const handleRevoke = async (permissionId: string) => {
-        if (!confirm('Haqiqatan ham bu ruxsatni bekor qilmoqchimisiz?')) return;
+        if (!confirm('Rostdan ham bu ruxsatni bekor qilmoqchimisiz?')) return;
+        setLoading(true);
         try {
             await courseService.deletePermission(permissionId);
             toast.success('Ruxsat bekor qilindi');
-            loadPermissions();
+            loadPermissions(1);
         } catch (error) {
-            console.error('Failed to revoke permission:', error);
-            toast.error('Ruxsatni bekor qilishda xatolik');
+            toast.error('Xatolik yuz berdi');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     const columns = [
         {
             key: 'course',
             header: 'Kurs',
-            render: (perm: CoursePermission) => {
-                const course = allCourses.find(c => c.id === perm.course_id);
-                const name = course?.name;
-                return typeof name === 'string' ? name : (name?.uz || name?.ru || name?.en || 'Nomsiz kurs');
+            render: (row: CoursePermission) => {
+                const course = row.course || allCourses.find(c => c.id === row.course_id);
+                return course ? getMultilangValue(course.name) : <span className="text-gray-400">Noma'lum kurs</span>;
             }
         },
         {
-            key: 'dates',
-            header: 'Muddat',
-            render: (perm: CoursePermission) => (
-                <div className="text-xs">
-                    <div>Boshlanish: {new Date(perm.started_at).toLocaleDateString()}</div>
-                    <div>Tugash: {new Date(perm.ended_at).toLocaleDateString()}</div>
-                </div>
-            )
+            key: 'tariff',
+            header: 'Tarif',
+            render: (row: CoursePermission) => {
+                const tariff = row.tariff || allTariffs.find(t => t.id === row.tariff_id);
+                return tariff ? getMultilangValue(tariff.name) : <span className="text-gray-400">Noma'lum tarif</span>;
+            }
         },
         {
-            key: 'active',
+            key: 'started_at',
+            header: 'Boshlanish',
+            render: (row: CoursePermission) => new Date(row.started_at).toLocaleDateString(),
+        },
+        {
+            key: 'ended_at',
+            header: 'Tugash',
+            render: (row: CoursePermission) => new Date(row.ended_at).toLocaleDateString(),
+        },
+        {
+            key: 'status',
             header: 'Holat',
-            render: (perm: CoursePermission) => {
-                const isActive = new Date(perm.ended_at) > new Date();
+            render: (row: CoursePermission) => {
+                const isActive = new Date(row.ended_at) > new Date();
                 return (
-                    <span className={`px-2 py-1 rounded-full text-xs ${isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {isActive ? 'Faol' : 'Tugagan'}
+                    <span className={`px-2 py-1 rounded text-xs ${isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {isActive ? 'Faol' : 'Yakunlangan'}
                     </span>
                 );
             }
         },
         {
             key: 'actions',
-            header: 'Amal',
-            render: (perm: CoursePermission) => (
-                <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRevoke(perm.id)}
-                    className="h-7 px-2 text-xs"
-                >
-                    O'chirish
+            header: 'Amallar',
+            render: (row: CoursePermission) => (
+                <Button variant="destructive" size="sm" onClick={() => handleRevoke(row.id)}>
+                    Bekor qilish
                 </Button>
             )
         }
     ];
 
-    if (!user) return null;
-
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={showGrantForm ? `${user.name} - Ruxsat berish` : `${user.name} - Kurslari`}
-            maxWidth="3xl"
-        >
+        <Modal isOpen={isOpen} onClose={onClose} title={`Kurslar: ${user?.name || 'Foydalanuvchi'}`}>
             <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                    <div className="text-sm text-gray-500">
-                        {user.phone_number}
-                    </div>
+                    <h2 className="text-lg font-semibold">Foydalanuvchi kurslari</h2>
+                    {!isGranting && !showGrantForm && (
+                        <Button onClick={() => setIsGranting(true)}>Ruxsat berish</Button>
+                    )}
                 </div>
 
-                {showGrantForm ? (
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-3 border">
-                        <h3 className="font-medium text-sm">Yangi kursga ruxsat berish</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {isGranting || showGrantForm ? (
+                    <div className="border p-4 rounded-md bg-gray-50">
+                        <h3 className="font-medium mb-4">Yangi kurs ochish</h3>
+                        <div className="grid grid-cols-1 gap-4 mb-4">
                             <div>
-                                <label className="block text-xs font-medium mb-1">Kursni tanlang</label>
+                                <label className="block text-sm font-medium mb-1">Kurs</label>
                                 <select
-                                    className="w-full border rounded px-2 py-1.5 text-sm"
+                                    className="w-full border rounded p-2"
                                     value={grantForm.courseId}
-                                    onChange={(e) => setGrantForm({ ...grantForm, courseId: e.target.value, tariffId: '' })}
+                                    onChange={(e) => setGrantForm({ ...grantForm, courseId: e.target.value })}
                                 >
-                                    <option value="">Tanlang...</option>
+                                    <option value="">Tanlang</option>
                                     {allCourses.map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.name?.uz || c.name?.ru || c.name?.en}
-                                        </option>
+                                        <option key={c.id} value={c.id}>{getMultilangValue(c.name)}</option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium mb-1">Tarifni tanlang</label>
+                                <label className="block text-sm font-medium mb-1">Tarif</label>
                                 <select
-                                    className="w-full border rounded px-2 py-1.5 text-sm"
+                                    className="w-full border rounded p-2"
                                     value={grantForm.tariffId}
                                     onChange={(e) => setGrantForm({ ...grantForm, tariffId: e.target.value })}
-                                    disabled={!grantForm.courseId}
                                 >
-                                    <option value="">Tanlang...</option>
-                                    {(() => {
-                                        if (!grantForm.courseId) return null;
+                                    <option value="">Tanlang</option>
+                                    {/* Valid Tariffs Logic */}
+                                    {
+                                        (() => {
+                                            if (!grantForm.courseId) return null;
 
-                                        const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
+                                            const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
 
-                                        console.log('=====================================');
-                                        console.log('DEBUGGING TARIFF FILTER');
-                                        console.log('Selected Course ID:', grantForm.courseId);
-                                        console.log('Selected Course:', selectedCourse);
-                                        console.log('Course Name:', selectedCourse?.name);
-                                        console.log('Course Price Array:', selectedCourse?.price);
-                                        console.log('All Tariffs:', allTariffs);
-                                        console.log('=====================================');
+                                            if (!selectedCourse || !selectedCourse.price || selectedCourse.price.length === 0) {
+                                                return <option value="" disabled>Bu kurs uchun narx belgilanmagan</option>;
+                                            }
 
-                                        if (!selectedCourse || !selectedCourse.price || selectedCourse.price.length === 0) {
-                                            return <option value="" disabled>Bu kurs uchun narx belgilanmagan</option>;
-                                        }
-
-                                        // Filter tariffs to only those with price options for this course
-                                        // Both Tariff.duration and CoursePriceOption.duration are in MONTHS
-                                        const validTariffs = allTariffs.filter(tariff => {
-                                            const match = selectedCourse.price.some(priceOption => {
-                                                const tariffDuration = Number(tariff.duration);
-                                                const priceDuration = Number(priceOption.duration);
-
-                                                console.log(`COMPARING: Tariff "${tariff.name}" (ID: ${tariff.id})`);
-                                                console.log(`  Tariff duration: ${tariffDuration} months`);
-                                                console.log(`  Price option duration: ${priceDuration} months`);
-                                                console.log(`  Match: ${tariffDuration === priceDuration}`);
-                                                console.log('---');
-
-                                                return tariffDuration === priceDuration;
+                                            // Filter tariffs to only those with price options for this course
+                                            // Both Tariff.duration and CoursePriceOption.duration are in MONTHS
+                                            const validTariffs = allTariffs.filter(tariff => {
+                                                const match = selectedCourse.price.some(priceOption => {
+                                                    const tariffDuration = Number(tariff.duration);
+                                                    const priceDuration = Number(priceOption.duration);
+                                                    return tariffDuration === priceDuration;
+                                                });
+                                                return match;
                                             });
-                                            console.log(`Tariff "${tariff.name}" - Final match: ${match}`);
-                                            return match;
-                                        });
 
-                                        console.log('Valid Tariffs:', validTariffs);
+                                            if (validTariffs.length === 0) {
+                                                return <option value="" disabled>Bu kurs uchun hech qanday tarif mavjud emas</option>;
+                                            }
 
-                                        if (validTariffs.length === 0) {
-                                            return <option value="" disabled>Bu kurs uchun hech qanday tarif mavjud emas</option>;
-                                        }
-
-                                        return validTariffs.map(t => (
-                                            <option key={t.id} value={t.id}>
-                                                {t.name} ({t.duration} oy)
-                                            </option>
-                                        ));
-                                    })()}
-                                </select>
-                                {grantForm.courseId && (() => {
-                                    const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
-                                    if (!selectedCourse || !selectedCourse.price || selectedCourse.price.length === 0) {
-                                        return (
-                                            <p className="text-xs text-amber-600 mt-1">
-                                                ⚠️ Iltimos, avval bu kurs uchun narx belgilang
-                                            </p>
-                                        );
+                                            return validTariffs.map(t => (
+                                                <option key={t.id} value={t.id}>
+                                                    {getMultilangValue(t.name)} ({t.duration} oy)
+                                                </option>
+                                            ));
+                                        })()
                                     }
-                                })()}
-                            </div>
-                        </div>
+                                </select >
+                                {
+                                    grantForm.courseId && (() => {
+                                        const selectedCourse = allCourses.find(c => c.id === grantForm.courseId);
+                                        if (!selectedCourse || !selectedCourse.price || selectedCourse.price.length === 0) {
+                                            return (
+                                                <p className="text-xs text-amber-600 mt-1">
+                                                    ⚠️ Iltimos, avval bu kurs uchun narx belgilang
+                                                </p>
+                                            );
+                                        }
+                                    })()
+                                }
+                            </div >
+                        </div >
                         <div className="flex gap-2 justify-end">
-                            <Button variant="outline" size="sm" onClick={onClose}>Bekor qilish</Button>
+                            <Button variant="outline" size="sm" onClick={onClose} disabled={isSaving}>Bekor qilish</Button>
                             <Button
                                 size="sm"
                                 onClick={handleGrantAccess}
-                                disabled={!grantForm.courseId || !grantForm.tariffId}
+                                disabled={!grantForm.courseId || !grantForm.tariffId || isSaving}
                             >
-                                Saqlash
+                                {isSaving ? 'Saqlanmoqda...' : 'Saqlash'}
                             </Button>
                         </div>
-                    </div>
+                    </div >
                 ) : (
                     <>
                         {loading ? (
@@ -391,12 +444,13 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                             </>
                         )}
                     </>
-                )}
+                )
+                }
 
                 <div className="flex justify-end pt-2">
                     <Button variant="outline" onClick={onClose}>Yopish</Button>
                 </div>
-            </div>
-        </Modal>
+            </div >
+        </Modal >
     );
 }

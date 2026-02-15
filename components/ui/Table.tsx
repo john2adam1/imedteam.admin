@@ -43,7 +43,17 @@ export function Table<T extends { id: string }>({ data, columns, onEdit, onDelet
               <tr key={item.id} className="hover:bg-gray-50">
                 {columns.map((column) => (
                   <td key={column.key} className="border border-gray-300 px-4 py-2">
-                    {column.render ? column.render(item) : (item as any)[column.key]}
+                    {column.render ? column.render(item) : (() => {
+                      const val = (item as any)[column.key];
+                      if (typeof val === 'object' && val !== null && !React.isValidElement(val)) {
+                        // Check if it's a date safely (simple check)
+                        if (val instanceof Date) return val.toLocaleDateString();
+
+                        console.error(`Table Error: Column "${column.key}" is trying to render an object without a render function. Value:`, val);
+                        return typeof val === 'object' ? JSON.stringify(val) : String(val);
+                      }
+                      return val;
+                    })()}
                   </td>
                 ))}
                 {(onEdit || onDelete) && (
