@@ -63,8 +63,9 @@ export default function PromocodeDetailPage() {
         try {
             setRedemptionsLoading(true);
             const res = await promocodeService.getRedemptions(id, page, limit, activeFilters);
-            setRedemptions(res.redemptions || []);
-            setTotalItems(res.count || (res as any).meta?.total_items || (res.redemptions || []).length);
+            console.log('API Response for Redemptions:', res);
+            setRedemptions(res.data || []);
+            setTotalItems(res.total || (res as any).meta?.total_items || (res.data || []).length);
         } catch (error) {
             console.error('Failed to load redemptions:', error);
             // Don't toast here to avoid cluttering if it's just a 404/empty
@@ -151,7 +152,7 @@ export default function PromocodeDetailPage() {
                         <CardTitle className="text-sm font-medium">Jami ishlatilishi</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{redemptions.length} / {promocode.max_uses_total || '∞'}</div>
+                        <div className="text-2xl font-bold">{totalItems} / {promocode.max_uses_total || '∞'}</div>
                         <p className="text-xs text-muted-foreground mt-1">
                             Maksimal {promocode.max_uses_per_user} har bir foydalanuvchi
                         </p>

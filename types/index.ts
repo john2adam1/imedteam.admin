@@ -345,10 +345,7 @@ export interface PromocodeRedemption {
   created_at: string;
 }
 
-export interface PromocodeRedemptionListResponse {
-  redemptions: PromocodeRedemption[];
-  count: number;
-}
+export interface PromocodeRedemptionListResponse extends PaginatedResponse<PromocodeRedemption> { }
 
 // ─── DASHBOARD ───────────────────────────
 export interface DashboardRes {

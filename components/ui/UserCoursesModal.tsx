@@ -238,19 +238,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
     // ... columns ... (unchanged)
 
-    const handleRevoke = async (permissionId: string) => {
-        if (!confirm('Rostdan ham bu ruxsatni bekor qilmoqchimisiz?')) return;
-        setLoading(true);
-        try {
-            await courseService.deletePermission(permissionId);
-            toast.success('Ruxsat bekor qilindi');
-            loadPermissions(1);
-        } catch (error) {
-            toast.error('Xatolik yuz berdi');
-        } finally {
-            setLoading(false);
-        }
-    };
+
 
 
     const columns = [
@@ -292,15 +280,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                 );
             }
         },
-        {
-            key: 'actions',
-            header: 'Amallar',
-            render: (row: CoursePermission) => (
-                <Button variant="destructive" size="sm" onClick={() => handleRevoke(row.id)}>
-                    Bekor qilish
-                </Button>
-            )
-        }
+
     ];
 
     return (
