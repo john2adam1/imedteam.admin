@@ -206,14 +206,17 @@ export default function PromocodesPage() {
             key: 'validity',
             header: 'Amal qilish muddati',
             render: (item: PromoCode) => {
-                // Parse YYYY-MM-DD format properly
-                const startDate = item.starts_at ? new Date(item.starts_at + 'T00:00:00') : null;
-                const endDate = item.ends_at ? new Date(item.ends_at + 'T23:59:59') : null;
+                const formatDate = (dateStr: string | null) => {
+                    if (!dateStr) return '-';
+                    // If it's already a full ISO string, handle it; if just YYYY-MM-DD, parse safely
+                    const date = new Date(dateStr);
+                    if (isNaN(date.getTime())) return '-';
+                    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                };
 
                 return (
                     <div className="text-sm text-gray-500">
-                        {startDate ? startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'} -{' '}
-                        {endDate ? endDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                        {formatDate(item.starts_at)} - {formatDate(item.ends_at)}
                     </div>
                 );
             }

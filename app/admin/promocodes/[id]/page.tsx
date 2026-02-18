@@ -164,10 +164,10 @@ export default function PromocodeDetailPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="text-sm">
-                            <span className="font-semibold">Boshlanish:</span> {new Date(promocode.starts_at).toLocaleDateString()}
+                            <span className="font-semibold">Boshlanish:</span> {promocode.starts_at ? new Date(promocode.starts_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </div>
                         <div className="text-sm">
-                            <span className="font-semibold">Tugash:</span> {new Date(promocode.ends_at).toLocaleDateString()}
+                            <span className="font-semibold">Tugash:</span> {promocode.ends_at ? new Date(promocode.ends_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </div>
                     </CardContent>
                 </Card>
