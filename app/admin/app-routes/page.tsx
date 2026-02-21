@@ -18,25 +18,49 @@ export default function AppConfigPage() {
     }, []);
 
     const defaultConfig: AppConfig = {
+        id: '',
         call_center: '',
         support_url: '',
         app_version: { android: '', ios: '' },
         app_links: { google: '', apple: '' },
-        payment_min_version: ''
+        payment_min_version: '',
+        created_at: '',
+        updated_at: ''
     };
+
+    const TARGET_ID = 'd2e411c5-6b4d-4903-8f7d-e437bcb0bb76';
 
     const loadConfig = async () => {
         try {
             setLoading(true);
-            const data = await appRouteService.get();
-            // Deep merge or at least ensure top level objects exist
-            const mergedConfig = {
-                ...defaultConfig,
-                ...data,
-                app_version: { ...defaultConfig.app_version, ...data?.app_version },
-                app_links: { ...defaultConfig.app_links, ...data?.app_links },
-            };
-            setConfig(mergedConfig);
+            const response = await appRouteService.getAll();
+            console.log('App Route Response:', response);
+
+            const { app_routes } = response;
+
+            // Try to find the specific target ID first
+            let data = app_routes?.find(r => r.id === TARGET_ID);
+
+            // Fallback to the first one if target not found
+            if (!data && app_routes?.length > 0) {
+                console.warn(`Target app route ${TARGET_ID} not found, falling back to first available.`);
+                data = app_routes[0];
+            }
+
+            if (data) {
+                console.log('Found App Route Data:', data);
+                // Deep merge or at least ensure top level objects exist
+                const mergedConfig = {
+                    ...defaultConfig,
+                    ...data,
+                    app_version: { ...defaultConfig.app_version, ...data?.app_version },
+                    app_links: { ...defaultConfig.app_links, ...data?.app_links },
+                };
+                setConfig(mergedConfig);
+            } else {
+                console.warn('No app route data found in list');
+                setConfig(defaultConfig);
+            }
         } catch (error: any) {
             console.error('Failed to load app config:', error);
             toast.error('Ilova sozlamalarini yuklashda xatolik');
@@ -47,11 +71,16 @@ export default function AppConfigPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!config) return;
+        if (!config || !config.id) {
+            toast.error('O\'zgartirish uchun sozlama topilmadi');
+            return;
+        }
 
         try {
             setSaving(true);
-            await appRouteService.update(config);
+            // Omit read-only fields for the update
+            const { id, created_at, updated_at, ...updateData } = config;
+            await appRouteService.update(id, updateData);
             toast.success('Sozlamalar muvaffaqiyatli saqlandi');
             loadConfig();
         } catch (error: any) {
@@ -65,20 +94,21 @@ export default function AppConfigPage() {
 
     const handleChange = (path: string, value: string) => {
         if (!config) return;
-        const newConfig = { ...config };
 
-        // Handle nested paths like 'app_version.android'
-        const keys = path.split('.');
-        let current: any = newConfig;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!current[keys[i]]) {
-                current[keys[i]] = {}; // Initialize if missing
+        setConfig(prev => {
+            if (!prev) return null;
+            const newConfig = JSON.parse(JSON.stringify(prev)); // Deep clone simple object
+            const keys = path.split('.');
+            let current: any = newConfig;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]]) {
+                    current[keys[i]] = {}; // Initialize if missing
+                }
+                current = current[keys[i]];
             }
-            current = current[keys[i]];
-        }
-        current[keys[keys.length - 1]] = value;
-
-        setConfig(newConfig);
+            current[keys[keys.length - 1]] = value;
+            return newConfig;
+        });
     };
 
     if (loading) {

@@ -299,14 +299,22 @@ export interface AppLinks {
 }
 
 export interface AppConfig {
+  id: string;
   call_center: string;
   support_url: string;
   app_version: AppVersion;
   app_links: AppLinks;
   payment_min_version: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export type AppConfigUpdateBody = AppConfig;
+export interface AppConfigList {
+  app_routes: AppConfig[];
+  count: number;
+}
+
+export type AppConfigUpdateBody = Omit<AppConfig, 'id' | 'created_at' | 'updated_at'>;
 
 
 // ─── TARIFF ──────────────────────────────
