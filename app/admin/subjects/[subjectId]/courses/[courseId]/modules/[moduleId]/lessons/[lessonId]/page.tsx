@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { getMediaUrl } from '@/lib/mediaUtils';
 import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
@@ -261,14 +262,29 @@ export default function LessonDetailPage() {
                             <h3 className="font-semibold">
                               {source.name?.uz || source.name?.ru || source.name?.en || 'Nomsiz manba'}
                             </h3>
-                            <a
-                              href={source.url?.uz || source.url?.ru || source.url?.en}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-blue-500 hover:underline"
-                            >
-                              {source.url?.uz || source.url?.ru || source.url?.en}
-                            </a>
+                            <div className="flex flex-col gap-1">
+                              <a
+                                href={getMediaUrl(source.url?.uz || source.url?.ru || source.url?.en)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-500 hover:underline flex items-center"
+                                download={source.type !== 'video'}
+                              >
+                                {source.type !== 'video' && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                  </svg>
+                                )}
+                                {source.url?.uz || source.url?.ru || source.url?.en}
+                              </a>
+                              {source.type !== 'video' && (
+                                <span className="text-xs text-muted-foreground italic">
+                                  Faylni yuklab olish uchun bosing
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <Badge variant="outline">{source.type === 'video' ? 'Video' : source.type === 'document' ? 'Hujjat' : 'Test'}</Badge>
                         </div>

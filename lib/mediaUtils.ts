@@ -5,18 +5,18 @@
  * - If url starts with "/media", prepend base URL.
  * - Otherwise return as is (or handle as needed).
  * 
- * Base URL: https://prod.axadjonovsardorbek.uz
+ * Base URL: https://prod.imedteam.uz
  */
 export const getMediaUrl = (path?: string | null): string => {
     if (!path) return '';
 
-    if (path.startsWith('http') || path.startsWith('https')) {
+    if (path.startsWith('http://') || path.startsWith('https://')) {
         return path;
     }
 
-    if (path.startsWith('/media')) {
-        return `https://prod.axadjonovsardorbek.uz${path}`;
-    }
-
-    return path;
+    // Prepend base URL for any relative path
+    // Using production media domain observed in existing database entries
+    const baseUrl = 'https://prod.imedteam.uz';
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${baseUrl}${normalizedPath}`;
 };
