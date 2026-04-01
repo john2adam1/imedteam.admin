@@ -45,7 +45,7 @@ export default function UsersPage() {
 
       const [usersResponse, coursesResponse, tariffsResponse] = await Promise.all([
         userService.getAll(page, searchLimit, activeFilters),
-        courseService.getAllWithoutPagination(undefined),
+        courseService.getAllWithoutPagination(undefined, { is_public: false }),
         tariffService.getAll(),
       ]);
       console.log('Users response:', usersResponse);
