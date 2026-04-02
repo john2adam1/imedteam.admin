@@ -247,7 +247,7 @@ export default function CourseDetailPage() {
 
       <Pagination
         currentPage={page}
-        totalItems={totalItems || lessons.length}
+        totalItems={totalItems || modules.length}
         perPage={limit}
         onPageChange={setPage}
       />

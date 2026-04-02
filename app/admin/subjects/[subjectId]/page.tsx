@@ -8,6 +8,8 @@ import { subjectService } from '@/services/subject.service';
 import { courseService } from '@/services/course.service';
 import { teacherService } from '@/services/teacher.service';
 import { tariffService } from '@/services/tariff.service';
+import { uploadService } from '@/services/upload.service';
+import { getMediaUrl } from '@/lib/mediaUtils';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +39,7 @@ export default function SubjectDetailPage() {
   const [totalItems, setTotalItems] = useState(0);
   const limit = 10;
   const [loading, setLoading] = useState(true);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false); // New state
   const [selectedCourseForUsers, setSelectedCourseForUsers] = useState<Course | null>(null); // New state
@@ -150,6 +153,23 @@ export default function SubjectDetailPage() {
       alert('Kurs ma\'lumotlarini yuklashda xatolik');
     } finally {
       setIsEditLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+      const res = await uploadService.upload(file);
+      setFormData(prev => ({ ...prev, image_url: res.url }));
+      toast.success('Rasm muvaffaqiyatli yuklandi');
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      toast.error('Rasmni yuklashda xatolik');
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
@@ -448,12 +468,43 @@ export default function SubjectDetailPage() {
             onChange={(e) => setFormData({ ...formData, teacher_id: e.target.value })}
             required
           />
-          <Input
-            label="Rasm URL"
-            value={formData.image_url}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            required
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Kurs rasmi</label>
+            <div className="flex flex-col gap-4">
+              {formData.image_url && (
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden border">
+                  <img
+                    src={getMediaUrl(formData.image_url)}
+                    alt="Course preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                    className="absolute top-2 right-2 bg-destructive text-destructive-foreground p-1 rounded-full hover:opacity-90 transition-opacity"
+                    title="Rasmni o'chirish"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUploadingImage}
+                  className="mb-0 flex-1"
+                />
+                {isUploadingImage && (
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Tavsiya etilgan o'lcham: 1280x720 (16:9)
+              </p>
+            </div>
+          </div>
           <Input
             label="Tartib raqami"
             type="number"
