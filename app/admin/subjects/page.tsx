@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Subject } from '@/types';
 import { subjectService } from '@/services/subject.service';
+import { uploadService } from '@/services/upload.service';
 import { getMediaUrl } from '@/lib/mediaUtils';
+import { toast } from 'sonner';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
@@ -24,6 +26,8 @@ export default function SubjectsPage() {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const limit = 10;
   const [formData, setFormData] = useState({
 
@@ -52,6 +56,23 @@ export default function SubjectsPage() {
       console.error('Failed to load subjects:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploading(true);
+      const res = await uploadService.upload(file);
+      setFormData(prev => ({ ...prev, image_url: res.url }));
+      toast.success('Rasm muvaffaqiyatli yuklandi');
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Rasmni yuklashda xatolik');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -207,12 +228,36 @@ export default function SubjectsPage() {
             onChange={(name) => setFormData({ ...formData, name })}
             required
           />
-          <Input
-            label="Rasm URL"
-            value={getMediaUrl(formData.image_url)}
-            onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium mb-2">Rasm</label>
+            <div className="flex flex-col gap-3">
+              {formData.image_url && (
+                <div className="relative w-full h-40 rounded-md overflow-hidden border bg-gray-50">
+                  <img
+                    src={getMediaUrl(formData.image_url)}
+                    alt="Subject preview"
+                    className="w-full h-full object-contain"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? 'Yuklanmoqda...' : (formData.image_url ? '📷 Rasmni almashtirish' : '📷 Rasm yuklash')}
+              </Button>
+            </div>
+          </div>
           <Input
             label="Tartib raqami"
             type="number"
