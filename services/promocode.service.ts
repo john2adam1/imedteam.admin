@@ -5,7 +5,9 @@ import { PromocodeRedemptionListResponse, PaginationMeta } from '@/types';
 export interface PromoCode {
     id: string;
     code: string;
-    discount_type: 'percent' | 'fixed';
+    type: 'all' | 'course';
+    courses: string[];
+    discount_type: 'percentage' | 'fixed';
     discount_value: number;
     starts_at: string;
     ends_at: string;
@@ -20,7 +22,9 @@ export interface PromoCode {
 
 export interface PromoCodeCreateReq {
     code: string;
-    discount_type: 'percent' | 'fixed';
+    type: 'all' | 'course';
+    courses: string[];
+    discount_type: 'percentage' | 'fixed';
     discount_value: number;
     starts_at: string;
     ends_at: string;
@@ -32,7 +36,9 @@ export interface PromoCodeCreateReq {
 }
 
 export interface PromoCodeUpdateReq {
-    discount_type?: 'percent' | 'fixed';
+    type?: 'all' | 'course';
+    courses?: string[];
+    discount_type?: 'percentage' | 'fixed';
     discount_value?: number;
     starts_at?: string;
     ends_at?: string;

@@ -13,6 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { toast } from 'sonner';
 import { Pagination } from '@/components/ui/Pagination';
+import { courseService } from '@/services/course.service';
+import { Course } from '@/types';
+import { getMultilangValue } from '@/lib/utils/multilang';
 
 export default function PromocodeDetailPage() {
     const params = useParams();
@@ -26,14 +29,25 @@ export default function PromocodeDetailPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [courses, setCourses] = useState<Course[]>([]);
     const limit = 10;
 
 
     useEffect(() => {
         if (id) {
             loadData();
+            fetchCourses();
         }
     }, [id]);
+
+    const fetchCourses = async () => {
+        try {
+            const res = await courseService.getAllWithoutPagination();
+            setCourses(res.data || []);
+        } catch (error) {
+            console.error('Failed to fetch courses:', error);
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -141,9 +155,24 @@ export default function PromocodeDetailPage() {
                             {promocode.is_active ? 'Faol' : 'Faol emas'}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                            {promocode.discount_value} {promocode.discount_type === 'percent' ? '%' : 'UZS'} chegirma
+                            {promocode.discount_value} {promocode.discount_type === 'percentage' || (promocode.discount_type as any) === 'percent' ? '%' : 'UZS'} chegirma
                         </span>
+                        <Badge variant={promocode.type === 'all' ? 'outline' : 'secondary'}>
+                            {promocode.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
+                        </Badge>
                     </div>
+                    {promocode.type === 'course' && promocode.courses && promocode.courses.length > 0 && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            {promocode.courses.map(courseId => {
+                                const course = courses.find(c => c.id === courseId);
+                                return (
+                                    <Badge key={courseId} variant="outline" className="bg-gray-50">
+                                        {course ? getMultilangValue(course.name) : 'Noma\'lum kurs'}
+                                    </Badge>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
                 <Button onClick={() => router.push(`/admin/promocodes?edit=${id}`)}>
                     Promokodni tahrirlash

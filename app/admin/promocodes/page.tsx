@@ -12,6 +12,11 @@ import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Pagination } from '@/components/ui/Pagination';
+import { courseService } from '@/services/course.service';
+import { Course } from '@/types';
+import { getMultilangValue } from '@/lib/utils/multilang';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Badge } from '@/components/ui/badge';
 
 export default function PromocodesPage() {
     const [promocodes, setPromocodes] = useState<PromoCode[]>([]);
@@ -21,6 +26,8 @@ export default function PromocodesPage() {
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [page, setPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [courseSearch, setCourseSearch] = useState('');
     const limit = 10;
     const searchParams = useSearchParams();
 
@@ -29,7 +36,7 @@ export default function PromocodesPage() {
     // Form states
     const [formData, setFormData] = useState({
         code: '',
-        discount_type: 'percent',
+        discount_type: 'percentage' as 'percentage' | 'fixed',
         discount_value: '',
         starts_at: '',
         ends_at: '',
@@ -38,6 +45,8 @@ export default function PromocodesPage() {
         min_order_amount: '',
         max_discount: '',
         is_active: true,
+        type: 'all' as 'all' | 'course',
+        courses: [] as string[],
     });
 
     const fetchPromocodes = async () => {
@@ -83,6 +92,18 @@ export default function PromocodesPage() {
         fetchPromocodes();
     }, [activeFilters, page]);
 
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const res = await courseService.getAllWithoutPagination();
+                setCourses(res.data || []);
+            } catch (error) {
+                console.error('Failed to fetch courses:', error);
+            }
+        };
+        fetchCourses();
+    }, []);
+
 
     const formatToDateTimeLocal = (dateStr: string | null) => {
         if (!dateStr) return '';
@@ -112,7 +133,7 @@ export default function PromocodesPage() {
             setEditingPromo(promo);
             setFormData({
                 code: promo.code || '',
-                discount_type: promo.discount_type || 'percent',
+                discount_type: (promo.discount_type as any) === 'percent' ? 'percentage' : (promo.discount_type || 'percentage'),
                 discount_value: promo.discount_value?.toString() || '',
                 starts_at: formatToDateTimeLocal(promo.starts_at),
                 ends_at: formatToDateTimeLocal(promo.ends_at),
@@ -121,12 +142,14 @@ export default function PromocodesPage() {
                 min_order_amount: promo.min_order_amount?.toString() || '',
                 max_discount: promo.max_discount?.toString() || '',
                 is_active: promo.is_active ?? true,
+                type: promo.type || 'all',
+                courses: promo.courses || [],
             });
         } else {
             setEditingPromo(null);
             setFormData({
                 code: '',
-                discount_type: 'percent',
+                discount_type: 'percentage',
                 discount_value: '',
                 starts_at: '',
                 ends_at: '',
@@ -135,8 +158,11 @@ export default function PromocodesPage() {
                 min_order_amount: '',
                 max_discount: '',
                 is_active: true,
+                type: 'all',
+                courses: [],
             });
         }
+        setCourseSearch('');
         setIsModalOpen(true);
     };
 
@@ -154,12 +180,14 @@ export default function PromocodesPage() {
                 discount_type: formData.discount_type,
                 discount_value: Number(formData.discount_value) || 0,
                 is_active: formData.is_active,
-                starts_at: formData.starts_at.split('T')[0], // YYYY-MM-DD format
-                ends_at: formData.ends_at.split('T')[0], // YYYY-MM-DD format
+                starts_at: formData.starts_at ? new Date(formData.starts_at).toISOString() : '',
+                ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : '',
                 max_uses_total: Number(formData.max_uses_total) || 0,
                 max_uses_per_user: Number(formData.max_uses_per_user) || 0,
                 min_order_amount: Number(formData.min_order_amount) || 0,
                 max_discount: Number(formData.max_discount) || 0,
+                type: formData.type,
+                courses: formData.type === 'course' ? formData.courses : [],
             };
 
             if (editingPromo) {
@@ -205,7 +233,7 @@ export default function PromocodesPage() {
             key: 'discount',
             header: 'Chegirma',
             render: (item: PromoCode) => (
-                <span>{item.discount_value} {item.discount_type === 'percent' ? '%' : ' UZS'}</span>
+                <span>{item.discount_value} {item.discount_type === 'percentage' || (item.discount_type as any) === 'percent' ? '%' : ' UZS'}</span>
             )
         },
         {
@@ -213,6 +241,22 @@ export default function PromocodesPage() {
             header: 'Ishlatilishi',
             render: (item: PromoCode) => (
                 <span>{item.max_uses_total} jami / {item.max_uses_per_user} har bir foydalanuvchi</span>
+            )
+        },
+        {
+            key: 'type',
+            header: 'Turi',
+            render: (item: PromoCode) => (
+                <div className="flex flex-col gap-1">
+                    <Badge variant={item.type === 'all' ? 'outline' : 'secondary'} className="w-fit">
+                        {item.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
+                    </Badge>
+                    {item.type === 'course' && item.courses && (
+                        <span className="text-[10px] text-muted-foreground">
+                            {item.courses.length} ta kurs
+                        </span>
+                    )}
+                </div>
             )
         },
         {
@@ -311,11 +355,59 @@ export default function PromocodesPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Select
+                            label="Amal qilish doirasi"
+                            value={formData.type}
+                            onChange={(e) => setFormData({ ...formData, type: e.target.value as any, courses: e.target.value === 'all' ? [] : formData.courses })}
+                            options={[
+                                { value: 'all', label: 'Barcha kurslar uchun' },
+                                { value: 'course', label: 'Tanlangan kurslar uchun' },
+                            ]}
+                        />
+                    </div>
+
+                    {formData.type === 'course' && (
+                        <div className="space-y-2 border rounded-md p-3 bg-gray-50">
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-medium">Kurslarni tanlang ({formData.courses.length})</label>
+                                <Input
+                                    placeholder="Qidirish..."
+                                    className="h-8 w-40 text-xs"
+                                    value={courseSearch}
+                                    onChange={(e) => setCourseSearch(e.target.value)}
+                                />
+                            </div>
+                            <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
+                                {courses
+                                    .filter(c => getMultilangValue(c.name).toLowerCase().includes(courseSearch.toLowerCase()))
+                                    .map(course => (
+                                        <div key={course.id} className="flex items-center space-x-2 pb-1">
+                                            <Checkbox
+                                                id={`course-${course.id}`}
+                                                checked={formData.courses.includes(course.id)}
+                                                onChange={(e) => {
+                                                    const checked = e.target.checked;
+                                                    if (checked) {
+                                                        setFormData({ ...formData, courses: [...formData.courses, course.id] });
+                                                    } else {
+                                                        setFormData({ ...formData, courses: formData.courses.filter(id => id !== course.id) });
+                                                    }
+                                                }}
+                                                label={getMultilangValue(course.name)}
+                                                className="mb-0" // override mb-4 if possible, oh wait, my Checkbox component has hardcoded mb-4
+                                            />
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <Select
                             label="Chegirma turi"
                             value={formData.discount_type}
                             onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
                             options={[
-                                { value: 'percent', label: 'Foiz' },
+                                { value: 'percentage', label: 'Foiz' },
                                 { value: 'fixed', label: 'Aniq summa' },
                             ]}
                         />
