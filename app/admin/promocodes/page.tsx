@@ -175,29 +175,64 @@ export default function PromocodesPage() {
         e.preventDefault();
 
         try {
-            const payload: any = {
-                code: formData.code,
+            const toOptionalNumber = (value: string): number | undefined => {
+                const trimmed = value.trim();
+                if (!trimmed) return undefined;
+                const parsed = Number(trimmed);
+                return Number.isFinite(parsed) ? parsed : undefined;
+            };
+
+            const startsAt = formData.starts_at ? new Date(formData.starts_at).toISOString() : '';
+            const endsAt = formData.ends_at ? new Date(formData.ends_at).toISOString() : '';
+
+            const basePayload: any = {
                 discount_type: formData.discount_type,
                 discount_value: Number(formData.discount_value) || 0,
-                is_active: formData.is_active,
-                starts_at: formData.starts_at ? new Date(formData.starts_at).toISOString() : '',
-                ends_at: formData.ends_at ? new Date(formData.ends_at).toISOString() : '',
-                max_uses_total: Number(formData.max_uses_total) || 0,
-                max_uses_per_user: Number(formData.max_uses_per_user) || 0,
-                min_order_amount: Number(formData.min_order_amount) || 0,
-                max_discount: Number(formData.max_discount) || 0,
-                type: formData.type,
-                courses: formData.type === 'course' ? formData.courses : [],
+                starts_at: startsAt,
+                ends_at: endsAt,
+                max_uses_total: toOptionalNumber(formData.max_uses_total),
+                max_uses_per_user: toOptionalNumber(formData.max_uses_per_user),
+                min_order_amount: toOptionalNumber(formData.min_order_amount),
+                max_discount: toOptionalNumber(formData.max_discount),
             };
+
+            if (formData.type === 'course' && formData.courses.length === 0) {
+                toast.error('Kamida bitta kurs tanlang');
+                return;
+            }
+
+            const scopePayload =
+                formData.type === 'course'
+                    ? {
+                        type: 'course' as const,
+                        courses: formData.courses,
+                        // Backward/variant API compatibility for course-scoped promos
+                        course_ids: formData.courses,
+                        course_id: formData.courses[0],
+                    }
+                    : {
+                        type: 'all' as const,
+                        courses: [] as string[],
+                    };
 
             if (editingPromo) {
                 // Update
-                const { code, ...updatePayload } = payload;
+                const updatePayload = {
+                    ...basePayload,
+                    ...scopePayload,
+                    is_active: formData.is_active,
+                };
                 await promocodeService.update(editingPromo.id, updatePayload as any);
                 toast.success('Promokod muvaffaqiyatli yangilandi');
             } else {
                 // Create
-                await promocodeService.create(payload);
+                const createPayload = {
+                    code: formData.code.trim(),
+                    ...basePayload,
+                    ...scopePayload,
+                    is_active: formData.is_active,
+                };
+                await promocodeService.create(createPayload);
                 toast.success('Promokod muvaffaqiyatli yaratildi');
             }
             handleCloseModal();
