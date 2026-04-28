@@ -5,6 +5,7 @@ import { dashboardService } from '@/services/dashboard.service';
 import { DashboardRes, GetDashboardReq } from '@/types';
 import { StatCard, DashboardSkeleton } from '@/components/dashboard/StatCard';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
+import { UserActivityChart } from '@/components/dashboard/UserActivityChart';
 import { Button } from '@/components/ui/Button';
 
 export default function DashboardPage() {
@@ -70,7 +71,7 @@ export default function DashboardPage() {
           {/* Content */}
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Kontent</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               <StatCard label="Tariflar" value={stats.tariffs} helperText={getHelperText()} icon="💰" />
               <StatCard label="Fanlar" value={stats.subjects} helperText={getHelperText()} icon="📁" />
               <StatCard label="Kurslar" value={stats.courses} helperText={getHelperText()} icon="🎓" />
@@ -85,7 +86,7 @@ export default function DashboardPage() {
           {/* Users */}
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Foydalanuvchilar</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               <StatCard label="Foydalanuvchilar" value={stats.users} helperText={getHelperText()} icon="👥" />
               <StatCard label="Faol foydalanuvchilar" value={stats.active_users} helperText={getHelperText()} icon="✅" />
               <StatCard label="O'qituvchilar" value={stats.teachers} helperText={getHelperText()} icon="👨‍🏫" />
@@ -103,13 +104,43 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          {/* Financials & Revenue */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Moliyaviy Ko'rsatkichlar</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard label="Jami Kurs Summasi" value={`${stats.course_amount_total.toLocaleString()} so'm`} helperText="Kurslarning umumiy qiymati" icon="💰" />
+                <StatCard label="Admin orqali (Kurs)" value={`${stats.course_amount_admin.toLocaleString()} so'm`} helperText={getHelperText()} icon="🛡️" />
+                <StatCard label="Click orqali (Kurs)" value={`${stats.course_amount_click.toLocaleString()} so'm`} helperText={getHelperText()} icon="🖱️" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <StatCard label="Jami To'langan" value={`${stats.paid_amount_total.toLocaleString()} so'm`} helperText="Haqiqiy tushum" icon="📈" />
+                <StatCard label="Admin orqali (To'lov)" value={`${stats.paid_amount_admin.toLocaleString()} so'm`} helperText={getHelperText()} icon="✅" />
+                <StatCard label="Click orqali (To'lov)" value={`${stats.paid_amount_click.toLocaleString()} so'm`} helperText={getHelperText()} icon="💳" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <StatCard label="Jami Chegirma" value={`${stats.paid_discount_total.toLocaleString()} so'm`} helperText="Promokodlar orqali" icon="🏷️" />
+                <StatCard label="Admin (Chegirma)" value={`${stats.paid_discount_admin.toLocaleString()} so'm`} helperText={getHelperText()} icon="📉" />
+                <StatCard label="Click (Chegirma)" value={`${stats.paid_discount_click.toLocaleString()} so'm`} helperText={getHelperText()} icon="📉" />
+              </div>
+            </div>
+
+            <div className="lg:col-span-1">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Statistika</h2>
+              <UserActivityChart />
+            </div>
+          </div>
+
           {/* Orders */}
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Buyurtmalar</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard label="To'langan" value={stats.paid_orders ?? 0} helperText={getHelperText()} icon="💳" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <StatCard label="Jami To'langan" value={stats.paid_orders ?? 0} helperText={getHelperText()} icon="💳" />
               <StatCard label="Admin orqali" value={stats.admin_orders ?? 0} helperText={getHelperText()} icon="🛡️" />
               <StatCard label="Click orqali" value={stats.click_orders ?? 0} helperText={getHelperText()} icon="🖱️" />
+              <StatCard label="Promokod bilan" value={stats.orders_with_promo ?? 0} helperText={getHelperText()} icon="🎟️" />
               <StatCard label="Bekor qilingan" value={stats.cancelled_orders ?? 0} helperText={getHelperText()} icon="❌" />
             </div>
           </div>

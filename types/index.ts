@@ -372,7 +372,6 @@ export interface DashboardRes {
   users: number;
   active_users: number;
   teachers: number;
-  // New fields from prod API
   user_courses: number;
   active_user_courses: number;
   inactive_user_courses: number;
@@ -380,9 +379,20 @@ export interface DashboardRes {
   paid_orders: number;
   admin_orders: number;
   click_orders: number;
+  orders_with_promo: number;
   cancelled_orders: number;
   promocodes: number;
   active_promocodes: number;
+  // Financial Metrics
+  course_amount_total: number;
+  course_amount_admin: number;
+  course_amount_click: number;
+  paid_amount_total: number;
+  paid_amount_admin: number;
+  paid_amount_click: number;
+  paid_discount_total: number;
+  paid_discount_admin: number;
+  paid_discount_click: number;
 }
 
 export interface GetDashboardReq {
@@ -390,4 +400,23 @@ export interface GetDashboardReq {
   day?: string; // YYYY-MM-DD
   from?: string; // YYYY-MM-DD
   to?: string; // YYYY-MM-DD
+}
+
+export interface UserActivityItem {
+  date: string;
+  value: number;
+}
+
+export interface UserActivityResponse {
+  items: UserActivityItem[];
+  total: number;
+  type: string;
+  user_id: string;
+}
+
+export interface GetUserActivityReq {
+  type: 'range' | 'day' | 'week' | 'month' | 'year';
+  user_id?: string;
+  from?: string;
+  to?: string;
 }

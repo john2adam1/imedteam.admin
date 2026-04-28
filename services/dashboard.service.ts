@@ -1,5 +1,5 @@
 import api from '@/lib/api/axios';
-import { GetDashboardReq, DashboardRes } from '@/types';
+import { GetDashboardReq, DashboardRes, GetUserActivityReq, UserActivityResponse } from '@/types';
 
 export const dashboardService = {
     getStats: async (params: GetDashboardReq): Promise<DashboardRes> => {
@@ -15,6 +15,18 @@ export const dashboardService = {
             return response.data;
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
+            throw error;
+        }
+    },
+
+    getUserActivity: async (params: GetUserActivityReq): Promise<UserActivityResponse> => {
+        try {
+            const response = await api.get<UserActivityResponse>('user/activity', {
+                params,
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching user activity stats:', error);
             throw error;
         }
     },
