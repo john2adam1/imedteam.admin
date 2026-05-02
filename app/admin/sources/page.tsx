@@ -103,13 +103,13 @@ export default function SourcesPage() {
     try {
       setUploading(true);
       const uploadResult = await uploadService.upload(file);
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         url: {
-          ...formData.url,
+          ...prev.url,
           [language]: uploadResult.url,
         },
-      });
+      }));
       alert('Fayl muvaffaqiyatli yuklandi!');
     } catch (error) {
       console.error('Failed to upload file:', error);

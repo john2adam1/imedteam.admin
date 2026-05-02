@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 import { toast } from 'sonner';
 
@@ -39,6 +39,10 @@ export default function BannersPage() {
   useEffect(() => {
     loadBanners();
   }, [activeFilters, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilters]);
 
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

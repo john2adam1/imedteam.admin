@@ -25,7 +25,6 @@ export function getMultilangValue(value: string | MultilangText | any, lang: 'uz
         }
 
         // Fallback for other objects
-        console.warn('getMultilangValue received non-MultilangText object:', value);
         return '';
     }
 

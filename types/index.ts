@@ -411,12 +411,12 @@ export interface UserActivityResponse {
   items: UserActivityItem[];
   total: number;
   type: string;
-  user_id: string;
+  user_id?: string;
 }
 
 export interface GetUserActivityReq {
   type: 'range' | 'day' | 'week' | 'month' | 'year';
-  user_id?: string;
+  date?: string;
   from?: string;
   to?: string;
 }

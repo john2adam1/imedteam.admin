@@ -7,7 +7,7 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 
 export default function TeachersPage() {
@@ -29,6 +29,10 @@ export default function TeachersPage() {
     useEffect(() => {
         loadData();
     }, [activeFilters, page]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters]);
 
 
     const loadData = async () => {

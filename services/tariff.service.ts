@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     Tariff,
     TariffCreateBody,
@@ -12,8 +13,9 @@ const RESOURCE_URL = 'tariff';
 export const tariffService = {
     // Get all tariffs with pagination
     getAll: async (page = 1, limit = 10, filters?: { name?: string }): Promise<PaginatedResponse<Tariff>> => {
+        const params = sanitizeQueryParams({ page, limit, ...filters });
         const response = await api.get<PaginatedResponse<Tariff>>(RESOURCE_URL, {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

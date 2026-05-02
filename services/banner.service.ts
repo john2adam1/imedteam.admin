@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     Banner,
     BannerCreateBody,
@@ -12,10 +13,9 @@ const RESOURCE_URL = 'banner';
 export const bannerService = {
     // Get all
     getAll: async (page = 1, limit = 10, filters?: { title?: string }): Promise<PaginatedResponse<Banner>> => {
-        // Note: If backend doesn't support pagination for banners, adjust accordingly.
-        // Assuming standard structure based on prompt "list with pagination & filtering" (implied for all list resources)
+        const params = sanitizeQueryParams({ page, limit, ...filters });
         const response = await api.get<PaginatedResponse<Banner>>(RESOURCE_URL, {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

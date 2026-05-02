@@ -6,9 +6,8 @@ import { tariffService } from '@/services/tariff.service';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 
 export default function TariffsPage() {
@@ -32,6 +31,10 @@ export default function TariffsPage() {
     useEffect(() => {
         loadTariffs();
     }, [activeFilters, page]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters]);
 
 
     const loadTariffs = async () => {

@@ -155,19 +155,25 @@ export default function PromocodeDetailPage() {
                             {promocode.is_active ? 'Faol' : 'Faol emas'}
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                            {promocode.discount_value} {promocode.discount_type === 'percentage' || (promocode.discount_type as any) === 'percent' ? '%' : 'UZS'} chegirma
+                            {promocode.discount_value} {promocode.discount_type === 'percent' ? '%' : 'UZS'} chegirma
                         </span>
                         <Badge variant={promocode.type === 'all' ? 'outline' : 'secondary'}>
                             {promocode.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
                         </Badge>
                     </div>
-                    {promocode.type === 'course' && promocode.courses && promocode.courses.length > 0 && (
+                    {(promocode.type === 'selected' || promocode.type === 'course' as any) && promocode.courses && promocode.courses.length > 0 && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                            {promocode.courses.map(courseId => {
-                                const course = courses.find(c => c.id === courseId);
+                            {promocode.courses.map((courseItem: any, i) => {
+                                const id = typeof courseItem === 'object' && courseItem !== null
+                                    ? (courseItem.course_id || courseItem.id)
+                                    : courseItem;
+                                const course = courses.find(c => c.id === id);
+                                const displayName = course
+                                    ? getMultilangValue(course.name)
+                                    : (typeof courseItem === 'object' && courseItem.name ? getMultilangValue(courseItem.name) : 'Noma\'lum kurs');
                                 return (
-                                    <Badge key={courseId} variant="outline" className="bg-gray-50">
-                                        {course ? getMultilangValue(course.name) : 'Noma\'lum kurs'}
+                                    <Badge key={id || i} variant="outline" className="bg-gray-50">
+                                        {displayName}
                                     </Badge>
                                 );
                             })}

@@ -21,11 +21,30 @@ export const dashboardService = {
 
     getUserActivity: async (params: GetUserActivityReq): Promise<UserActivityResponse> => {
         try {
+            const baseParams = { ...params };
+            if (baseParams.type === 'day' && !baseParams.date) {
+                baseParams.date = new Date().toISOString().split('T')[0];
+            }
+
+            const sanitizedParams = Object.fromEntries(
+                Object.entries(baseParams).filter(([, value]) => value !== '' && value !== undefined && value !== null)
+            ) as GetUserActivityReq;
+
             const response = await api.get<UserActivityResponse>('user/activity', {
-                params,
+                params: sanitizedParams,
             });
             return response.data;
         } catch (error) {
+            const status = (error as any)?.response?.status;
+            if (status === 400 && params.type !== 'day') {
+                const fallback = await api.get<UserActivityResponse>('user/activity', {
+                    params: {
+                        type: 'day',
+                        date: new Date().toISOString().split('T')[0],
+                    },
+                });
+                return fallback.data;
+            }
             console.error('Error fetching user activity stats:', error);
             throw error;
         }

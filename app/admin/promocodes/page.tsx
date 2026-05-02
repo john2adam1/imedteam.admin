@@ -36,7 +36,7 @@ export default function PromocodesPage() {
     // Form states
     const [formData, setFormData] = useState({
         code: '',
-        discount_type: 'percentage' as 'percentage' | 'fixed',
+        discount_type: 'percent' as 'percent' | 'fixed',
         discount_value: '',
         starts_at: '',
         ends_at: '',
@@ -45,7 +45,7 @@ export default function PromocodesPage() {
         min_order_amount: '',
         max_discount: '',
         is_active: true,
-        type: 'all' as 'all' | 'course',
+        type: 'all' as 'all' | 'selected',
         courses: [] as string[],
     });
 
@@ -54,31 +54,22 @@ export default function PromocodesPage() {
             setLoading(true);
             const res = await promocodeService.getAll(page, limit, activeFilters);
 
-            // Try different response structures
-            let promocodesData: PromoCode[] = [];
+            // Backend response is not fully consistent across environments.
+            const dynamicRes = res as any;
+            const promocodesData: PromoCode[] = Array.isArray(res)
+                ? res
+                : res.promo_codes ||
+                dynamicRes.promocodes ||
+                dynamicRes.data ||
+                dynamicRes.items ||
+                dynamicRes.results ||
+                [];
 
-            if (Array.isArray(res)) {
-                promocodesData = res;
-            } else if (res.promo_codes) {
-                promocodesData = res.promo_codes;
-            } else if ((res as any).data) {
-                promocodesData = (res as any).data;
-            } else if ((res as any).items) {
-                promocodesData = (res as any).items;
-            } else if ((res as any).results) {
-                promocodesData = (res as any).results;
-            } else if ((res as any).promocodes) {
-                promocodesData = (res as any).promocodes;
-            } else {
-                // Unknown response structure
-            }
-
-            setPromocodes(promocodesData);
             setPromocodes(promocodesData);
             const total = res.count ||
-                (res as any).total_items ||
-                (res as any).meta?.total_items ||
-                (res as any).total ||
+                dynamicRes.total_items ||
+                dynamicRes.meta?.total_items ||
+                dynamicRes.total ||
                 promocodesData.length;
             setTotalItems(total);
         } catch (error) {
@@ -133,7 +124,7 @@ export default function PromocodesPage() {
             setEditingPromo(promo);
             setFormData({
                 code: promo.code || '',
-                discount_type: (promo.discount_type as any) === 'percent' ? 'percentage' : (promo.discount_type || 'percentage'),
+                discount_type: (promo.discount_type === 'fixed') ? 'fixed' : 'percent',
                 discount_value: promo.discount_value?.toString() || '',
                 starts_at: formatToDateTimeLocal(promo.starts_at),
                 ends_at: formatToDateTimeLocal(promo.ends_at),
@@ -149,7 +140,7 @@ export default function PromocodesPage() {
             setEditingPromo(null);
             setFormData({
                 code: '',
-                discount_type: 'percentage',
+                discount_type: 'percent',
                 discount_value: '',
                 starts_at: '',
                 ends_at: '',
@@ -184,31 +175,44 @@ export default function PromocodesPage() {
 
             const startsAt = formData.starts_at ? new Date(formData.starts_at).toISOString() : '';
             const endsAt = formData.ends_at ? new Date(formData.ends_at).toISOString() : '';
+            const normalizedDiscountType =
+                formData.discount_type === 'fixed' || formData.discount_type === 'percent'
+                    ? formData.discount_type
+                    : undefined;
+
+            if (!normalizedDiscountType) {
+                toast.error('Chegirma turi noto‘g‘ri. "Foiz" yoki "Aniq summa" tanlang.');
+                return;
+            }
 
             const basePayload: any = {
-                discount_type: formData.discount_type,
+                discount_type: normalizedDiscountType,
                 discount_value: Number(formData.discount_value) || 0,
-                starts_at: startsAt,
-                ends_at: endsAt,
                 max_uses_total: toOptionalNumber(formData.max_uses_total),
                 max_uses_per_user: toOptionalNumber(formData.max_uses_per_user),
                 min_order_amount: toOptionalNumber(formData.min_order_amount),
                 max_discount: toOptionalNumber(formData.max_discount),
             };
 
-            if (formData.type === 'course' && formData.courses.length === 0) {
+            if (startsAt) {
+                basePayload.starts_at = startsAt;
+            }
+            if (endsAt) {
+                basePayload.ends_at = endsAt;
+            }
+
+            if (formData.type === 'selected' && formData.courses.length === 0) {
                 toast.error('Kamida bitta kurs tanlang');
                 return;
             }
 
+
+
             const scopePayload =
-                formData.type === 'course'
+                formData.type === 'selected'
                     ? {
-                        type: 'course' as const,
+                        type: 'selected' as const,
                         courses: formData.courses,
-                        // Backward/variant API compatibility for course-scoped promos
-                        course_ids: formData.courses,
-                        course_id: formData.courses[0],
                     }
                     : {
                         type: 'all' as const,
@@ -216,7 +220,7 @@ export default function PromocodesPage() {
                     };
 
             if (editingPromo) {
-                // Update
+                // UPDATE — is_active faqat shu yerda yuboriladi
                 const updatePayload = {
                     ...basePayload,
                     ...scopePayload,
@@ -225,18 +229,24 @@ export default function PromocodesPage() {
                 await promocodeService.update(editingPromo.id, updatePayload as any);
                 toast.success('Promokod muvaffaqiyatli yangilandi');
             } else {
-                // Create
+                // CREATE — is_active yuborilmaydi (backend qabul qilmaydi)
                 const createPayload = {
                     code: formData.code.trim(),
                     ...basePayload,
                     ...scopePayload,
-                    is_active: formData.is_active,
                 };
                 await promocodeService.create(createPayload);
                 toast.success('Promokod muvaffaqiyatli yaratildi');
             }
             handleCloseModal();
-            fetchPromocodes();
+            await fetchPromocodes();
+
+            if (editingPromo) {
+                // Re-fetch the individual promocode detail directly to ensure courses/type are strictly up-to-date
+                const freshPromo = await promocodeService.getOne(editingPromo.id);
+                setPromocodes(prev => prev.map(p => p.id === editingPromo.id ? freshPromo : p));
+            }
+
         } catch (error: any) {
             const message = error.response?.data?.message || error.message || 'Promokodni saqlashda xatolik';
             toast.error(`Xatolik: ${message}`);
@@ -268,7 +278,7 @@ export default function PromocodesPage() {
             key: 'discount',
             header: 'Chegirma',
             render: (item: PromoCode) => (
-                <span>{item.discount_value} {item.discount_type === 'percentage' || (item.discount_type as any) === 'percent' ? '%' : ' UZS'}</span>
+                <span>{item.discount_value} {item.discount_type === 'percent' ? '%' : ' UZS'}</span>
             )
         },
         {
@@ -286,7 +296,7 @@ export default function PromocodesPage() {
                     <Badge variant={item.type === 'all' ? 'outline' : 'secondary'} className="w-fit">
                         {item.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
                     </Badge>
-                    {item.type === 'course' && item.courses && (
+                    {item.type === 'selected' && item.courses && (
                         <span className="text-[10px] text-muted-foreground">
                             {item.courses.length} ta kurs
                         </span>
@@ -395,12 +405,12 @@ export default function PromocodesPage() {
                             onChange={(e) => setFormData({ ...formData, type: e.target.value as any, courses: e.target.value === 'all' ? [] : formData.courses })}
                             options={[
                                 { value: 'all', label: 'Barcha kurslar uchun' },
-                                { value: 'course', label: 'Tanlangan kurslar uchun' },
+                                { value: 'selected', label: 'Tanlangan kurslar uchun' },
                             ]}
                         />
                     </div>
 
-                    {formData.type === 'course' && (
+                    {formData.type === 'selected' && (
                         <div className="space-y-2 border rounded-md p-3 bg-gray-50">
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-medium">Kurslarni tanlang ({formData.courses.length})</label>
@@ -442,8 +452,8 @@ export default function PromocodesPage() {
                             value={formData.discount_type}
                             onChange={(e) => setFormData({ ...formData, discount_type: e.target.value as any })}
                             options={[
-                                { value: 'percentage', label: 'Foiz' },
-                                { value: 'fixed', label: 'Aniq summa' },
+                                { value: 'percent', label: 'Foiz (%)' },
+                                { value: 'fixed', label: 'Aniq summa (UZS)' },
                             ]}
                         />
                         <Input
@@ -463,7 +473,6 @@ export default function PromocodesPage() {
                             type="datetime-local"
                             value={formData.starts_at}
                             onChange={(e) => setFormData({ ...formData, starts_at: e.target.value })}
-                            required
                         />
                         <Input
                             label="Tugash vaqti"
@@ -471,7 +480,6 @@ export default function PromocodesPage() {
                             type="datetime-local"
                             value={formData.ends_at}
                             onChange={(e) => setFormData({ ...formData, ends_at: e.target.value })}
-                            required
                         />
                     </div>
 

@@ -4,22 +4,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { dashboardService } from '@/services/dashboard.service';
 import { GetUserActivityReq, UserActivityResponse } from '@/types';
 import { Select } from '../ui/Select';
-import { Input } from '../ui/Input';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 
 export function UserActivityChart() {
     const [stats, setStats] = useState<UserActivityResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState<GetUserActivityReq>({
         type: 'month',
-        user_id: '',
     });
 
     const loadActivity = useCallback(async (params: GetUserActivityReq) => {
         try {
             setLoading(true);
-            const data = await dashboardService.getUserActivity(params);
+            const payload =
+                params.type === 'day'
+                    ? { ...params, date: params.date || new Date().toISOString().split('T')[0] }
+                    : params;
+            const data = await dashboardService.getUserActivity(payload);
             setStats(data);
         } catch (err) {
             console.error('Failed to load user activity:', err);

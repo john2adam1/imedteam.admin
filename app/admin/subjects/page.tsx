@@ -14,8 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 
 export default function SubjectsPage() {
@@ -39,6 +38,10 @@ export default function SubjectsPage() {
   useEffect(() => {
     loadSubjects();
   }, [activeFilters, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilters]);
 
 
   const loadSubjects = async () => {
@@ -165,7 +168,7 @@ export default function SubjectsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {subjects
+          {[...subjects]
             .sort((a, b) => a.order_num - b.order_num)
             .map((subject) => (
               <Card key={subject.id} className="hover:shadow-md transition-shadow">

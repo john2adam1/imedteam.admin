@@ -7,10 +7,9 @@ import { courseService } from '@/services/course.service';
 import { Table } from '@/components/ui/Table';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
 import { Button } from '@/components/ui/Button';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
 
 export default function NotificationsPage() {
@@ -35,6 +34,10 @@ export default function NotificationsPage() {
   useEffect(() => {
     loadData();
   }, [activeFilters, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeFilters]);
 
 
   const loadData = async () => {

@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     Contact,
     ContactCreateBody,
@@ -12,8 +13,9 @@ const RESOURCE_URL = 'contact';
 export const contactService = {
     // Get all
     getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string }): Promise<PaginatedResponse<Contact>> => {
+        const params = sanitizeQueryParams({ page, limit, ...filters });
         const response = await api.get<PaginatedResponse<Contact>>(RESOURCE_URL, {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

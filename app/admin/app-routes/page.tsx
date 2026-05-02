@@ -37,7 +37,6 @@ export default function AppConfigPage() {
         try {
             setLoading(true);
             const response = await appRouteService.getAll();
-            console.log('App Route Response:', response);
 
             const { app_routes } = response;
 
@@ -46,12 +45,10 @@ export default function AppConfigPage() {
 
             // Fallback to the first one if target not found
             if (!data && app_routes?.length > 0) {
-                console.warn(`Target app route ${TARGET_ID} not found, falling back to first available.`);
                 data = app_routes[0];
             }
 
             if (data) {
-                console.log('Found App Route Data:', data);
                 // Deep merge or at least ensure top level objects exist
                 const mergedConfig = {
                     ...defaultConfig,
@@ -72,8 +69,7 @@ export default function AppConfigPage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const saveConfig = async () => {
         if (!config || !config.id) {
             toast.error('O\'zgartirish uchun sozlama topilmadi');
             return;
@@ -126,12 +122,18 @@ export default function AppConfigPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">Ilova Sozlamalari</h1>
-                <Button onClick={handleSubmit} disabled={saving}>
+                <Button onClick={saveConfig} disabled={saving}>
                     {saving ? 'Saqlanmoqda...' : 'O\'zgarishlarni saqlash'}
                 </Button>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    saveConfig();
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
                 <Card>
                     <CardHeader>
                         <CardTitle>Aloqa va Yordam</CardTitle>

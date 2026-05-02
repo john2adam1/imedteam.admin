@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
-import { Pagination } from '@/components/ui/Pagination';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 
 export default function AboutPage() {
     const [items, setItems] = useState<About[]>([]);
@@ -32,13 +31,22 @@ export default function AboutPage() {
         loadData();
     }, [activeFilters, page]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters]);
+
 
     const loadData = async () => {
         try {
             setLoading(true);
             const response = await aboutService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            setTotalItems(response.meta?.total_items || 0);
+            const total = response.meta?.total_items ||
+                (response as any).count ||
+                (response as any).total_items ||
+                (response as any).total ||
+                (response.data || []).length;
+            setTotalItems(total);
         } catch (error) {
             console.error('Failed to load about items:', error);
         } finally {
@@ -144,12 +152,11 @@ export default function AboutPage() {
 
             <Table data={items} columns={columns} />
 
-            {/* <Pagination
-                currentPage={page}
-                totalItems={totalItems}
-                perPage={limit}
-                onPageChange={setPage}
-            /> */}
+            {limit < totalItems && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                    Jami: {totalItems}
+                </div>
+            )}
 
 
             <Modal

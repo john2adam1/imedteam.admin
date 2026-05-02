@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     About,
     AboutCreateBody,
@@ -12,8 +13,9 @@ const RESOURCE_URL = 'about';
 export const aboutService = {
     // Get all (paginated)
     getAll: async (page = 1, limit = 10, filters?: { title?: string }): Promise<PaginatedResponse<About>> => {
+        const params = sanitizeQueryParams({ page, limit, ...filters });
         const response = await api.get<PaginatedResponse<About>>(RESOURCE_URL, {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

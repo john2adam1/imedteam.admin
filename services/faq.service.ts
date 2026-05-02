@@ -1,5 +1,6 @@
 
 import api from '@/lib/api/axios';
+import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     FAQ,
     FAQCreateBody,
@@ -11,8 +12,9 @@ const RESOURCE_URL = 'faq';
 
 export const faqService = {
     getAll: async (page = 1, limit = 10, filters?: { question?: string }): Promise<PaginatedResponse<FAQ>> => {
+        const params = sanitizeQueryParams({ page, limit, ...filters });
         const response = await api.get<PaginatedResponse<FAQ>>(RESOURCE_URL, {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

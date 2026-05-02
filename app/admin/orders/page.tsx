@@ -43,7 +43,7 @@ export default function OrdersPage() {
 
     // New State for Tabs and Date Filters
     const [activeTab, setActiveTab] = useState('paid');
-    const [dateRangeType, setDateRangeType] = useState<DateRangeType>('day'); // Defaulting to 'day' as per user request logic? Or stick to 'month'? User just said "if 'day' is selected...". Staying with 'month' default is safer unless requested otherwise. But I'll stick to maintaining existing default unless user asked to default to day view. Ah, user said "by default, it should show today". This implies when 'day' is selected, the date picker shows today.
+    const [dateRangeType, setDateRangeType] = useState<DateRangeType>('day');
     const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
     const [customDate, setCustomDate] = useState({ from: '', to: '' });
     const [otherStatus, setOtherStatus] = useState('CANCELLED');
@@ -158,24 +158,18 @@ export default function OrdersPage() {
             const finalFilters = {
                 ...activeFilters,
                 status,
-                from: activeTab === 'all' ? undefined : from, // If 'all' tab exist but we don't have one
-                to: activeTab === 'all' ? undefined : to,
-                type: 'range', // Enforce range type for date filtering
+                from,
+                to,
+                type: 'range',
                 payment_type: activeFilters.promocode ? 'click' : activeFilters.payment_type
             };
 
-            // If range type is 'all', we might want to extend the range or remove type='range' depending on backend
             if (dateRangeType === 'all') {
                 finalFilters.from = '2000-01-01';
                 finalFilters.to = '2099-12-31';
             }
 
-            // Should apply date filters?
             if (dateRangeType === 'custom' && (!customDate.from || !customDate.to)) {
-                // Wait for custom date completion
-                // But functionality requires us to fetch valid data. 
-                // If invalid, fallback to month? Or just don't fetch?
-                // Let's fallback to today if empty
                 if (!customDate.from) finalFilters.from = new Date().toISOString().split('T')[0];
                 if (!customDate.to) finalFilters.to = new Date().toISOString().split('T')[0];
             }
@@ -196,7 +190,6 @@ export default function OrdersPage() {
                 // Unknown order response structure
             }
 
-            setOrders(ordersData);
             setOrders(ordersData);
             const total = res.count ||
                 (res as any).total_items ||

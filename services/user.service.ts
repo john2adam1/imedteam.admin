@@ -10,8 +10,12 @@ import {
 export const userService = {
     // ADMIN Management
     getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string; email?: string; role?: string; is_blocked?: boolean }): Promise<PaginatedResponse<User>> => {
+        const params = Object.fromEntries(
+            Object.entries({ page, limit, ...filters }).filter(([, value]) => value !== '' && value !== undefined && value !== null)
+        );
+
         const response = await api.get<PaginatedResponse<User>>('user', {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

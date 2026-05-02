@@ -16,7 +16,6 @@ export default function UsersPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [tariffs, setTariffs] = useState<Tariff[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isUserCoursesModalOpen, setIsUserCoursesModalOpen] = useState(false);
   const [isGrantModalOpen, setIsGrantModalOpen] = useState(false);
   const [selectedUserForCourses, setSelectedUserForCourses] = useState<User | null>(null);
@@ -38,7 +37,6 @@ export default function UsersPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log('Fetching users with filters:', activeFilters);
 
       // If searching, fetch a larger batch for local filtering fallback
       const searchLimit = Object.keys(activeFilters).length > 0 ? 1000 : limit;
@@ -48,7 +46,6 @@ export default function UsersPage() {
         courseService.getAllWithoutPagination(undefined, { is_public: false }),
         tariffService.getAll(),
       ]);
-      console.log('Users response:', usersResponse);
 
       let filteredUsers = usersResponse.data;
 

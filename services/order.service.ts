@@ -30,9 +30,12 @@ export interface OrderListResponse {
 
 export const orderService = {
     getAll: async (page = 1, limit = 10, filters?: { status?: string; user_id?: string; course_id?: string; promocode?: string; type?: string; from?: string; to?: string; payment_type?: string }): Promise<OrderListResponse> => {
-        // Assuming /web/order supports pagination/filtering
+        const params = Object.fromEntries(
+            Object.entries({ page, limit, ...filters }).filter(([, value]) => value !== '' && value !== undefined && value !== null)
+        );
+
         const response = await api.get<OrderListResponse>('order', {
-            params: { page, limit, ...filters }
+            params
         });
         return response.data;
     },

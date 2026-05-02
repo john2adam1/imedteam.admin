@@ -7,8 +7,7 @@ import { Table } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
-import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
-import { Pagination } from '@/components/ui/Pagination';
+import { SearchFilters } from '@/components/ui/SearchFilters';
 
 export default function ContactPage() {
     const [items, setItems] = useState<Contact[]>([]);
@@ -30,13 +29,22 @@ export default function ContactPage() {
         loadData();
     }, [activeFilters, page]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters]);
+
 
     const loadData = async () => {
         try {
             setLoading(true);
             const response = await contactService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            setTotalItems(response.meta?.total_items || 0);
+            const total = response.meta?.total_items ||
+                (response as any).count ||
+                (response as any).total_items ||
+                (response as any).total ||
+                (response.data || []).length;
+            setTotalItems(total);
         } catch (error) {
             console.error('Failed to load messages:', error);
         } finally {
@@ -142,12 +150,11 @@ export default function ContactPage() {
 
             <Table data={items} columns={columns} />
 
-            {/* <Pagination
-                currentPage={page}
-                totalItems={totalItems}
-                perPage={limit}
-                onPageChange={setPage}
-            /> */}
+            {limit < totalItems && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                    Jami: {totalItems}
+                </div>
+            )}
 
 
             <Modal
