@@ -307,6 +307,7 @@ export interface AppConfig {
   feedback_url: string;
   app_version: AppVersion;
   app_links: AppLinks;
+  apk_url?: string;
   payment_min_version: string;
   buy_course: boolean;
   created_at: string;
