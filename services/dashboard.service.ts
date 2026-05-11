@@ -28,7 +28,7 @@ export const dashboardService = {
 
             const sanitizedParams = Object.fromEntries(
                 Object.entries(baseParams).filter(([, value]) => value !== '' && value !== undefined && value !== null)
-            ) as GetUserActivityReq;
+            ) as unknown as GetUserActivityReq;
 
             const response = await api.get<UserActivityResponse>('user/activity', {
                 params: sanitizedParams,

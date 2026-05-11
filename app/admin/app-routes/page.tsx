@@ -24,9 +24,8 @@ export default function AppConfigPage() {
         support_url: '',
         feedback_url: '',
         app_version: { android: '', ios: '' },
-        app_links: { google: '', apple: '' },
+        app_links: { google: '', apple: '', apk_url: '' },
         payment_min_version: '',
-        apk_url: '',
         buy_course: true,
         created_at: '',
         updated_at: ''
@@ -231,8 +230,8 @@ export default function AppConfigPage() {
                         />
                         <Input
                             label="APK Yuklab olish Havolasi"
-                            value={config.apk_url ?? ''}
-                            onChange={(e) => handleChange('apk_url', e.target.value)}
+                            value={config.app_links?.apk_url ?? ''}
+                            onChange={(e) => handleChange('app_links.apk_url', e.target.value)}
                             placeholder="https://example.com/app.apk"
                         />
                     </CardContent>

@@ -145,6 +145,7 @@ export interface Source {
   lesson_id: ID;
   name: MultilangText;
   url: MultilangText; // Multilingual URL
+  video_url?: MultilangText; // Server Video URL (for YouTube fallback)
   type: 'video' | 'document' | 'test'; // Strict enums
   order_num: number;
   created_at: DateString;
@@ -298,6 +299,7 @@ export interface AppVersion {
 export interface AppLinks {
   google: string;
   apple: string;
+  apk_url?: string;
 }
 
 export interface AppConfig {
@@ -307,7 +309,6 @@ export interface AppConfig {
   feedback_url: string;
   app_version: AppVersion;
   app_links: AppLinks;
-  apk_url?: string;
   payment_min_version: string;
   buy_course: boolean;
   created_at: string;

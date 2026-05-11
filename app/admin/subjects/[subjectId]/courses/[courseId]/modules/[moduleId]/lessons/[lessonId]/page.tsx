@@ -51,6 +51,7 @@ export default function LessonDetailPage() {
     type: 'video', // 'video' | 'document' | 'test'
     name: { uz: '', ru: '', en: '' },
     url: { uz: '', ru: '', en: '' },
+    video_url: { uz: '', ru: '', en: '' },
   });
 
   useEffect(() => {
@@ -97,21 +98,22 @@ export default function LessonDetailPage() {
       type,
       name: { uz: '', ru: '', en: '' },
       url: { uz: '', ru: '', en: '' },
+      video_url: { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File, language: 'uz' | 'ru' | 'en') => {
+  const handleFileUpload = async (file: File, language: 'uz' | 'ru' | 'en', field: 'url' | 'video_url' = 'url') => {
     try {
       setUploading(true);
       const uploadResult = await uploadService.upload(file);
-      setFormData({
-        ...formData,
-        url: {
-          ...formData.url,
+      setFormData((prev: any) => ({
+        ...prev,
+        [field]: {
+          ...prev[field],
           [language]: uploadResult.url,
         },
-      });
+      }));
       alert('Fayl muvaffaqiyatli yuklandi!');
     } catch (error) {
       console.error('Failed to upload file:', error);
@@ -129,6 +131,7 @@ export default function LessonDetailPage() {
       type: source.type,
       name: source.name,
       url: source.url,
+      video_url: source.video_url || { uz: '', ru: '', en: '' },
     });
     setIsModalOpen(true);
   };
@@ -284,6 +287,18 @@ export default function LessonDetailPage() {
                                   Faylni yuklab olish uchun bosing
                                 </span>
                               )}
+                              {source.type === 'video' && source.video_url && (source.video_url.uz || source.video_url.ru || source.video_url.en) && (
+                                <div className="mt-1">
+                                  <a
+                                    href={getMediaUrl(source.video_url?.uz || source.video_url?.ru || source.video_url?.en)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-green-600 hover:underline flex items-center"
+                                  >
+                                    Server Video URL: {source.video_url?.uz || source.video_url?.ru || source.video_url?.en}
+                                  </a>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <Badge variant="outline">{source.type === 'video' ? 'Video' : source.type === 'document' ? 'Hujjat' : 'Test'}</Badge>
@@ -384,6 +399,54 @@ export default function LessonDetailPage() {
               </div>
             ))}
           </div>
+
+          {/* EXTRA EDIT FIELD FOR VIDEO SOURCES */}
+          {formData.type === 'video' && editingSource && (
+            <div className="space-y-4 pt-4 border-t">
+              <label className="text-sm font-medium">
+                Server Video URL / Fayl yuklash (Faqat Tahrirlash)
+              </label>
+              {(['uz', 'ru', 'en'] as const).map((lang) => (
+                <div key={lang} className="space-y-2">
+                  <label className="text-xs font-medium uppercase">{lang} Video</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={formData.video_url?.[lang] || ''}
+                      onChange={(e) => setFormData((prev: any) => ({
+                        ...prev,
+                        video_url: { ...prev.video_url, [lang]: e.target.value }
+                      }))}
+                      placeholder={`${lang.toUpperCase()} Server Video URLini kiriting`}
+                      className="flex-1"
+                    />
+                    <input
+                      type="file"
+                      id={`video-upload-${lang}`}
+                      accept="video/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleFileUpload(file, lang, 'video_url');
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById(`video-upload-${lang}`)?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? 'Yuklanmoqda...' : 'Video Yuklash'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <Select
             label="Tur"
             options={sourceTypeOptions}
