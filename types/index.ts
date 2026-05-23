@@ -242,7 +242,9 @@ export type LessonUpdateBody = Partial<LessonCreateBody>;
 // ─── USER (ADMIN VIEW) ───────────────────
 export interface User {
   id: ID;
-  name: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
   phone_number: string;
   email?: string;
   role: 'user' | 'admin' | 'moderator';

@@ -20,34 +20,66 @@ export default function TeachersPage() {
     const [totalItems, setTotalItems] = useState(0);
     const limit = 10;
     const [formData, setFormData] = useState({
-
         name: '',
         login: '',
         phone_number: '',
     });
 
     useEffect(() => {
-        loadData();
-    }, [activeFilters, page]);
-
-    useEffect(() => {
         setPage(1);
     }, [activeFilters]);
+
+    useEffect(() => {
+        loadData();
+    }, [activeFilters, page]);
 
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const response = await teacherService.getAll(page, limit, activeFilters);
-            setTeachers(response.data);
+
+            const searchVal = activeFilters.search || '';
+            const isPhone = /^\+?[0-9\s\-]{5,}$/.test(searchVal);
+
+            const backendFilters: any = { ...activeFilters };
+            if (searchVal) {
+                if (isPhone) {
+                    backendFilters.phone_number = searchVal;
+                }
+                delete backendFilters.search;
+            }
+
+            // For combined search, we fetch a larger batch for local fallback
+            const searchLimit = (searchVal && !isPhone) ? 1000 : limit;
+
+            const response = await teacherService.getAll(page, searchLimit, backendFilters);
+
+            let filteredData = response.data;
+
+            // Local filtering fallback for Login/Email search
+            if (searchVal && !isPhone) {
+                const lowerSearch = searchVal.toLowerCase();
+                filteredData = filteredData.filter(t =>
+                    t.login?.toLowerCase().includes(lowerSearch) ||
+                    t.name?.toLowerCase().includes(lowerSearch)
+                );
+            }
+
+            setTeachers(filteredData);
+
             const total = response.meta?.total_items ||
                 (response as any).count ||
                 (response as any).total_items ||
                 (response as any).total ||
                 0;
-            setTotalItems(total);
+
+            if (searchVal && !isPhone && filteredData.length < total) {
+                setTotalItems(filteredData.length);
+            } else {
+                setTotalItems(total);
+            }
         } catch (error) {
-            // Error handling
+            console.error('Failed to load teachers:', error);
         } finally {
             setLoading(false);
         }
@@ -112,7 +144,7 @@ export default function TeachersPage() {
         },
         {
             key: 'login',
-            header: 'Login',
+            header: 'Login (Email)',
             render: (item: Teacher) => item.login
         },
         {
@@ -138,7 +170,7 @@ export default function TeachersPage() {
 
     const filterConfigs: FilterConfig[] = [
         { key: 'name', label: 'Ism', type: 'text', placeholder: 'Ism bo\'yicha qidirish...' },
-        { key: 'phone_number', label: 'Telefon', type: 'text', placeholder: 'Telefon bo\'yicha qidirish...' },
+        { key: 'search', label: 'Telefon yoki Login', type: 'text', placeholder: 'Telefon yoki Login...' },
     ];
 
     if (loading && teachers.length === 0) {

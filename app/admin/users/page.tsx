@@ -38,46 +38,49 @@ export default function UsersPage() {
     try {
       setLoading(true);
 
-      // If searching, fetch a larger batch for local filtering fallback
-      const searchLimit = Object.keys(activeFilters).length > 0 ? 1000 : limit;
+      const searchVal = activeFilters.search || '';
+      // If it looks like a phone number, we use backend's phone_number filter
+      const isPhone = /^\+?[0-9\s\-]{5,}$/.test(searchVal);
+
+      const backendFilters: any = { ...activeFilters };
+      if (searchVal) {
+        if (isPhone) {
+          backendFilters.phone_number = searchVal;
+        }
+        delete backendFilters.search;
+      }
+
+      // If we are searching by email or name (combined), we might need local filtering
+      const isEmailSearch = !!(searchVal && !isPhone && (searchVal.includes('@') || searchVal.includes('.')));
+      const searchLimit = isEmailSearch ? 1000 : limit;
 
       const [usersResponse, coursesResponse, tariffsResponse] = await Promise.all([
-        userService.getAll(page, searchLimit, activeFilters),
+        userService.getAll(page, searchLimit, backendFilters),
         courseService.getAllWithoutPagination(undefined, { is_public: false }),
         tariffService.getAll(),
       ]);
 
       let filteredUsers = usersResponse.data;
 
-      // Local filtering fallback (case-insensitive)
-      if (activeFilters.email) {
+      // Local filtering fallback for Email and Name when using combined search
+      if (searchVal && !isPhone) {
+        const lowerSearch = searchVal.toLowerCase();
         filteredUsers = filteredUsers.filter(u =>
-          u.email?.toLowerCase().includes(activeFilters.email.toLowerCase())
-        );
-      }
-      if (activeFilters.name) {
-        filteredUsers = filteredUsers.filter(u =>
-          u.name?.toLowerCase().includes(activeFilters.name.toLowerCase())
-        );
-      }
-      if (activeFilters.phone_number) {
-        filteredUsers = filteredUsers.filter(u =>
-          u.phone_number?.includes(activeFilters.phone_number)
+          u.email?.toLowerCase().includes(lowerSearch) ||
+          `${u.first_name || ''} ${u.last_name || ''} ${u.name || ''}`.toLowerCase().includes(lowerSearch)
         );
       }
 
       setUsers(filteredUsers);
 
-      // Handle various pagination response structures
-      // Prioritize meta.total_items as it is the most reliable source for total DB count
       let dbTotal = usersResponse.meta?.total_items ||
         (usersResponse as any).count ||
         (usersResponse as any).total_items ||
         (usersResponse as any).total ||
         0;
 
-      // If we filtered locally, the total items should be the filtered count
-      if (filteredUsers.length < usersResponse.data.length || Object.keys(activeFilters).length > 0) {
+      // If we are filtering locally, the current result length is our total
+      if (searchVal && !isPhone && filteredUsers.length < dbTotal) {
         setTotalItems(filteredUsers.length);
       } else {
         setTotalItems(dbTotal);
@@ -122,7 +125,7 @@ export default function UsersPage() {
     {
       key: 'name',
       header: 'Ism',
-      render: (item: User) => item.name
+      render: (item: User) => item.name || `${item.first_name || ''} ${item.last_name || ''}`.trim() || 'Foydalanuvchi'
     },
     { key: 'phone_number', header: 'Telefon' },
     { key: 'email', header: 'Email' },
@@ -152,8 +155,7 @@ export default function UsersPage() {
 
   const filterConfigs: FilterConfig[] = [
     { key: 'name', label: 'Ism', type: 'text', placeholder: 'Ism bo\'yicha qidirish...' },
-    { key: 'phone_number', label: 'Telefon', type: 'text', placeholder: 'Telefon bo\'yicha qidirish...' },
-    { key: 'email', label: 'Email', type: 'text', placeholder: 'Email bo\'yicha qidirish...' },
+    { key: 'search', label: 'Telefon yoki Email', type: 'text', placeholder: 'Telefon yoki Email...' },
   ];
 
   if (loading && users.length === 0) {
@@ -203,4 +205,3 @@ export default function UsersPage() {
     </div>
   );
 }
-
