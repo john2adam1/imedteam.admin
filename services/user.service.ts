@@ -10,14 +10,26 @@ import {
 export const userService = {
     // ADMIN Management
     getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string; email?: string; role?: string; is_blocked?: boolean }): Promise<PaginatedResponse<User>> => {
-        const params = Object.fromEntries(
-            Object.entries({ page, limit, ...filters }).filter(([, value]) => value !== '' && value !== undefined && value !== null)
-        );
+        const params: any = { page, limit };
+        if (filters?.name) params.name = filters.name;
+        if (filters?.phone_number) params.phone_number = filters.phone_number;
+        if (filters?.email) params.email = filters.email;
+        if (filters?.role) params.role = filters.role;
+        if (filters?.is_blocked !== undefined) params.is_blocked = String(filters.is_blocked);
 
-        const response = await api.get<PaginatedResponse<User>>('user', {
-            params
-        });
-        return response.data;
+        const response = await api.get<any>('user', { params });
+        const raw = response.data;
+        const data = raw.data || raw.users || raw.items || [];
+
+        return {
+            data,
+            total: raw.total || raw.count || (raw.meta?.total_items) || data.length,
+            page: raw.page || page,
+            limit: raw.limit || limit,
+            total_page: raw.total_page || raw.total_pages || (raw.meta?.total_pages) || Math.ceil((raw.total || data.length) / limit),
+            has_next: raw.has_next ?? false,
+            has_previous: raw.has_previous ?? false,
+        };
     },
 
     getById: async (id: string): Promise<User> => {
@@ -46,10 +58,21 @@ export const userService = {
     },
 
     getActivity: async (page = 1, limit = 10): Promise<PaginatedResponse<UserActivity>> => {
-        const response = await api.get<PaginatedResponse<UserActivity>>('user/activity', {
+        const response = await api.get<any>('user/activity', {
             params: { page, limit }
         });
-        return response.data;
+        const raw = response.data;
+        const data = raw.data || raw.items || [];
+
+        return {
+            data,
+            total: raw.total || raw.count || data.length,
+            page: raw.page || page,
+            limit: raw.limit || limit,
+            total_page: raw.total_page || Math.ceil((raw.total || data.length) / limit),
+            has_next: raw.has_next ?? false,
+            has_previous: raw.has_previous ?? false,
+        };
     },
 
     logActivity: async (data: any): Promise<void> => {
@@ -57,9 +80,20 @@ export const userService = {
     },
 
     getRating: async (page = 1, limit = 10): Promise<PaginatedResponse<any>> => {
-        const response = await api.get<PaginatedResponse<any>>('user/rating', {
+        const response = await api.get<any>('user/rating', {
             params: { page, limit }
         });
-        return response.data;
+        const raw = response.data;
+        const data = raw.data || raw.items || [];
+
+        return {
+            data,
+            total: raw.total || raw.count || data.length,
+            page: raw.page || page,
+            limit: raw.limit || limit,
+            total_page: raw.total_page || Math.ceil((raw.total || data.length) / limit),
+            has_next: raw.has_next ?? false,
+            has_previous: raw.has_previous ?? false,
+        };
     }
 };

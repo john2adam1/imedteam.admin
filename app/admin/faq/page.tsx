@@ -41,12 +41,7 @@ export default function FAQPage() {
             setLoading(true);
             const response = await faqService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            const total = response.meta?.total_items ||
-                (response as any).count ||
-                (response as any).total_items ||
-                (response as any).total ||
-                0;
-            setTotalItems(total);
+            setTotalItems(response.total);
         } catch (error) {
             console.error('Failed to load FAQs:', error);
         } finally {

@@ -41,12 +41,7 @@ export default function AboutPage() {
             setLoading(true);
             const response = await aboutService.getAll(page, limit, activeFilters);
             setItems(response.data);
-            const total = response.meta?.total_items ||
-                (response as any).count ||
-                (response as any).total_items ||
-                (response as any).total ||
-                (response.data || []).length;
-            setTotalItems(total);
+            setTotalItems(response.total);
         } catch (error) {
             console.error('Failed to load about items:', error);
         } finally {

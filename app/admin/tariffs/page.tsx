@@ -42,13 +42,8 @@ export default function TariffsPage() {
             setLoading(true);
             setError(null);
             const response = await tariffService.getAll(page, limit, activeFilters);
-            setTariffs(response.data || []);
-            const total = response.meta?.total_items ||
-                (response as any).count ||
-                (response as any).total_items ||
-                (response as any).total ||
-                (response.data || []).length;
-            setTotalItems(total);
+            setTariffs([...(response.data || [])].sort((a, b) => a.duration - b.duration));
+            setTotalItems(response.total);
 
         } catch (error: any) {
             const errorMessage = error?.response?.data?.message || error?.message || 'Tariflarni yuklashda xatolik';

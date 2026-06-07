@@ -36,6 +36,10 @@ export default function SourcesPage() {
   });
 
   useEffect(() => {
+    setPage(1);
+  }, [selectedLessonId]);
+
+  useEffect(() => {
     loadData();
   }, [page, selectedLessonId]);
 
@@ -47,12 +51,7 @@ export default function SourcesPage() {
         lessonService.getAll(undefined, 1, 1000)
       ]);
       setSources(sourcesResponse.data);
-      const total = sourcesResponse.meta?.total_items ||
-        (sourcesResponse as any).count ||
-        (sourcesResponse as any).total_items ||
-        (sourcesResponse as any).total ||
-        0;
-      setTotalItems(total);
+      setTotalItems(sourcesResponse.total);
       setLessons(lessonsResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);

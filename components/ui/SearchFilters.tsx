@@ -20,13 +20,17 @@ interface SearchFiltersProps {
 export function SearchFilters({ configs, onFilter, className = "" }: SearchFiltersProps) {
     const [filters, setFilters] = useState<Record<string, any>>({});
 
-    const handleChange = (key: string, value: any) => {
+    const handleChange = (key: string, value: any, autoSearch = false) => {
         const newFilters = { ...filters, [key]: value };
         // Remove empty values
         if (value === '' || value === undefined || value === null) {
             delete newFilters[key];
         }
         setFilters(newFilters);
+
+        if (autoSearch) {
+            onFilter(newFilters);
+        }
     };
 
     const handleSearch = () => {
@@ -56,7 +60,7 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                     {config.type === 'select' && (
                         <select
                             value={filters[config.key] || ''}
-                            onChange={(e) => handleChange(config.key, e.target.value)}
+                            onChange={(e) => handleChange(config.key, e.target.value, true)}
                             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
                         >
                             <option value="">Barchasi</option>
@@ -72,7 +76,7 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                             value={filters[config.key] === undefined ? '' : String(filters[config.key])}
                             onChange={(e) => {
                                 const val = e.target.value === '' ? undefined : e.target.value === 'true';
-                                handleChange(config.key, val);
+                                handleChange(config.key, val, true);
                             }}
                             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[100px]"
                         >
@@ -85,7 +89,7 @@ export function SearchFilters({ configs, onFilter, className = "" }: SearchFilte
                         <input
                             type="date"
                             value={filters[config.key] || ''}
-                            onChange={(e) => handleChange(config.key, e.target.value)}
+                            onChange={(e) => handleChange(config.key, e.target.value, true)}
                             className="px-3 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]"
                         />
                     )}

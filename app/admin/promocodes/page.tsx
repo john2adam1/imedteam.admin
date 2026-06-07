@@ -33,7 +33,6 @@ export default function PromocodesPage() {
 
     const editId = searchParams.get('edit');
 
-    // Form states
     const [formData, setFormData] = useState({
         code: '',
         discount_type: 'percent' as 'percent' | 'fixed',
@@ -45,7 +44,7 @@ export default function PromocodesPage() {
         min_order_amount: '',
         max_discount: '',
         is_active: true,
-        type: 'all' as 'all' | 'selected',
+        type: 'all' as 'all' | 'selected' | 'course',
         courses: [] as string[],
     });
 
@@ -53,31 +52,18 @@ export default function PromocodesPage() {
         try {
             setLoading(true);
             const res = await promocodeService.getAll(page, limit, activeFilters);
-
-            // Backend response is not fully consistent across environments.
-            const dynamicRes = res as any;
-            const promocodesData: PromoCode[] = Array.isArray(res)
-                ? res
-                : res.promo_codes ||
-                dynamicRes.promocodes ||
-                dynamicRes.data ||
-                dynamicRes.items ||
-                dynamicRes.results ||
-                [];
-
-            setPromocodes(promocodesData);
-            const total = res.count ||
-                dynamicRes.total_items ||
-                dynamicRes.meta?.total_items ||
-                dynamicRes.total ||
-                promocodesData.length;
-            setTotalItems(total);
+            setPromocodes(res.data);
+            setTotalItems(res.total);
         } catch (error) {
             toast.error('Failed to fetch promocodes');
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters]);
 
     useEffect(() => {
         fetchPromocodes();
@@ -96,7 +82,7 @@ export default function PromocodesPage() {
     }, []);
 
 
-    const formatToDateTimeLocal = (dateStr: string | null) => {
+    const formatToDateTimeLocal = (dateStr: string | null | undefined) => {
         if (!dateStr) return '';
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return '';
@@ -119,9 +105,17 @@ export default function PromocodesPage() {
         }
     }, [editId, promocodes]);
 
+    const extractCourseIds = (courses?: any[]): string[] => {
+        if (!Array.isArray(courses)) return [];
+        return courses
+            .map((c) => (typeof c === 'object' && c !== null ? (c.id || c.course_id) : c))
+            .filter(Boolean) as string[];
+    };
+
     const handleOpenModal = (promo?: PromoCode) => {
         if (promo) {
             setEditingPromo(promo);
+            const courseIds = extractCourseIds(promo.courses);
             setFormData({
                 code: promo.code || '',
                 discount_type: (promo.discount_type === 'fixed') ? 'fixed' : 'percent',
@@ -134,7 +128,7 @@ export default function PromocodesPage() {
                 max_discount: promo.max_discount?.toString() || '',
                 is_active: promo.is_active ?? true,
                 type: promo.type || 'all',
-                courses: promo.courses || [],
+                courses: promo.type === 'course' ? courseIds.slice(0, 1) : courseIds,
             });
         } else {
             setEditingPromo(null);
@@ -206,18 +200,17 @@ export default function PromocodesPage() {
                 return;
             }
 
-
+            if (formData.type === 'course' && formData.courses.length === 0) {
+                toast.error('Kursni tanlang');
+                return;
+            }
 
             const scopePayload =
                 formData.type === 'selected'
-                    ? {
-                        type: 'selected' as const,
-                        courses: formData.courses,
-                    }
-                    : {
-                        type: 'all' as const,
-                        courses: [] as string[],
-                    };
+                    ? { type: 'selected' as const, courses: formData.courses }
+                    : formData.type === 'course'
+                        ? { type: 'course' as const, courses: [formData.courses[0]] }
+                        : { type: 'all' as const, courses: [] as string[] };
 
             if (editingPromo) {
                 // UPDATE — is_active faqat shu yerda yuboriladi
@@ -239,13 +232,7 @@ export default function PromocodesPage() {
                 toast.success('Promokod muvaffaqiyatli yaratildi');
             }
             handleCloseModal();
-            await fetchPromocodes();
-
-            if (editingPromo) {
-                // Re-fetch the individual promocode detail directly to ensure courses/type are strictly up-to-date
-                const freshPromo = await promocodeService.getOne(editingPromo.id);
-                setPromocodes(prev => prev.map(p => p.id === editingPromo.id ? freshPromo : p));
-            }
+            fetchPromocodes();
 
         } catch (error: any) {
             const message = error.response?.data?.message || error.message || 'Promokodni saqlashda xatolik';
@@ -294,9 +281,13 @@ export default function PromocodesPage() {
             render: (item: PromoCode) => (
                 <div className="flex flex-col gap-1">
                     <Badge variant={item.type === 'all' ? 'outline' : 'secondary'} className="w-fit">
-                        {item.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
+                        {item.type === 'all'
+                            ? 'Barcha kurslar'
+                            : item.type === 'course'
+                                ? 'Bitta kurs'
+                                : 'Tanlangan kurslar'}
                     </Badge>
-                    {item.type === 'selected' && item.courses && (
+                    {(item.type === 'selected' || item.type === 'course') && item.courses && (
                         <span className="text-[10px] text-muted-foreground">
                             {item.courses.length} ta kurs
                         </span>
@@ -308,9 +299,8 @@ export default function PromocodesPage() {
             key: 'validity',
             header: 'Amal qilish muddati',
             render: (item: PromoCode) => {
-                const formatDate = (dateStr: string | null) => {
+                const formatDate = (dateStr: string | null | undefined) => {
                     if (!dateStr) return '-';
-                    // If it's already a full ISO string, handle it; if just YYYY-MM-DD, parse safely
                     const date = new Date(dateStr);
                     if (isNaN(date.getTime())) return '-';
                     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -402,13 +392,28 @@ export default function PromocodesPage() {
                         <Select
                             label="Amal qilish doirasi"
                             value={formData.type}
-                            onChange={(e) => setFormData({ ...formData, type: e.target.value as any, courses: e.target.value === 'all' ? [] : formData.courses })}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                type: e.target.value as 'all' | 'selected' | 'course',
+                                courses: e.target.value === 'all' ? [] : (e.target.value === 'course' ? formData.courses.slice(0, 1) : formData.courses),
+                            })}
                             options={[
                                 { value: 'all', label: 'Barcha kurslar uchun' },
+                                { value: 'course', label: 'Bitta kurs uchun' },
                                 { value: 'selected', label: 'Tanlangan kurslar uchun' },
                             ]}
                         />
                     </div>
+
+                    {formData.type === 'course' && (
+                        <Select
+                            label="Kurs"
+                            options={courses.map(c => ({ value: c.id, label: getMultilangValue(c.name) }))}
+                            value={formData.courses[0] || ''}
+                            onChange={(e) => setFormData({ ...formData, courses: e.target.value ? [e.target.value] : [] })}
+                            required
+                        />
+                    )}
 
                     {formData.type === 'selected' && (
                         <div className="space-y-2 border rounded-md p-3 bg-gray-50">
@@ -438,7 +443,7 @@ export default function PromocodesPage() {
                                                     }
                                                 }}
                                                 label={getMultilangValue(course.name)}
-                                                className="mb-0" // override mb-4 if possible, oh wait, my Checkbox component has hardcoded mb-4
+                                                className="mb-0"
                                             />
                                         </div>
                                     ))}

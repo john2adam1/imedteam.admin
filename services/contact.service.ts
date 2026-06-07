@@ -1,6 +1,5 @@
 
 import api from '@/lib/api/axios';
-import { sanitizeQueryParams } from '@/lib/api/params';
 import {
     Contact,
     ContactCreateBody,
@@ -13,11 +12,23 @@ const RESOURCE_URL = 'contact';
 export const contactService = {
     // Get all
     getAll: async (page = 1, limit = 10, filters?: { name?: string; phone_number?: string }): Promise<PaginatedResponse<Contact>> => {
-        const params = sanitizeQueryParams({ page, limit, ...filters });
-        const response = await api.get<PaginatedResponse<Contact>>(RESOURCE_URL, {
-            params
-        });
-        return response.data;
+        const params: any = { page, limit };
+        if (filters?.name) params.name = filters.name;
+        if (filters?.phone_number) params.phone_number = filters.phone_number;
+
+        const response = await api.get<any>(RESOURCE_URL, { params });
+        const raw = response.data;
+        const data = raw.data || raw.contacts || raw.items || [];
+
+        return {
+            data,
+            total: raw.total || raw.count || (raw.meta?.total_items) || data.length,
+            page: raw.page || page,
+            limit: raw.limit || limit,
+            total_page: raw.total_page || raw.total_pages || (raw.meta?.total_pages) || Math.ceil((raw.total || data.length) / limit),
+            has_next: raw.has_next ?? false,
+            has_previous: raw.has_previous ?? false,
+        };
     },
 
     // Get by ID

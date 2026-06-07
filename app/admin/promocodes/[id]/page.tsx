@@ -79,7 +79,7 @@ export default function PromocodeDetailPage() {
             const res = await promocodeService.getRedemptions(id, page, limit, activeFilters);
             console.log('API Response for Redemptions:', res);
             setRedemptions(res.data || []);
-            setTotalItems(res.total || (res as any).meta?.total_items || (res.data || []).length);
+            setTotalItems(res.total);
         } catch (error) {
             console.error('Failed to load redemptions:', error);
             // Don't toast here to avoid cluttering if it's just a 404/empty
@@ -158,12 +158,16 @@ export default function PromocodeDetailPage() {
                             {promocode.discount_value} {promocode.discount_type === 'percent' ? '%' : 'UZS'} chegirma
                         </span>
                         <Badge variant={promocode.type === 'all' ? 'outline' : 'secondary'}>
-                            {promocode.type === 'all' ? 'Barcha kurslar' : 'Tanlangan kurslar'}
+                            {promocode.type === 'all'
+                                ? 'Barcha kurslar'
+                                : promocode.type === 'course'
+                                    ? 'Bitta kurs'
+                                    : 'Tanlangan kurslar'}
                         </Badge>
                     </div>
                     {(promocode.type === 'selected' || promocode.type === 'course' as any) && promocode.courses && promocode.courses.length > 0 && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                            {promocode.courses.map((courseItem: any, i) => {
+                            {promocode.courses.map((courseItem: any, i: number) => {
                                 const id = typeof courseItem === 'object' && courseItem !== null
                                     ? (courseItem.course_id || courseItem.id)
                                     : courseItem;

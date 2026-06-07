@@ -13,7 +13,7 @@ import { getMediaUrl } from '@/lib/mediaUtils';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/badge';
-import { CourseUsersModal } from '@/components/ui/CourseUsersModal'; // New import
+import { CourseUsersModal } from '@/components/ui/CourseUsersModal';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { MultilangInput } from '@/components/ui/MultilangInput';
@@ -41,8 +41,8 @@ export default function SubjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false); // New state
-  const [selectedCourseForUsers, setSelectedCourseForUsers] = useState<Course | null>(null); // New state
+  const [isCourseUsersModalOpen, setIsCourseUsersModalOpen] = useState(false);
+  const [selectedCourseForUsers, setSelectedCourseForUsers] = useState<Course | null>(null);
 
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState<{
@@ -70,6 +70,10 @@ export default function SubjectDetailPage() {
   });
 
   useEffect(() => {
+    setPage(1);
+  }, [activeFilters]);
+
+  useEffect(() => {
     if (subjectId) {
       loadData();
     }
@@ -80,7 +84,7 @@ export default function SubjectDetailPage() {
     try {
       const [subjectData, coursesResponse, teachersResponse, tariffsResponse] = await Promise.all([
         subjectService.getById(subjectId),
-        courseService.getAll(subjectId, page, limit, activeFilters), // Using filter
+        courseService.getAll(subjectId, page, limit, activeFilters),
         teacherService.getAll(),
         tariffService.getAll(),
       ]);
@@ -93,15 +97,9 @@ export default function SubjectDetailPage() {
 
       setSubject(subjectData);
       setCourses(coursesResponse.data);
-      setCourses(coursesResponse.data);
-      const total = coursesResponse.meta?.total_items ||
-        (coursesResponse as any).count ||
-        (coursesResponse as any).total_items ||
-        (coursesResponse as any).total ||
-        0;
-      setTotalItems(total);
+      setTotalItems(coursesResponse.total);
       setTeachers(teachersResponse.data);
-      setTariffs(tariffsResponse.data);
+      setTariffs([...tariffsResponse.data].sort((a, b) => a.duration - b.duration));
 
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -129,11 +127,13 @@ export default function SubjectDetailPage() {
 
   const [isEditLoading, setIsEditLoading] = useState(false);
 
+  const sortPrices = (prices: CoursePriceOption[]) =>
+    [...prices].sort((a, b) => a.price - b.price);
+
   const handleEdit = async (course: Course) => {
     try {
       setIsEditLoading(true);
       const fullCourse = await courseService.getById(course.id);
-      console.log('Full Course Data from Backend:', fullCourse);
       setEditingCourse(fullCourse);
       setFormData({
         subject_id: fullCourse.subject_id,
@@ -143,7 +143,9 @@ export default function SubjectDetailPage() {
         is_active: !!fullCourse.is_active,
         can_buy: !!fullCourse.can_buy,
         order_num: fullCourse.order_num,
-        price: Array.isArray(fullCourse.price) ? fullCourse.price : [],
+        price: Array.isArray(fullCourse.price)
+          ? [...fullCourse.price].sort((a, b) => a.price - b.price)
+          : [],
         name: fullCourse.name,
         description: fullCourse.description,
       });
@@ -196,15 +198,12 @@ export default function SubjectDetailPage() {
     e.preventDefault();
 
     try {
-      // If course is public (free) or prices are removed, explicitly set price to null
-      // to ensure the backend removes existing prices. 
-      // Some backends ignore empty arrays [] but process null for clearing.
       const submissionData: CourseUpdateBody = {
         ...formData,
-        price: (formData.is_public || formData.price.length === 0) ? [] : formData.price
+        price: (formData.is_public || formData.price.length === 0)
+          ? []
+          : [...formData.price].sort((a, b) => a.price - b.price),
       };
-
-      console.log('Saving course data:', submissionData);
 
       if (editingCourse) {
         await courseService.update(editingCourse.id, submissionData);
@@ -217,8 +216,6 @@ export default function SubjectDetailPage() {
       loadData();
     } catch (error: any) {
       console.error('Failed to save course:', error);
-      console.error('Error response data:', error.response?.data);
-
       const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Kursni saqlashda xatolik';
       toast.error(`Xatolik: ${errorMessage}`);
     }
@@ -293,7 +290,7 @@ export default function SubjectDetailPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {courses
-                .sort((a, b) => a.order_num - b.order_num)
+                .sort((a, b) => (a.order_num || 0) - (b.order_num || 0))
                 .map((course) => (
                   <Card key={course.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
@@ -396,11 +393,11 @@ export default function SubjectDetailPage() {
                   onClick={() => {
                     setFormData({
                       ...formData,
-                      price: [...formData.price, {
+                      price: sortPrices([...formData.price, {
                         duration: tariffs[0]?.duration || 1,
                         price: 0,
                         tariff_id: tariffs[0]?.id
-                      }],
+                      }]),
                     });
                   }}
                 >
@@ -440,7 +437,7 @@ export default function SubjectDetailPage() {
                       onChange={(e) => {
                         const newPrice = [...formData.price];
                         newPrice[index].price = parseInt(e.target.value) || 0;
-                        setFormData({ ...formData, price: newPrice });
+                        setFormData({ ...formData, price: sortPrices(newPrice) });
                       }}
                       placeholder="Narx"
                       required
@@ -530,11 +527,10 @@ export default function SubjectDetailPage() {
             <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
               Bekor qilish
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">Saqlash</Button>
           </div>
         </form>
       </Modal>
     </div>
   );
 }
-

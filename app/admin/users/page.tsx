@@ -73,17 +73,12 @@ export default function UsersPage() {
 
       setUsers(filteredUsers);
 
-      let dbTotal = usersResponse.meta?.total_items ||
-        (usersResponse as any).count ||
-        (usersResponse as any).total_items ||
-        (usersResponse as any).total ||
-        0;
+      const total = usersResponse.total;
 
-      // If we are filtering locally, the current result length is our total
-      if (searchVal && !isPhone && filteredUsers.length < dbTotal) {
+      if (searchVal && !isPhone && filteredUsers.length < total) {
         setTotalItems(filteredUsers.length);
       } else {
-        setTotalItems(dbTotal);
+        setTotalItems(total);
       }
 
       setCourses(coursesResponse.data);

@@ -49,12 +49,7 @@ export default function SubjectsPage() {
       setLoading(true);
       const response = await subjectService.getAll(page, limit, activeFilters);
       setSubjects(response.data);
-      const total = response.meta?.total_items ||
-        (response as any).count ||
-        (response as any).total_items ||
-        (response as any).total ||
-        0;
-      setTotalItems(total);
+      setTotalItems(response.total);
     } catch (error) {
       console.error('Failed to load subjects:', error);
     } finally {

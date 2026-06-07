@@ -66,12 +66,7 @@ export default function TeachersPage() {
             }
 
             setTeachers(filteredData);
-
-            const total = response.meta?.total_items ||
-                (response as any).count ||
-                (response as any).total_items ||
-                (response as any).total ||
-                0;
+            const total = response.total;
 
             if (searchVal && !isPhone && filteredData.length < total) {
                 setTotalItems(filteredData.length);

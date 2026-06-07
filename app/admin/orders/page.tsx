@@ -7,11 +7,10 @@ import { courseService } from '@/services/course.service';
 import { promocodeService } from '@/services/promocode.service';
 import { useRouter } from 'next/navigation';
 import { Table } from '@/components/ui/Table';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { SearchFilters, FilterConfig } from '@/components/ui/SearchFilters';
 import { Pagination } from '@/components/ui/Pagination';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const STATUS_COLORS: Record<string, string> = {
     'PAID': 'bg-green-100 text-green-800',
@@ -41,14 +40,12 @@ export default function OrdersPage() {
     const limit = 10;
     const router = useRouter();
 
-    // New State for Tabs and Date Filters
     const [activeTab, setActiveTab] = useState('paid');
     const [dateRangeType, setDateRangeType] = useState<DateRangeType>('day');
     const [selectedDay, setSelectedDay] = useState(new Date().toISOString().split('T')[0]);
     const [customDate, setCustomDate] = useState({ from: '', to: '' });
     const [otherStatus, setOtherStatus] = useState('CANCELLED');
 
-    // Filter Options State
     const [usersOptions, setUsersOptions] = useState<{ value: string; label: string }[]>([]);
     const [coursesOptions, setCoursesOptions] = useState<{ value: string; label: string }[]>([]);
     const [promocodesOptions, setPromocodesOptions] = useState<{ value: string; label: string }[]>([]);
@@ -56,29 +53,15 @@ export default function OrdersPage() {
     useEffect(() => {
         const fetchFilterOptions = async () => {
             try {
-                // Fetch first 100 items for dropdowns
                 const [usersRes, coursesRes, promocodesRes] = await Promise.all([
                     userService.getAll(1, 100),
                     courseService.getAllWithoutPagination(),
                     promocodeService.getAll(1, 100)
                 ]);
 
-                // Fix: Check if 'items', 'data', or specific keys exist
-                const users = (usersRes as any).items || (usersRes as any).data || (Array.isArray(usersRes) ? usersRes : []);
-                const courses = (coursesRes as any).items || (coursesRes as any).data || (Array.isArray(coursesRes) ? coursesRes : []);
-
-                let promocodes: any[] = [];
-                if (Array.isArray(promocodesRes)) {
-                    promocodes = promocodesRes;
-                } else if ((promocodesRes as any).promo_codes) {
-                    promocodes = (promocodesRes as any).promo_codes;
-                } else if ((promocodesRes as any).promocodes) {
-                    promocodes = (promocodesRes as any).promocodes;
-                } else if ((promocodesRes as any).data) {
-                    promocodes = (promocodesRes as any).data;
-                } else if ((promocodesRes as any).items) {
-                    promocodes = (promocodesRes as any).items;
-                }
+                const users = usersRes.data || [];
+                const courses = coursesRes.data || [];
+                const promocodes = promocodesRes.data || [];
 
                 setUsersOptions(users.map((u: any) => ({
                     value: u.id,
@@ -93,7 +76,7 @@ export default function OrdersPage() {
                     return { value: c.id, label };
                 }));
 
-                setPromocodesOptions(promocodes.map(p => ({ value: p.code, label: p.code })));
+                setPromocodesOptions(promocodes.map((p: any) => ({ value: p.id, label: p.code })));
 
             } catch (error) {
                 console.error("Failed to fetch filter options", error);
@@ -115,7 +98,7 @@ export default function OrdersPage() {
                 break;
             case 'week': {
                 const day = now.getDay();
-                const diff = now.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1);
                 const monday = new Date(now.setDate(diff));
                 from = monday.toISOString().split('T')[0];
                 break;
@@ -136,6 +119,7 @@ export default function OrdersPage() {
             }
             case 'all':
                 from = '2000-01-01';
+                to = '2099-12-31';
                 break;
             case 'custom':
                 return customDate;
@@ -146,10 +130,8 @@ export default function OrdersPage() {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-
             const { from, to } = getDateRange(dateRangeType);
 
-            // Determine status based on active tab
             let status = '';
             if (activeTab === 'paid') status = 'PAID';
             else if (activeTab === 'new') status = 'NEW';
@@ -160,50 +142,22 @@ export default function OrdersPage() {
                 status,
                 from,
                 to,
-                type: 'range',
-                payment_type: activeFilters.promocode ? 'click' : activeFilters.payment_type
+                type: 'range'
             };
 
-            if (dateRangeType === 'all') {
-                finalFilters.from = '2000-01-01';
-                finalFilters.to = '2099-12-31';
-            }
-
-            if (dateRangeType === 'custom' && (!customDate.from || !customDate.to)) {
-                if (!customDate.from) finalFilters.from = new Date().toISOString().split('T')[0];
-                if (!customDate.to) finalFilters.to = new Date().toISOString().split('T')[0];
-            }
-
             const res = await orderService.getAll(page, limit, finalFilters);
-            const data: any = res;
-            let ordersData: Order[] = [];
-
-            if (Array.isArray(data)) {
-                ordersData = data;
-            } else if (data.orders) {
-                ordersData = data.orders;
-            } else if (data.data) {
-                ordersData = data.data;
-            } else if (data.items) {
-                ordersData = data.items;
-            } else {
-                // Unknown order response structure
-            }
-
-            setOrders(ordersData);
-            const total = res.count ||
-                (res as any).total_items ||
-                (res as any).meta?.total_items ||
-                (res as any).total ||
-                ordersData.length;
-            setTotalItems(total);
+            setOrders(res.data);
+            setTotalItems(res.total);
         } catch (error) {
             console.error('Failed to fetch orders:', error);
-            // toast.error('Failed to fetch orders'); // Suppress toast on initial load or frequent updates
         } finally {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        setPage(1);
+    }, [activeFilters, activeTab, dateRangeType, otherStatus, customDate.from, customDate.to, selectedDay]);
 
     useEffect(() => {
         fetchOrders();
@@ -286,7 +240,7 @@ export default function OrdersPage() {
             options: coursesOptions
         },
         {
-            key: 'promocode',
+            key: 'promocode_id',
             label: 'Promokod',
             type: 'select',
             placeholder: 'Promokodni tanlang',
@@ -307,7 +261,6 @@ export default function OrdersPage() {
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Buyurtmalar</h1>
 
-            {/* Status Tabs */}
             <div className="mb-6">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full grid-cols-3 max-w-md">
@@ -318,7 +271,6 @@ export default function OrdersPage() {
                 </Tabs>
             </div>
 
-            {/* Secondary Status Filter for 'Other' Tab */}
             {activeTab === 'other' && (
                 <div className="mb-4 flex gap-2 items-center bg-gray-50 p-3 rounded-lg">
                     <span className="text-sm font-medium text-gray-700">Holati:</span>
@@ -334,7 +286,6 @@ export default function OrdersPage() {
                 </div>
             )}
 
-            {/* Date Range Filters */}
             <div className="mb-6 flex flex-wrap gap-2 items-center">
                 <span className="text-sm font-medium text-gray-700 mr-2">Sana oralig'i:</span>
                 <Button

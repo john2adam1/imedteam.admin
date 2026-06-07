@@ -82,7 +82,7 @@ export default function LessonDetailPage() {
       setModule(moduleData);
       setLesson(lessonData);
       setSources(sourcesResponse.data);
-      setTotalItems(sourcesResponse.meta?.total_items || 0);
+      setTotalItems(sourcesResponse.total);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {

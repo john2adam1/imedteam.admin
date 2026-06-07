@@ -48,12 +48,7 @@ export default function NotificationsPage() {
         courseService.getAllWithoutPagination()
       ]);
       setNotifications(notifsResponse.data);
-      const total = notifsResponse.meta?.total_items ||
-        (notifsResponse as any).count ||
-        (notifsResponse as any).total_items ||
-        (notifsResponse as any).total ||
-        0;
-      setTotalItems(total);
+      setTotalItems(notifsResponse.total);
       setCourses(coursesResponse.data);
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -229,13 +224,13 @@ export default function NotificationsPage() {
         configs={[
           { key: 'title', label: 'Sarlavha', type: 'text', placeholder: 'Sarlavha bo\'yicha qidirish...' },
           {
-            key: 'type',
-            label: 'Tur',
+            key: 'course_id',
+            label: 'Kurs',
             type: 'select',
-            options: [
-              { value: 'all', label: 'Barcha Foydalanuvchilar' },
-              { value: 'selected', label: 'Maxsus Kurs' }
-            ]
+            options: courses.map(c => ({
+              value: c.id,
+              label: c.name?.uz || c.name?.ru || c.name?.en || 'Nomsiz Kurs'
+            }))
           }
         ]}
         onFilter={setActiveFilters}

@@ -346,6 +346,42 @@ export interface TariffCreateBody {
 export type TariffUpdateBody = Partial<TariffCreateBody>;
 
 // ─── PROMOCODE ───────────────────────────
+export interface PromoCode {
+  id: string;
+  code: string;
+  type: 'all' | 'selected' | 'course';
+  courses?: any[]; // Typically an array of course objects or IDs
+  discount_type: 'fixed' | 'percent';
+  discount_value: number;
+  starts_at?: string;
+  ends_at?: string;
+  max_uses_total?: number;
+  max_uses_per_user: number;
+  min_order_amount: number;
+  max_discount: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromoCodeCreateReq {
+  code: string;
+  type: 'all' | 'selected' | 'course';
+  courses?: string[];
+  discount_type: 'fixed' | 'percent';
+  discount_value: number;
+  starts_at?: string;
+  ends_at?: string;
+  max_uses_total?: number;
+  max_uses_per_user: number;
+  min_order_amount: number;
+  max_discount: number;
+}
+
+export interface PromoCodeUpdateReq extends Partial<PromoCodeCreateReq> {
+  is_active?: boolean;
+}
+
 export interface PromocodeRedemption {
   id: string;
   promocode_id: string;

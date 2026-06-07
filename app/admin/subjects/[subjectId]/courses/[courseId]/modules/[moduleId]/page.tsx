@@ -89,7 +89,7 @@ export default function ModuleDetailPage() {
       setLessonsLoading(true);
       const lessonsResponse = await lessonService.getAll(moduleId, page, limit, activeFilters);
       setLessons(lessonsResponse.data);
-      setTotalItems(lessonsResponse.meta?.total_items || 0);
+      setTotalItems(lessonsResponse.total);
     } catch (error) {
       console.error('Failed to load lessons:', error);
       // Optional: show toast/alert here
