@@ -44,7 +44,7 @@ export default function PromocodesPage() {
         min_order_amount: '',
         max_discount: '',
         is_active: true,
-        type: 'all' as 'all' | 'selected' | 'course',
+        type: 'all' as 'all' | 'selected',
         courses: [] as string[],
     });
 
@@ -128,7 +128,7 @@ export default function PromocodesPage() {
                 max_discount: promo.max_discount?.toString() || '',
                 is_active: promo.is_active ?? true,
                 type: promo.type || 'all',
-                courses: promo.type === 'course' ? courseIds.slice(0, 1) : courseIds,
+                courses: courseIds,
             });
         } else {
             setEditingPromo(null);
@@ -200,17 +200,10 @@ export default function PromocodesPage() {
                 return;
             }
 
-            if (formData.type === 'course' && formData.courses.length === 0) {
-                toast.error('Kursni tanlang');
-                return;
-            }
-
             const scopePayload =
                 formData.type === 'selected'
                     ? { type: 'selected' as const, courses: formData.courses }
-                    : formData.type === 'course'
-                        ? { type: 'course' as const, courses: [formData.courses[0]] }
-                        : { type: 'all' as const, courses: [] as string[] };
+                    : { type: 'all' as const, courses: [] as string[] };
 
             if (editingPromo) {
                 // UPDATE — is_active faqat shu yerda yuboriladi
@@ -283,11 +276,9 @@ export default function PromocodesPage() {
                     <Badge variant={item.type === 'all' ? 'outline' : 'secondary'} className="w-fit">
                         {item.type === 'all'
                             ? 'Barcha kurslar'
-                            : item.type === 'course'
-                                ? 'Bitta kurs'
-                                : 'Tanlangan kurslar'}
+                            : 'Tanlangan kurslar'}
                     </Badge>
-                    {(item.type === 'selected' || item.type === 'course') && item.courses && (
+                    {item.type === 'selected' && item.courses && (
                         <span className="text-[10px] text-muted-foreground">
                             {item.courses.length} ta kurs
                         </span>
@@ -394,26 +385,17 @@ export default function PromocodesPage() {
                             value={formData.type}
                             onChange={(e) => setFormData({
                                 ...formData,
-                                type: e.target.value as 'all' | 'selected' | 'course',
-                                courses: e.target.value === 'all' ? [] : (e.target.value === 'course' ? formData.courses.slice(0, 1) : formData.courses),
+                                type: e.target.value as 'all' | 'selected',
+                                courses: e.target.value === 'all' ? [] : formData.courses,
                             })}
                             options={[
                                 { value: 'all', label: 'Barcha kurslar uchun' },
-                                { value: 'course', label: 'Bitta kurs uchun' },
                                 { value: 'selected', label: 'Tanlangan kurslar uchun' },
                             ]}
                         />
                     </div>
 
-                    {formData.type === 'course' && (
-                        <Select
-                            label="Kurs"
-                            options={courses.map(c => ({ value: c.id, label: getMultilangValue(c.name) }))}
-                            value={formData.courses[0] || ''}
-                            onChange={(e) => setFormData({ ...formData, courses: e.target.value ? [e.target.value] : [] })}
-                            required
-                        />
-                    )}
+
 
                     {formData.type === 'selected' && (
                         <div className="space-y-2 border rounded-md p-3 bg-gray-50">

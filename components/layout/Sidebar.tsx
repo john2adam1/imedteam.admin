@@ -9,6 +9,7 @@ const menuItems = [
   { path: '/admin/banners', label: 'Bannerlar', icon: '🖼️' },
   { path: '/admin/notifications', label: 'Xabarnomalar', icon: '🔔' },
   { path: '/admin/users', label: 'Foydalanuvchilar', icon: '👥' },
+  { path: '/admin/users/rating', label: 'Reyting', icon: '🏆' },
   { path: '/admin/teachers', label: 'O\'qituvchilar', icon: '👨‍🏫' },
   { path: '/admin/tariffs', label: 'Tariflar', icon: '💰' },
   { path: '/admin/app-routes', label: 'Ilova Yo\'nalishlari', icon: '🗺️' },

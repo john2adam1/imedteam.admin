@@ -4,7 +4,9 @@ import {
     User,
     UserProfile,
     UserActivity,
-    PaginatedResponse
+    PaginatedResponse,
+    RatingResponse,
+    RatingItem
 } from '@/types';
 
 export const userService = {
@@ -79,21 +81,10 @@ export const userService = {
         await api.post('user/activity', data);
     },
 
-    getRating: async (page = 1, limit = 10): Promise<PaginatedResponse<any>> => {
-        const response = await api.get<any>('user/rating', {
-            params: { page, limit }
+    getRating: async (type: 'day' | 'week' | 'month' | 'year' | 'total' = 'total', limit = 10): Promise<RatingResponse> => {
+        const response = await api.get<RatingResponse>('user/rating', {
+            params: { type, limit }
         });
-        const raw = response.data;
-        const data = raw.data || raw.items || [];
-
-        return {
-            data,
-            total: raw.total || raw.count || data.length,
-            page: raw.page || page,
-            limit: raw.limit || limit,
-            total_page: raw.total_page || Math.ceil((raw.total || data.length) / limit),
-            has_next: raw.has_next ?? false,
-            has_previous: raw.has_previous ?? false,
-        };
+        return response.data;
     }
 };

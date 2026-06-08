@@ -5,7 +5,6 @@ import { dashboardService } from '@/services/dashboard.service';
 import { DashboardRes, GetDashboardReq } from '@/types';
 import { StatCard, DashboardSkeleton } from '@/components/dashboard/StatCard';
 import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
-import { UserActivityChart } from '@/components/dashboard/UserActivityChart';
 import { Button } from '@/components/ui/Button';
 
 export default function DashboardPage() {
@@ -105,8 +104,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Financials & Revenue */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 gap-6">
+            <div className="col-span-1">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Moliyaviy Ko'rsatkichlar</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard label="Jami Kurs Summasi" value={`${stats.course_amount_total.toLocaleString()} so'm`} helperText="Kurslarning umumiy qiymati" icon="💰" />
@@ -125,11 +124,6 @@ export default function DashboardPage() {
                 <StatCard label="Admin (Chegirma)" value={`${stats.paid_discount_admin.toLocaleString()} so'm`} helperText={getHelperText()} icon="📉" />
                 <StatCard label="Click (Chegirma)" value={`${stats.paid_discount_click.toLocaleString()} so'm`} helperText={getHelperText()} icon="📉" />
               </div>
-            </div>
-
-            <div className="lg:col-span-1">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Statistika</h2>
-              <UserActivityChart />
             </div>
           </div>
 
@@ -158,5 +152,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
 
 

@@ -43,10 +43,9 @@ export const promocodeService = {
             throw new Error("Discount turi noto'g'ri: 'fixed' yoki 'percent' bo'lishi kerak");
         }
 
-        const payload: Record<string, unknown> = {
+        const payload: any = {
             code: data.code,
             type: data.type,
-            courses: data.type === 'selected' || data.type === 'course' ? data.courses : [],
             discount_type: normalizedDiscountType,
             discount_value: data.discount_value,
             starts_at: data.starts_at,
@@ -56,6 +55,10 @@ export const promocodeService = {
             min_order_amount: data.min_order_amount,
             max_discount: data.max_discount,
         };
+
+        if (data.type === 'selected') {
+            payload.courses = data.courses;
+        }
 
         Object.keys(payload).forEach(key => {
             if (payload[key] === undefined || payload[key] === null || payload[key] === '') {

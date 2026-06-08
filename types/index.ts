@@ -268,6 +268,22 @@ export interface UserActivity {
   created_at: DateString;
 }
 
+// ─── RATING ─────────────────────────────
+export interface RatingItem {
+  activity: number;
+  image_url: string;
+  is_me: boolean;
+  name: string;
+  rank: number;
+  user_id: string;
+}
+
+export interface RatingResponse {
+  items: RatingItem[];
+  me?: RatingItem;
+}
+
+
 // ─── NOTIFICATION ────────────────────────
 // FIXED: Changed type to 'all' | 'selected' as per user requirement
 export interface Notification {
@@ -349,7 +365,7 @@ export type TariffUpdateBody = Partial<TariffCreateBody>;
 export interface PromoCode {
   id: string;
   code: string;
-  type: 'all' | 'selected' | 'course';
+  type: 'all' | 'selected';
   courses?: any[]; // Typically an array of course objects or IDs
   discount_type: 'fixed' | 'percent';
   discount_value: number;
@@ -366,7 +382,7 @@ export interface PromoCode {
 
 export interface PromoCodeCreateReq {
   code: string;
-  type: 'all' | 'selected' | 'course';
+  type: 'all' | 'selected';
   courses?: string[];
   discount_type: 'fixed' | 'percent';
   discount_value: number;

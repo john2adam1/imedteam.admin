@@ -160,12 +160,10 @@ export default function PromocodeDetailPage() {
                         <Badge variant={promocode.type === 'all' ? 'outline' : 'secondary'}>
                             {promocode.type === 'all'
                                 ? 'Barcha kurslar'
-                                : promocode.type === 'course'
-                                    ? 'Bitta kurs'
-                                    : 'Tanlangan kurslar'}
+                                : 'Tanlangan kurslar'}
                         </Badge>
                     </div>
-                    {(promocode.type === 'selected' || promocode.type === 'course' as any) && promocode.courses && promocode.courses.length > 0 && (
+                    {promocode.type === 'selected' && promocode.courses && promocode.courses.length > 0 && (
                         <div className="mt-4 flex flex-wrap gap-2">
                             {promocode.courses.map((courseItem: any, i: number) => {
                                 const id = typeof courseItem === 'object' && courseItem !== null
