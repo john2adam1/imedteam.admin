@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  imed-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://prod.imedteam.uz/web
+    container_name: imed-admin
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production

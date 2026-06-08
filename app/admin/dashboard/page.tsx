@@ -39,8 +39,6 @@ export default function DashboardPage() {
     return `Yangi ma'lumotlar (${filters.day || 'joriy'})`;
   }, [filters]);
 
-  const isEmpty = stats && Object.values(stats).every(val => val === 0);
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -152,6 +150,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
-
