@@ -9,6 +9,15 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
+function formatSeconds(totalSeconds: number): string {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    if (hours > 0 && minutes > 0) return `${hours} soat ${minutes} daqiqa`;
+    if (hours > 0) return `${hours} soat`;
+    if (minutes > 0) return `${minutes} daqiqa`;
+    return `${totalSeconds} soniya`;
+}
+
 export default function RatingPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<RatingResponse | null>(null);
@@ -76,8 +85,8 @@ export default function RatingPage() {
                                 </div>
                                 <div className="flex items-center gap-8">
                                     <div className="text-center">
-                                        <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Ballar</div>
-                                        <div className="text-2xl font-black text-primary">{data.me.activity.toLocaleString()}</div>
+                                        <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Vaqt</div>
+                                        <div className="text-2xl font-black text-primary">{formatSeconds(data.me.activity)}</div>
                                     </div>
                                 </div>
                             </div>
@@ -102,7 +111,7 @@ export default function RatingPage() {
                                         <tr className="border-b bg-slate-50/50">
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider w-20">O'rin</th>
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Foydalanuvchi</th>
-                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider px-6 text-right">Ball</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider px-6 text-right">Vaqt</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -149,7 +158,7 @@ export default function RatingPage() {
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <div className={`font-black text-lg ${isTop3 ? 'text-slate-900' : 'text-slate-600'}`}>
-                                                            {item.activity.toLocaleString()}
+                                                            {formatSeconds(item.activity)}
                                                         </div>
                                                     </td>
                                                 </tr>
