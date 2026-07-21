@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { RatingItem, RatingResponse } from '@/types';
 import { userService } from '@/services/user.service';
 import { toast } from 'sonner';
+import { UserDetailsModal } from '@/components/ui/UserDetailsModal';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ export default function RatingPage() {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<RatingResponse | null>(null);
     const [activeTab, setActiveTab] = useState<'day' | 'week' | 'month' | 'year' | 'total'>('total');
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
     const fetchRating = useCallback(async (type: 'day' | 'week' | 'month' | 'year' | 'total') => {
         setLoading(true);
@@ -126,7 +128,8 @@ export default function RatingPage() {
                                             return (
                                                 <tr
                                                     key={item.user_id}
-                                                    className={`border-b transition-colors hover:bg-slate-50/80 ${item.is_me ? 'bg-primary/[0.03]' : ''}`}
+                                                    onClick={() => setSelectedUserId(item.user_id)}
+                                                    className={`border-b transition-colors cursor-pointer hover:bg-slate-50/80 ${item.is_me ? 'bg-primary/[0.03]' : ''}`}
                                                 >
                                                     <td className="px-6 py-4">
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-sm ${rankStyles}`}>
@@ -181,6 +184,12 @@ export default function RatingPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <UserDetailsModal
+                isOpen={!!selectedUserId}
+                onClose={() => setSelectedUserId(null)}
+                userId={selectedUserId}
+            />
         </div>
     );
 }
