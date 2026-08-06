@@ -194,6 +194,9 @@ export interface CoursePermission {
   ended_at: DateString;
   is_active: boolean;
   duration: number; // in months
+  amount?: number;
+  comment?: string;
+  check_url?: string;
   course?: Course;
   tariff?: Tariff;
   created_at: DateString;
@@ -206,6 +209,9 @@ export interface CoursePermissionCreateBody {
   tariff_id: ID;
   started_at?: string;
   ended_at?: string;
+  amount?: number;
+  comment?: string;
+  check_url?: string;
 }
 
 // ─── MODULE ──────────────────────────────

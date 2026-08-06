@@ -154,6 +154,37 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
 
+                {/* Admin Info (check_url, comment) */}
+                {(order.check_url || order.comment) && (
+                    <div className="bg-white p-6 rounded-lg shadow-sm border md:col-span-2">
+                        <div className="flex items-center mb-4">
+                            <span className="text-xl mr-2">🛡️</span>
+                            <h2 className="text-lg font-semibold">Admin ma'lumotlari</h2>
+                        </div>
+                        <div className="space-y-3">
+                            {order.check_url && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-500">Check URL</span>
+                                    <a
+                                        href={order.check_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-medium text-blue-600 hover:underline break-all max-w-xs text-right"
+                                    >
+                                        {order.check_url}
+                                    </a>
+                                </div>
+                            )}
+                            {order.comment && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Izoh</span>
+                                    <span className="font-medium text-right max-w-xs">{order.comment}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );

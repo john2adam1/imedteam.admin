@@ -38,6 +38,9 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         tariffId: '',
         started_at: '',
         ended_at: '',
+        amount: '',
+        comment: '',
+        check_url: '',
     });
 
     useEffect(() => {
@@ -46,7 +49,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                 loadPermissions(1); // Reset to page 1 when modal opens
             }
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '' });
+            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '' });
         }
     }, [isOpen, user?.id, showGrantForm]);
 
@@ -187,7 +190,10 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                     // Add months, not days (selectedTariff.duration is in months)
                     endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
                     return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
-                })()
+                })(),
+                ...(grantForm.amount ? { amount: Number(grantForm.amount) } : {}),
+                ...(grantForm.comment ? { comment: grantForm.comment } : {}),
+                ...(grantForm.check_url ? { check_url: grantForm.check_url } : {}),
             };
 
             console.log('Granting permission with payload:', payload);
@@ -196,7 +202,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
             toast.success('Ruxsat berildi');
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '' });
+            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '' });
 
             // Close the modal after success
             onClose();
@@ -427,6 +433,39 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                         Tugash sanasi: <strong>{grantForm.ended_at}</strong> (Tarif davomiyligi asosida)
                                     </p>
                                 )}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 mb-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Summa (UZS)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    className="w-full border rounded p-2"
+                                    placeholder="Masalan: 500000"
+                                    value={grantForm.amount}
+                                    onChange={(e) => setGrantForm(prev => ({ ...prev, amount: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Check URL</label>
+                                <input
+                                    type="url"
+                                    className="w-full border rounded p-2"
+                                    placeholder="https://..."
+                                    value={grantForm.check_url}
+                                    onChange={(e) => setGrantForm(prev => ({ ...prev, check_url: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Izoh (Comment)</label>
+                                <textarea
+                                    className="w-full border rounded p-2"
+                                    rows={2}
+                                    placeholder="Qo'shimcha izoh..."
+                                    value={grantForm.comment}
+                                    onChange={(e) => setGrantForm(prev => ({ ...prev, comment: e.target.value }))}
+                                />
                             </div>
                         </div>
                         <div className="flex gap-2 justify-end">

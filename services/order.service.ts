@@ -20,6 +20,8 @@ export interface Order {
     created_at: string;
     paid_at: string;
     duration: number; // Duration in months/days maybe?
+    check_url?: string;
+    comment?: string;
 }
 
 export interface OrderListResponse extends PaginatedResponse<Order> { }
