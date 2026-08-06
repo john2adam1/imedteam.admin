@@ -209,6 +209,7 @@ export interface CoursePermissionCreateBody {
   tariff_id: ID;
   started_at?: string;
   ended_at?: string;
+  is_free?: boolean;
   amount?: number;
   comment?: string;
   check_url?: string;

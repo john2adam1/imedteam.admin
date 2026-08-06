@@ -36,10 +36,11 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     const [hasNext, setHasNext] = useState(false);
 
     // Grant Form State
+    const todayStr = () => new Date().toISOString().split('T')[0];
     const [grantForm, setGrantForm] = useState({
         courseId: '',
         tariffId: '',
-        started_at: '',
+        started_at: todayStr(),
         ended_at: '',
         amount: '',
         comment: '',
@@ -53,7 +54,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                 loadPermissions(1); // Reset to page 1 when modal opens
             }
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
+            setGrantForm({ courseId: '', tariffId: '', started_at: todayStr(), ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
         }
     }, [isOpen, user?.id, showGrantForm]);
 
@@ -107,7 +108,11 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     const handleGrantAccess = async () => {
         console.log('>>> BUTTON CLICKED: handleGrantAccess started');
         if (!user || !grantForm.courseId || !grantForm.tariffId) {
-            toast.error('Iltimos, kurs va tarifni tanlang');
+            toast.error('Iltimos, kurs va tarif tanlang');
+            return;
+        }
+        if (!grantForm.comment.trim()) {
+            toast.error('Iltimos, izoh kiriting');
             return;
         }
 
@@ -123,37 +128,42 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
             return;
         }
 
-        // Validate that the course has a price option for this tariff
-        // Both tariff.duration and priceOption.duration are in MONTHS
-        const tariffDurationInMonths = Number(selectedTariff.duration);
-        const hasPriceOption = selectedCourse.price?.some(priceOption => {
-            const priceDurationInMonths = Number(priceOption.duration);
-            return priceDurationInMonths === tariffDurationInMonths;
-        });
+        // Skip price validation for free courses
+        if (!grantForm.is_free) {
+            // Validate that the course has a price option for this tariff
+            // Both tariff.duration and priceOption.duration are in MONTHS
+            const tariffDurationInMonths = Number(selectedTariff.duration);
+            const hasPriceOption = selectedCourse.price?.some(priceOption => {
+                const priceDurationInMonths = Number(priceOption.duration);
+                return priceDurationInMonths === tariffDurationInMonths;
+            });
 
-        if (!hasPriceOption) {
-            toast.error('Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.');
-            return;
+            if (!hasPriceOption) {
+                toast.error('Bu kurs uchun tanlangan tarif mavjud emas. Iltimos, avval kurs uchun narx belgilang.');
+                return;
+            }
         }
 
 
 
         setIsSaving(true);
         try {
-            const payload = {
+            const startDate = grantForm.started_at || new Date().toISOString().split('T')[0];
+            const endDate = grantForm.ended_at || (() => {
+                const d = new Date(startDate);
+                d.setMonth(d.getMonth() + selectedTariff.duration);
+                return d.toISOString().split('T')[0];
+            })();
+
+            const payload: any = {
                 user_id: user.id,
                 course_id: grantForm.courseId,
                 tariff_id: grantForm.tariffId,
-                started_at: grantForm.started_at || new Date().toISOString().split('T')[0], // YYYY-MM-DD
-                ended_at: grantForm.ended_at || (() => {
-                    const endDate = new Date(grantForm.started_at || new Date());
-                    // Add months, not days (selectedTariff.duration is in months)
-                    endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
-                    return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
-                })(),
+                started_at: startDate,
+                ended_at: endDate,
                 is_free: grantForm.is_free,
-                ...(grantForm.amount ? { amount: Number(grantForm.amount) } : {}),
-                ...(grantForm.comment ? { comment: grantForm.comment } : {}),
+                comment: grantForm.comment,
+                ...(grantForm.amount && !grantForm.is_free ? { amount: Number(grantForm.amount) } : {}),
                 ...(grantForm.check_url ? { check_url: grantForm.check_url } : {}),
             };
 
@@ -163,7 +173,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
             toast.success('Ruxsat berildi');
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
+            setGrantForm({ courseId: '', tariffId: '', started_at: todayStr(), ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
 
             // Close the modal after success
             onClose();
@@ -280,7 +290,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                         <h3 className="font-medium mb-4">Yangi kurs ochish</h3>
                         <div className="grid grid-cols-1 gap-4 mb-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Kurs</label>
+                                <label className="block text-sm font-medium mb-1">Kurs <span className="text-red-500">*</span></label>
                                 <select
                                     className="w-full border rounded p-2"
                                     value={grantForm.courseId}
@@ -293,7 +303,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Tarif</label>
+                                <label className="block text-sm font-medium mb-1">Tarif <span className="text-red-500">*</span></label>
                                 <select
                                     className="w-full border rounded p-2"
                                     value={grantForm.tariffId}
@@ -367,7 +377,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                         </div >
                         <div className="mb-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Boshlanish sanasi</label>
+                                <label className="block text-sm font-medium mb-1">Boshlanish sanasi <span className="text-gray-400 font-normal text-xs">(ixtiyoriy)</span></label>
                                 <input
                                     type="date"
                                     className="w-full border rounded p-2"
@@ -414,7 +424,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Summa (UZS)</label>
+                                <label className="block text-sm font-medium mb-1">Summa (UZS) <span className="text-gray-400 font-normal text-xs">(ixtiyoriy)</span></label>
                                 <input
                                     type="number"
                                     min="0"
@@ -426,7 +436,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Chek (rasm)</label>
+                                <label className="block text-sm font-medium mb-1">Chek (rasm) <span className="text-gray-400 font-normal text-xs">(ixtiyoriy)</span></label>
                                 <input
                                     ref={checkFileInputRef}
                                     type="file"
@@ -479,7 +489,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Izoh (Comment)</label>
+                                <label className="block text-sm font-medium mb-1">Izoh (Comment) <span className="text-red-500">*</span></label>
                                 <textarea
                                     className="w-full border rounded p-2"
                                     rows={2}
@@ -494,7 +504,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                             <Button
                                 size="sm"
                                 onClick={handleGrantAccess}
-                                disabled={!grantForm.courseId || !grantForm.tariffId || isSaving}
+                                disabled={!grantForm.courseId || !grantForm.tariffId || !grantForm.comment.trim() || isSaving}
                             >
                                 {isSaving ? 'Saqlanmoqda...' : 'Saqlash'}
                             </Button>
