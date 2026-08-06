@@ -22,6 +22,7 @@ export interface Order {
     duration: number; // Duration in months/days maybe?
     check_url?: string;
     comment?: string;
+    is_free?: boolean;
 }
 
 export interface OrderListResponse extends PaginatedResponse<Order> { }

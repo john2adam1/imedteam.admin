@@ -155,23 +155,38 @@ export default function OrderDetailsPage() {
                 </div>
 
                 {/* Admin Info (check_url, comment) */}
-                {(order.check_url || order.comment) && (
+                {(order.check_url || order.comment || order.is_free) && (
                     <div className="bg-white p-6 rounded-lg shadow-sm border md:col-span-2">
                         <div className="flex items-center mb-4">
                             <span className="text-xl mr-2">🛡️</span>
                             <h2 className="text-lg font-semibold">Admin ma'lumotlari</h2>
                         </div>
                         <div className="space-y-3">
+                            {order.is_free && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-500">To'lov holati</span>
+                                    <span className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">
+                                        🎁 Bepul
+                                    </span>
+                                </div>
+                            )}
                             {order.check_url && (
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-500">Check URL</span>
+                                <div className="space-y-2">
+                                    <span className="text-gray-500 block">Chek rasmi</span>
                                     <a
                                         href={order.check_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="font-medium text-blue-600 hover:underline break-all max-w-xs text-right"
+                                        className="block"
                                     >
-                                        {order.check_url}
+                                        <img
+                                            src={order.check_url}
+                                            alt="Chek rasmi"
+                                            className="w-full max-h-80 object-contain rounded-lg border bg-gray-50 hover:opacity-90 transition-opacity cursor-pointer"
+                                        />
+                                        <span className="text-xs text-blue-500 hover:underline mt-1 block text-center">
+                                            Kattalashtirish uchun bosing
+                                        </span>
                                     </a>
                                 </div>
                             )}

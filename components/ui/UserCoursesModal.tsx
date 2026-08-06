@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Course, Tariff, CoursePermission } from '@/types';
 import { getMultilangValue } from '@/lib/utils/multilang';
 import { courseService } from '@/services/course.service';
+import { uploadService } from '@/services/upload.service';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Table } from '@/components/ui/Table';
@@ -23,6 +24,8 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
     const [loading, setLoading] = useState(false);
     const [isGranting, setIsGranting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploadingCheck, setIsUploadingCheck] = useState(false);
+    const checkFileInputRef = useRef<HTMLInputElement>(null);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,6 +44,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
         amount: '',
         comment: '',
         check_url: '',
+        is_free: false,
     });
 
     useEffect(() => {
@@ -49,7 +53,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                 loadPermissions(1); // Reset to page 1 when modal opens
             }
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '' });
+            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
         }
     }, [isOpen, user?.id, showGrantForm]);
 
@@ -147,6 +151,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                     endDate.setMonth(endDate.getMonth() + selectedTariff.duration);
                     return endDate.toISOString().split('T')[0]; // YYYY-MM-DD
                 })(),
+                is_free: grantForm.is_free,
                 ...(grantForm.amount ? { amount: Number(grantForm.amount) } : {}),
                 ...(grantForm.comment ? { comment: grantForm.comment } : {}),
                 ...(grantForm.check_url ? { check_url: grantForm.check_url } : {}),
@@ -158,7 +163,7 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
 
             toast.success('Ruxsat berildi');
             setIsGranting(false);
-            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '' });
+            setGrantForm({ courseId: '', tariffId: '', started_at: '', ended_at: '', amount: '', comment: '', check_url: '', is_free: false });
 
             // Close the modal after success
             onClose();
@@ -392,26 +397,86 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
                             </div>
                         </div>
                         <div className="grid grid-cols-1 gap-4 mb-4">
+                            {/* is_free toggle */}
+                            <div className="flex items-center gap-3 p-3 rounded-md border bg-amber-50 border-amber-200">
+                                <input
+                                    id="is_free_toggle"
+                                    type="checkbox"
+                                    className="w-4 h-4 accent-amber-500 cursor-pointer"
+                                    checked={grantForm.is_free}
+                                    onChange={(e) => setGrantForm(prev => ({ ...prev, is_free: e.target.checked }))}
+                                />
+                                <label htmlFor="is_free_toggle" className="text-sm font-medium cursor-pointer select-none">
+                                    Bepul kirish (is_free)
+                                </label>
+                                {grantForm.is_free && (
+                                    <span className="ml-auto text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Bepul</span>
+                                )}
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Summa (UZS)</label>
                                 <input
                                     type="number"
                                     min="0"
-                                    className="w-full border rounded p-2"
+                                    className={`w-full border rounded p-2 ${grantForm.is_free ? 'opacity-50 cursor-not-allowed bg-gray-100' : ''}`}
                                     placeholder="Masalan: 500000"
-                                    value={grantForm.amount}
+                                    value={grantForm.is_free ? '' : grantForm.amount}
+                                    disabled={grantForm.is_free}
                                     onChange={(e) => setGrantForm(prev => ({ ...prev, amount: e.target.value }))}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Check URL</label>
+                                <label className="block text-sm font-medium mb-1">Chek (rasm)</label>
                                 <input
-                                    type="url"
-                                    className="w-full border rounded p-2"
-                                    placeholder="https://..."
-                                    value={grantForm.check_url}
-                                    onChange={(e) => setGrantForm(prev => ({ ...prev, check_url: e.target.value }))}
+                                    ref={checkFileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setIsUploadingCheck(true);
+                                        try {
+                                            const res = await uploadService.upload(file);
+                                            setGrantForm(prev => ({ ...prev, check_url: res.url }));
+                                            toast.success('Rasm yuklandi');
+                                        } catch {
+                                            toast.error('Rasmni yuklashda xatolik');
+                                        } finally {
+                                            setIsUploadingCheck(false);
+                                            if (checkFileInputRef.current) checkFileInputRef.current.value = '';
+                                        }
+                                    }}
                                 />
+                                {grantForm.check_url ? (
+                                    <div className="relative w-full border rounded overflow-hidden">
+                                        <img
+                                            src={grantForm.check_url}
+                                            alt="Chek"
+                                            className="w-full max-h-48 object-contain bg-gray-50"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setGrantForm(prev => ({ ...prev, check_url: '' }))}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => checkFileInputRef.current?.click()}
+                                        disabled={isUploadingCheck}
+                                        className="w-full border-2 border-dashed border-gray-300 rounded p-4 text-center text-sm text-gray-500 hover:border-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isUploadingCheck ? (
+                                            <span>Yuklanmoqda...</span>
+                                        ) : (
+                                            <span>📎 Rasm tanlash uchun bosing</span>
+                                        )}
+                                    </button>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Izoh (Comment)</label>
