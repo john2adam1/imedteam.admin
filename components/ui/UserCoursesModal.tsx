@@ -132,54 +132,10 @@ export function UserCoursesModal({ isOpen, onClose, user, allCourses, allTariffs
             return;
         }
 
-        // Check if user already has this course locally (in current page)
-        // Check if active (Active = ended_at is in the future OR today)
-        // We compare timestamps. We set the ended_at to the end of that day to be safe/inclusive.
-        const isLocallyActive = permissions.some(p => {
-            if (p.course_id !== grantForm.courseId) return false;
-            const endDate = new Date(p.ended_at);
-            // set end date to end of day to be inclusive
-            endDate.setHours(23, 59, 59, 999);
-            return endDate > new Date();
-        });
 
-        if (isLocallyActive) {
-            toast.error('Foydalanuvchi allaqachon ushbu kursga ega');
-            return;
-        }
 
         setIsSaving(true);
         try {
-            // Pre-check: Fetch permissions specifically for this course from backend
-            // Increase limit to find older permissions if API doesn't support strict filtering
-            console.log(`Checking existing permissions for User: ${user.id}, Course: ${grantForm.courseId}`);
-
-            // Try user_id and userId and student_id to be safe
-            const existingPermissions = await courseService.getPermissions(1, 100, {
-                user_id: user.id,
-                userId: user.id,
-                student_id: user.id
-            } as any);
-
-            console.log('Existing permissions fetched:', existingPermissions.data);
-
-            const hasActivePermission = existingPermissions.data.some(p => {
-                if (p.course_id !== grantForm.courseId) return false;
-
-                const endDate = new Date(p.ended_at);
-                endDate.setHours(23, 59, 59, 999);
-                const isActive = endDate > new Date();
-                console.log(`Permission ${p.id}: Course ${p.course_id} Ends ${p.ended_at} -> Active? ${isActive}`);
-                return isActive;
-            });
-
-            if (hasActivePermission) {
-                console.warn('Blocked by pre-check: User has active permission');
-                toast.error('Foydalanuvchi allaqachon ushbu kursga ega (Serverdagi ma\'lumot)');
-                setIsSaving(false);
-                return;
-            }
-
             const payload = {
                 user_id: user.id,
                 course_id: grantForm.courseId,
