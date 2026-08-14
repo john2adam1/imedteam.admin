@@ -85,7 +85,7 @@ export default function SubjectDetailPage() {
       const [subjectData, coursesResponse, teachersResponse, tariffsResponse] = await Promise.all([
         subjectService.getById(subjectId),
         courseService.getAll(subjectId, page, limit, activeFilters),
-        teacherService.getAll(),
+        teacherService.getAll(1, 1000),
         tariffService.getAll(),
       ]);
 
